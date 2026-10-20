@@ -25,6 +25,11 @@ is actually in the kitchen.
 - (eye) <to fill with Tarık>
 
 ## What we know (2026-10-20)
+- **Barcodes and per 100 g values are online for both stores (checked 2026-10-20 in Opera):**
+  Woolworths `GET /apis/ui/product/detail/{stockcode}` returns `Barcode` (EAN-13) and
+  `NutritionalInformation` per serving and per 100 g; its search API also returns `Barcode`.
+  Coles product pages carry `gtin` and a "Per 100g/ml" nutrition table in `__NEXT_DATA__`
+  (search results do not). Unofficial endpoints, fetched from a normal browser session; they may change.
 - **Coles receipts, in-store and online, item by item:** coles.com.au/account/orders → "Instore
   purchases" (Flybuys-linked), 6 pages × 20 receipts, all Coles Darwin; every receipt lists product,
   quantity and price. The page loads them as JSON from
@@ -72,6 +77,19 @@ values, no cooked conversion is needed, and raw grams subtract straight from pac
 - **Eating out:** left out of v1, or logged loosely by ingredients. History shows he has logged
   restaurant meals as one item ("Whopper junior by Burger King", "2X Chicken Royale and 2X Medium
   Chips"), so such foods simply never touch kitchen stock.
+- **v1 = the food log app** (MyNetDiary replacement). Stock from receipts and the weekly Discord
+  list are v1.1, after a spike tests "bought − logged" on 2–3 real weeks (riskiest assumption).
+- **Data:** on the phone (localStorage), synced to a private GitHub data repo with a fine-grained
+  token, the way Calisthenics-App syncs to Calisthenics-Data. App repo "Pantry" private with
+  GitHub Pages, like Calisthenics-App; made public when Tarık open-sources it. At the v1.2 merge,
+  Calisthenics moves into Pantry and its repo is retired.
+- **History:** all 464 MyNetDiary days are imported, so past days are real in the day strip.
+- **New product:** scan → look up the barcode in a catalogue built from Coles and Woolworths
+  product data → Open Food Facts → else type the label's per 100 g values once. Label photo read by
+  a model: not planned (maybe v1.3, Tarık).
+- **Acceptance (Eko's proposal, Tarık did not object):** a full week logged only in Pantry; a
+  frequent food takes ≤ 3 taps; any past day opens from the strip with its overage right; (eye) the
+  screen matches the final prototype on the phone.
 - **UI language:** English (Tarık, 2026-10-20); food names are English already and the repo may go public.
 
 ## MyNetDiary history (pulled 2026-10-20)
