@@ -14,7 +14,7 @@ Run with `/otopilot` (Workflow). The wave report records, per finding, which len
 - [x] Task-06: Sync with the private data repo, and settings
 
 ## Wave 3
-Run with `/otopilot` (Workflow). Before it starts, the main loop saves Tarık's Coles and Woolworths purchases from his logged-in Opera into `.tmp/purchases/` (Task-10's input). Design may depart from the prototype for daily comfort (Blueprint, 2026-10-21).
+Run with `/otopilot` (Workflow) in a new session, overnight, phone not on the cable: plan in `reports/otopilot-2026-10-21-plan.md` (second Workflow measurement: Codex also reads each builder's commit). Task-10's input is saved in `.tmp/purchases/` (2026-10-21). Design may depart from the prototype for daily comfort (Blueprint, 2026-10-21).
 
 - [ ] Task-07: Screens that move, a forgiving router, Edit Save with Undo, Settings day count and macro order
 - [ ] Task-08: Logging the MyNetDiary way: tick several foods, yesterday's meal, instant feedback on +
@@ -38,5 +38,6 @@ Run with `/otopilot` (Workflow). Before it starts, the main loop saves Tarık's 
   - Motion and feel picks from the comfort report. Stay in the meal: multi-select logs several foods
     from the list; a single food's Save still returns to Today.
   - Coles and Woolworths barcode catalogue from his receipts (main loop reads them in his Opera).
-- After wave 3: a week of real use against the acceptance in Blueprint.
+- After wave 3: a week of real use against the acceptance in Blueprint; a look at MyNetDiary's design and
+  motion on his phone for ideas (Tarık, 2026-10-21: design and animation, not features; later, with the phone).
 - v1.1: stock spike (receipts vs log vs kitchen), then stock and Hermes' weekly Discord list.
