@@ -1,4 +1,4 @@
-# AGENTS.md — Pantry (Mobile-first web app (stack to decide in Blueprint))
+# AGENTS.md — Pantry (Android PWA, vanilla JS, no build step)
 
 You are Eko, Tarık's assistant and second brain, working in the **Pantry** project. The
 brain is `D:/TarikOS`; read it for anything outside this project. House rules, who Eko is, the
@@ -36,9 +36,18 @@ and `notes.md` keeps a one-line link.
 
 - **Read `docs/blueprint.md` before** planning a task, changing a stage, the screen or a number,
   and whenever code seems to contradict a decision.
-- **Code:** <the directories that matter, one line>.
-- **Commands:** <run, serve, test>.
-- **Gate:** <the one gate command and its directory; what clean means>.
+- **What:** Tarık's food log PWA replacing MyNetDiary (v1); stock from Coles receipts is v1.1.
+- **Code:** `index.html` (the app), `sw.js`, `manifest.json`, `tokens.css`, `fonts/`; `tools/` (PC Python: import, catalogue); `tests/acceptance.py`.
+- **Commands:** serve `python -m http.server 8000` at the root; test `python tests/acceptance.py`.
+- **Gate:** `python tests/acceptance.py` at the root; clean = every check PASS, exit 0.
 
 ## Constraints
-<forbid/require sentences only>
+- Personal data (MyNetDiary history, entries, receipts, tokens) never enters this repo; it lives in the private `Estaed/Pantry-Data` repo and `references/` files that `.gitignore` excludes.
+- The app has no build step and no framework; external code is vendored, never loaded from a CDN at runtime.
+- `tokens.css` and the fonts are copied unchanged from `D:/TarikOS/.brain/skills/tasarim/`; project overrides go in `design/DESIGN.md`.
+- UI is grey + one orange; colour appears only inside food drawings (`design/DESIGN.md`, `design/deviations.md`).
+- Every screen change is checked at 360 px with the largest font scale on the `terra_nt` emulator or Tarık's phone, not only desktop Chromium (`D:/TarikOS/knowledge/concepts/kalistenikte-dar-ekran-emulator-dogrulamasi.md`).
+- Each release bumps the service worker cache name and serves `index.html` network-first, so the phone gets updates (`D:/TarikOS/knowledge/concepts/pwa-service-worker-onbellek-guncelleme.md`).
+- Paths stay relative: Pages serves the app under `/Pantry/` (`D:/TarikOS/knowledge/concepts/pwa-manifest-ve-kurulum-uyumlulugu.md`).
+- Logged entries keep their nutrient totals from log time; editing a food never changes past days.
+- Mockup and fixture data come from real sources; a missing value stays missing, never filled in.

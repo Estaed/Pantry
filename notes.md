@@ -128,6 +128,9 @@ Open: the drawing style (A thin line, B flat greys, C flat natural colours), Tar
 No stock screen in v1: the weekly Discord list covers stock (Tarık, 2026-10-20).
 
 ## After v1
+- 2026-10-20: stock (bought − logged) and Hermes' weekly Discord list: v1.1, after the spike in Blueprint.
+- 2026-10-20: new product from a photo of its label read by a model: maybe v1.3 (Tarık).
+- 2026-10-20: water, steps: not tracked in v1.
 - 2026-10-20: adding to the Coles/Woolworths trolley; no official API, browser automation is fragile.
 - 2026-10-20: auto-checkout with a virtual card; saves one tap, adds the riskiest step. Payment stays with Tarık.
 - 2026-10-20: merge with the workout app (v1.2, Tarık); body weight comes with it, not in v1 (Tarık no longer weighs in).
