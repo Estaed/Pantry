@@ -14,12 +14,12 @@ Run with `/otopilot` (Workflow). The wave report records, per finding, which len
 - [x] Task-06: Sync with the private data repo, and settings
 
 ## Wave 3
-Run with `/otopilot` (Workflow) in a new session, overnight, phone not on the cable: plan in `reports/otopilot-2026-10-21-plan.md` (second Workflow measurement: Codex also reads each builder's commit). Task-10's input is saved in `.tmp/purchases/` (2026-10-21). Design may depart from the prototype for daily comfort (Blueprint, 2026-10-21).
+Ran overnight 2026-10-21 (Workflow, phone not on the cable): `reports/otopilot-2026-10-21-report.md`. All four green on main; eye checks on the phone and Task-10's review answers wait for Tarık.
 
-- [ ] Task-07: Screens that move, a forgiving router, Edit Save with Undo, Settings day count and macro order
-- [ ] Task-08: Logging the MyNetDiary way: tick several foods, yesterday's meal, instant feedback on +
-- [ ] Task-09: Today in colour and motion: over budget at a glance, swipe the ring between days
-- [ ] Task-10: Barcode catalogue from his Coles and Woolworths purchases
+- [x] Task-07: Screens that move, a forgiving router, Edit Save with Undo, Settings day count and macro order
+- [x] Task-08: Logging the MyNetDiary way: tick several foods, yesterday's meal, instant feedback on +
+- [x] Task-09: Today in colour and motion: over budget at a glance, swipe the ring between days
+- [x] Task-10: Barcode catalogue from his Coles and Woolworths purchases
 
 ## Later waves (draft)
 - Wave 3 (being planned, 2026-10-21; history already uploaded to `Pantry-Data`). Sources:

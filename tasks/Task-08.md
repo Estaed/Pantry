@@ -1,4 +1,5 @@
 # Task-08: Logging the MyNetDiary way: several foods at once, yesterday's meal, instant feedback
+**Status: DONE** — verified 2026-10-21, eye check pending: 1 (a 4-food dinner in one visit, + feedback, sheet with the keyboard, on his phone)
 > **Execution:** agent `ultracode`
 > *Why:* a dinner of his is 3–5 foods, and today each one is a trip from Today to the list and back; logging is the act he repeats most.
 
@@ -34,15 +35,15 @@ Most of his time in the app is here; the multi-select and yesterday's meal remov
 instant feedback removes the moment of doubt after each tap.
 
 ## Acceptance
-- [ ] With fixture entries for dinner today, the list's summary line shows their count and kcal; after a + the line and the logged row's mark update without leaving the list.
-- [ ] Ticking three foods and tapping Add logs three entries, each with its usual amount and totals as a single + would have; Undo removes exactly those three; nothing is logged when none is ticked; tapping Add twice fast logs one set; the ticks are clear afterwards.
-- [ ] "Same as yesterday's <meal>" appears only when the shown day − 1 has entries in that meal (a list opened for 2026-08-08 offers 2026-08-07's); tapped twice fast it logs one set; it logs one new entry per yesterday's entry with the same amount and the same totals as yesterday's entry (log-time values, not recomputed from per100 — the test changes a food's per100 first), new ids, today's date; one Undo removes them all.
-- [ ] The + calls `Pantry.haptic('tap')`; when its click handler returns the check is visible and the document is still unchanged; the entry is saved on the next frame.
-- [ ] The gram sheet opens with the amount selected; Enter with a valid amount logs like the Add button; with an invalid one it says why and logs nothing.
-- [ ] No chip shows a use count; macros on the sheet and on New food read carbs, protein, fat.
-- [ ] Logged entries keep their nutrient totals from log time (Blueprint): editing a food after logging never changes them (existing check stays green).
-- [ ] At 360 × 780 and text 1.0: no horizontal scroll, long names end with an ellipsis, no console errors, dark and light render.
-- [ ] Each test added fails once when the behaviour it protects is broken (shown in the report, restored).
+- [x] With fixture entries for dinner today, the list's summary line shows their count and kcal; after a + the line and the logged row's mark update without leaving the list.
+- [x] Ticking three foods and tapping Add logs three entries, each with its usual amount and totals as a single + would have; Undo removes exactly those three; nothing is logged when none is ticked; tapping Add twice fast logs one set; the ticks are clear afterwards.
+- [x] "Same as yesterday's <meal>" appears only when the shown day − 1 has entries in that meal (a list opened for 2026-08-08 offers 2026-08-07's); tapped twice fast it logs one set; it logs one new entry per yesterday's entry with the same amount and the same totals as yesterday's entry (log-time values, not recomputed from per100 — the test changes a food's per100 first), new ids, today's date; one Undo removes them all.
+- [x] The + calls `Pantry.haptic('tap')`; when its click handler returns the check is visible and the document is still unchanged; the entry is saved on the next frame.
+- [x] The gram sheet opens with the amount selected; Enter with a valid amount logs like the Add button; with an invalid one it says why and logs nothing.
+- [x] No chip shows a use count; macros on the sheet and on New food read carbs, protein, fat.
+- [x] Logged entries keep their nutrient totals from log time (Blueprint): editing a food after logging never changes them (existing check stays green).
+- [x] At 360 × 780 and text 1.0: no horizontal scroll, long names end with an ellipsis, no console errors, dark and light render.
+- [x] Each test added fails once when the behaviour it protects is broken (shown in the report, restored).
 - [ ] (eye) On Tarık's phone: logging a 4-food dinner takes one visit to the list; the feedback on + feels immediate; after integration with Task-07, the sheet's Add stays visible with the keyboard open.
 
 ## Out of scope

@@ -11,3 +11,22 @@
 - **Edit an entry is its own screen in v1** (design *8* draws a sheet over the day). Routes replace the
   screen, so a sheet over Today would need Today to host it; the screen keeps the sheet's content and
   order. Revisit after v1 if the day behind it is missed.
+
+## Departures from the prototype, wave 3 (2026-10-21; builders' proposals, Tarık keeps or drops)
+- **Over tone is the base `chart-5` violet**: ring, corner swatches, kcal-left number, the day's tank and any
+  macro bar past its target. The warm status tokens sit within ΔE 0.05–0.08 of the orange accent and would
+  read as it. Today's own strip cell shows over too, and over wins over the shown day's orange fill.
+- **Today**: a past day has a "Today" action left of the gear; tapping a strip day switches in place (the
+  strip moves only when the shown day leaves it); the whole ring area takes the day swipe.
+- **Meal list**: "In dinner: 2 foods, 1,422 kcal" under the title; a food's drawing is its tick (filled
+  circle with a check when ticked); a grey check badge on a food already in that meal; a sticky "Add N to
+  <meal>" bar with a clear button; the + turns into a check for the 4 s its toast shows; a "Same as
+  yesterday's <meal>" row naming its foods.
+- **Gram sheet**: chips without use counts, plus a "<grams> pack" chip when the food has a pack; the amount
+  opens focused and selected, Enter logs.
+- **Macro order carbs, protein, fat** on Today, the gram sheet, New food and Settings (Blueprint 2026-10-21).
+- **Toasts**: Edit entry's Save shows "Saved, <amount>" with the food's drawing and Undo, as Delete does; a
+  + names the food ("350 g of Chicken Breast Raw added to dinner"), several foods get a combined drawing.
+- **Settings data row**: "Days logged / MyNetDiary (+ Pantry only) / <range> / 464 (+2)".
+- **Screen motion** follows Tarik Base v6 → Motion (push in from the right, back reverses, Today crossfades);
+  the prototype is static.

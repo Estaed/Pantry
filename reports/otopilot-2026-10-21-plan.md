@@ -12,10 +12,13 @@ Written at the end of the wave 2 session for a new session that Tarık starts wi
   rule in Blueprint or `design/DESIGN.md` outranks the reference screen; the text size target is 1.0;
   the prototype may be departed from for daily comfort (Blueprint → Decisions 2026-10-21).
 - **SOURCE:** tasks (Task-07..10). **UNTIL:** done.
-- **BASE_SHA:** set by the new session after its preflight (`onkontrol.py --tasks 07,08,09,10`).
+- **BASE_SHA:** `5737ba0419f75d6ea6335f2cf421866aa7a094d8` (preflight `onkontrol.py --tasks 07,08,09,10 --features 4`
+  OVERALL OK at 03:46; gate ALL PASS on main and in a worktree, 141 s).
+- **Started:** 03:51, Workflow `wf_6f611c8b-d3e` (Tarık's "wave 3 basla" plus "workflowlu yapacagiz"); quota at start:
+  Claude 5-hour 0 % (reset 03:39), 7-day 38-40 %; Codex 5-hour 19 %, weekly 4 %.
 - **Quota when written (02:25):** Claude 5-hour 93 % (resets 03:39), 7-day 40 %; Codex 5-hour 19 %,
   weekly 4 %. Start after the 5-hour reset. Preflight's estimate: ~16 weekly points for 4 features.
-- **Wake lock:** `uyanik_tut.py` (Tarık away). **Timebox:** 150 min per feature.
+- **Wake lock:** `uyanik_tut.py` (Tarık away), PID 29728. **Timebox:** 150 min per feature.
 - **After v1 repeats:** none.
 
 | Task | Agent | Model / effort | OWNS | Lenses |

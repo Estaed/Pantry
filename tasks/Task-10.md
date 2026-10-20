@@ -1,4 +1,5 @@
 # Task-10: Barcode catalogue from his Coles and Woolworths purchases
+**Status: DONE** — verified 2026-10-21 (Tarık still judges the 20 sampled matches and answers the 48 review lines)
 > **Execution:** agent `ultracode`
 > *Why:* a scanned product he has bought before should be found without typing its label, and most of what he scans comes from these two stores.
 
@@ -38,14 +39,14 @@ answer names a stockcode whose details were not captured, the tool lists the sto
 Retires the "type the label" step for most products he scans, and gives v1.1 its bought side.
 
 ## Acceptance
-- [ ] On fixture inputs (public product data from both stores in `tests/fixtures/catalogue/`, receipts built in the test code in the real shapes), the command writes the expected catalogue items: barcode, name, brand, size, store, per100 with kcal from kJ to one decimal of the label's own value.
-- [ ] A Coles receipt with a multi-buy and a weighed item, and a Woolworths receipt with a discount line, become the right purchase lines (quantity, weight, price after discount).
-- [ ] A Woolworths line with one clear search match gets that product; with none or several close ones it goes to the review list and gets no catalogue item; an answer saved in the review file is used on the next run.
-- [ ] A product without a barcode gets no catalogue item; two receipts of the same product give one item; a label value of "-" or "< 1 g" is absent in per100.
-- [ ] The merged document passes the app's own check: the test loads it in the app (`Pantry.problem()` stays null).
-- [ ] `--merge <pantry-data.json>` replaces only `catalogue` and leaves (parsed-equal) foods, entries, settings and removed byte-for-byte equal; it refuses a file whose `version` it does not know.
-- [ ] Run once on the real captured data in `.tmp/purchases/`: the report gives the counts (receipts, lines, products, items with barcode, review items, skipped) and the auto-match rate, with 20 sampled line → product pairs for Tarık to judge; no personal data is written inside the repo.
-- [ ] Each test added fails once when the behaviour it protects is broken (shown in the report, restored).
+- [x] On fixture inputs (public product data from both stores in `tests/fixtures/catalogue/`, receipts built in the test code in the real shapes), the command writes the expected catalogue items: barcode, name, brand, size, store, per100 with kcal from kJ to one decimal of the label's own value.
+- [x] A Coles receipt with a multi-buy and a weighed item, and a Woolworths receipt with a discount line, become the right purchase lines (quantity, weight, price after discount).
+- [x] A Woolworths line with one clear search match gets that product; with none or several close ones it goes to the review list and gets no catalogue item; an answer saved in the review file is used on the next run.
+- [x] A product without a barcode gets no catalogue item; two receipts of the same product give one item; a label value of "-" or "< 1 g" is absent in per100.
+- [x] The merged document passes the app's own check: the test loads it in the app (`Pantry.problem()` stays null).
+- [x] `--merge <pantry-data.json>` replaces only `catalogue` and leaves (parsed-equal) foods, entries, settings and removed byte-for-byte equal; it refuses a file whose `version` it does not know.
+- [x] Run once on the real captured data in `.tmp/purchases/`: the report gives the counts (receipts, lines, products, items with barcode, review items, skipped) and the auto-match rate, with 20 sampled line → product pairs for Tarık to judge; no personal data is written inside the repo.
+- [x] Each test added fails once when the behaviour it protects is broken (shown in the report, restored).
 
 ## Out of scope
 - Fetching from the stores (the main loop does it in Tarık's browser), uploading to `Pantry-Data` (main loop), any app screen, stock numbers.

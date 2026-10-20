@@ -1,4 +1,5 @@
 # Task-09: Today in colour and motion: over budget at a glance, swipe between days
+**Status: DONE** — verified 2026-10-21, eye check pending: 1 (over budget at a glance, ring swipe, strip under the finger, on his phone)
 > **Execution:** agent `ultracode`
 > *Why:* on his phone going over budget changed nothing he could notice, the strip jumps under his finger, and the screen gives no sign of what a log changed.
 
@@ -35,14 +36,14 @@ departure in the report for `design/deviations.md`.
 Today is the screen he opens 20+ times a day; the budget state and the day are what he reads there.
 
 ## Acceptance
-- [ ] Within budget the ring, kcal-left number and day cells use the within tone; once the rounded number shown passes the budget by 1 they switch to the over tone and the number reads how much over; each macro bar is within or over by its own target; a day with no entries stays neutral. Tests read computed colours, in dark and light, and the two states differ.
-- [ ] A left swipe on the ring opens the next day, a right swipe the previous one; on today a left swipe does nothing; a vertical scroll that starts on the ring still scrolls the page.
-- [ ] Tapping three days in the strip (or swiping the ring) and pressing back once returns to the day shown before the first switch; the strip's position does not change on a tap; a past day offers Today, which switches to today in place.
-- [ ] After an entry is added for dinner, returning to Today animates only what changed (the dinner arc, the bars, the numbers), and the kcal-left number finishes last; with reduced motion nothing moves; a return with no change starts no animation, and a `Pantry.setSyncState` right after a return does not replay it.
-- [ ] Macros read carbs, protein, fat everywhere on Today.
-- [ ] The existing Today checks stay green, updated only where an assertion pinned the old order or colour (each such line listed in the report).
-- [ ] At 360 × 780 and text 1.0: no horizontal scroll, no console errors, dark and light render.
-- [ ] Each test added fails once when the behaviour it protects is broken (shown in the report, restored).
+- [x] Within budget the ring, kcal-left number and day cells use the within tone; once the rounded number shown passes the budget by 1 they switch to the over tone and the number reads how much over; each macro bar is within or over by its own target; a day with no entries stays neutral. Tests read computed colours, in dark and light, and the two states differ.
+- [x] A left swipe on the ring opens the next day, a right swipe the previous one; on today a left swipe does nothing; a vertical scroll that starts on the ring still scrolls the page.
+- [x] Tapping three days in the strip (or swiping the ring) and pressing back once returns to the day shown before the first switch; the strip's position does not change on a tap; a past day offers Today, which switches to today in place.
+- [x] After an entry is added for dinner, returning to Today animates only what changed (the dinner arc, the bars, the numbers), and the kcal-left number finishes last; with reduced motion nothing moves; a return with no change starts no animation, and a `Pantry.setSyncState` right after a return does not replay it.
+- [x] Macros read carbs, protein, fat everywhere on Today.
+- [x] The existing Today checks stay green, updated only where an assertion pinned the old order or colour (each such line listed in the report).
+- [x] At 360 × 780 and text 1.0: no horizontal scroll, no console errors, dark and light render.
+- [x] Each test added fails once when the behaviour it protects is broken (shown in the report, restored).
 - [ ] (eye) On Tarık's phone: over budget is obvious at a glance; swiping the ring between days feels natural; the strip stays still under his finger.
 
 ## Out of scope

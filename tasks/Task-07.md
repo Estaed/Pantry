@@ -1,4 +1,5 @@
 # Task-07: Screens that move, a router that forgives, Settings and Edit that answer
+**Status: DONE** — verified 2026-10-21, eye check pending: 1 (screen motion, back swipe and the grams button with the keyboard, on his phone)
 > **Execution:** agent `ultracode`
 > *Why:* every screen change is a hard cut today, a fast second tap lands on the wrong screen, and Edit saves silently; this is the "animasyon eksikliği" Tarık feels first.
 
@@ -37,16 +38,16 @@ Motion and a forgiving router are the shared layer every other wave 3 screen sit
 silent defects (double tap, silent save) were found in wave 2 and left open.
 
 ## Acceptance
-- [ ] A push, a back and a return-to-Today each run their own transition; the test reads which one ran (e.g. a type or class the transition sets) and the screen that results; with reduced motion no element moves (opacity only).
-- [ ] When a popstate reports that the browser already animated it, the app runs no transition of its own.
-- [ ] Two taps within 350 ms: the second does nothing, whether it lands on a navigation (Delete tapped twice ends on Today, not on Add) or on a control that changes data (a list row's + logs nothing); a tap 400 ms later works; back-to-back `Pantry.go` calls and popstates are never dropped, so `tests/acceptance.py` and `tests/test_core.py` stay green unchanged. Tests use the event time, never sleep.
-- [ ] Today's scroll position comes back after list → Today via back; a save that returns with `Pantry.go('today', date)` opens Today at the top.
-- [ ] A back during a running transition ends on the right screen with no console error (a skipped transition's rejected promise is handled).
-- [ ] Edit entry Save: one toast "Saved, <amount>" with Undo and the food's drawing; Undo makes the entry deep-equal to before; the toast does not survive a second screen change.
-- [ ] Settings: the split editor reads and writes carbs, protein, fat in that order and saves the same `settings.targets` shape as before (a document saved by wave 2 opens unchanged); the history row reads exactly "0" (empty log), "464" (the full import), "0 (+3)" (three Pantry-only days) and "464 (+2)" (the import plus two Pantry-only days, with one more Pantry entry on 2026-10-20 that adds no day).
-- [ ] `Pantry`'s public API keeps every name and signature listed in the header of `app/core.js` (a test lists them).
-- [ ] At 360 × 780 and text 1.0: no horizontal scroll, no console errors, dark and light render.
-- [ ] Each test added fails once when the behaviour it protects is broken (shown in the report, restored).
+- [x] A push, a back and a return-to-Today each run their own transition; the test reads which one ran (e.g. a type or class the transition sets) and the screen that results; with reduced motion no element moves (opacity only).
+- [x] When a popstate reports that the browser already animated it, the app runs no transition of its own.
+- [x] Two taps within 350 ms: the second does nothing, whether it lands on a navigation (Delete tapped twice ends on Today, not on Add) or on a control that changes data (a list row's + logs nothing); a tap 400 ms later works; back-to-back `Pantry.go` calls and popstates are never dropped, so `tests/acceptance.py` and `tests/test_core.py` stay green unchanged. Tests use the event time, never sleep.
+- [x] Today's scroll position comes back after list → Today via back; a save that returns with `Pantry.go('today', date)` opens Today at the top.
+- [x] A back during a running transition ends on the right screen with no console error (a skipped transition's rejected promise is handled).
+- [x] Edit entry Save: one toast "Saved, <amount>" with Undo and the food's drawing; Undo makes the entry deep-equal to before; the toast does not survive a second screen change.
+- [x] Settings: the split editor reads and writes carbs, protein, fat in that order and saves the same `settings.targets` shape as before (a document saved by wave 2 opens unchanged); the history row reads exactly "0" (empty log), "464" (the full import), "0 (+3)" (three Pantry-only days) and "464 (+2)" (the import plus two Pantry-only days, with one more Pantry entry on 2026-10-20 that adds no day).
+- [x] `Pantry`'s public API keeps every name and signature listed in the header of `app/core.js` (a test lists them).
+- [x] At 360 × 780 and text 1.0: no horizontal scroll, no console errors, dark and light render.
+- [x] Each test added fails once when the behaviour it protects is broken (shown in the report, restored).
 - [ ] (eye) On Tarık's phone: opening and leaving each screen feels smooth and quick, nothing double-animates on the back swipe, and the grams field's button stays visible with the keyboard open.
 
 ## Out of scope

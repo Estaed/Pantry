@@ -95,7 +95,7 @@ order on scan: his foods → catalogue → Open Food Facts → typed from the la
   (created when absent), so sync never brings it back. Editing an entry's grams scales its own
   totals by new ÷ old grams; it never recomputes them from the food.
 - `doc.catalogue`: `[{ barcode, name, brand?, size?, store: "coles"|"woolworths", per100 }]`,
-  written by the PC catalogue tool through the data repo, read by scan. Absent until wave 3.
+  written by `tools/catalogue.py --merge` into the data repo's document, read by scan.
 - `window.PantryDrawing(food, size)` (`app/drawings.js`) draws a food; `PantryDrawing.named(key)`.
 - A feature's tests live in its own `tests/test_<feature>.py`, reuse the helpers in
   `tests/acceptance.py` (import it, never edit it) and run in the gate. Tests reach their screen by
