@@ -295,6 +295,16 @@ def check_servings(browser, errors):
     e = stored(page)["entries"][-1]
     CHECK("a serving food with no entry gets kcal only, from its serving",
           e.get("foodId") == "test-tablet" and e.get("totals") == {"kcal": 10} and e.get("grams") is None and e.get("amount") == "2 tablets", e)
+
+    page.evaluate("""() => Pantry.change(d => { d.foods.push({ id: 'test-bottle', name: 'Test Cola', servings: [
+        { label: '250 ml', grams: null, kcal: 105 }], source: 'label' }); })""")
+    go(page, "food", "test-bottle", "snacks")
+    page.locator(".log-sheet input[name=amount], [data-screen] form input[name=amount]").last.fill("1250")
+    page.get_by_role("button", name="Add to snacks").click()
+    page.wait_for_selector('[data-screen="today"]')
+    e = stored(page)["entries"][-1]
+    CHECK("an ml drink logs a whole 1.25 l bottle: 1250 ml, kcal from its 250 ml serving (525)",
+          e.get("foodId") == "test-bottle" and e.get("amount") == "1250 ml" and e.get("totals") == {"kcal": 525}, e)
     ctx.close()
 
 

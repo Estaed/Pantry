@@ -637,7 +637,7 @@
     const chipBox = form.querySelector('.log-chips');
     const sheet = { foodId: food.id, layer, form, refresh: null, done: false };
     const meal = () => form.elements.meal.value;
-    const read = () => readNumber(input.value, grams ? MAX_GRAMS : 1000, grams ? 1 : 2);
+    const read = () => readNumber(input.value, grams || MEASURES.has(unit) ? MAX_GRAMS : 1000, grams ? 1 : 2);   // a 1.25 l bottle is 1,250 ml
 
     function refresh() {
       const f = P.doc().foods.find(x => x.id === food.id) || food;
