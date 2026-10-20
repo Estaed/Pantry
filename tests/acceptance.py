@@ -573,19 +573,17 @@ def check_scan(browser, url, errors):
           "cannot read EAN-13" in status(page) and "qr_code" in status(page) and page.evaluate("() => window.__fake.gum") == 0, status(page))
     ctx.close()
 
-    reads = [[], [], [], [EAN_BAD], ["QR-NOT-A-PACK"], [EAN]]
+    # A valid code now opens New food (Task-04); that flow, with Open Food Facts mocked, is in tests/test_scan.py.
+    reads = [[], [], [], [EAN_BAD], ["QR-NOT-A-PACK"], []]
     ctx, page = scan_page(browser, url, errors, "scan", {"formats": ["ean_13", "qr_code"], "reads": reads})
-    code = page.locator('[data-test="scan-code"]')
-    code.wait_for(state="visible")
-    digits = re.sub(r"\D", "", code.inner_text())
-    fake = page.evaluate("() => ({ gum: window.__fake.gum, formats: window.__fake.formats, source: window.__fake.source, facing: window.__fake.constraints.video.facingMode, detect: window.__fake.detect })")
-    check("scan opens the rear camera, asks the reader for ean_13 and shows the EAN-13 it read",
-          digits == EAN and fake["formats"] == ["ean_13"] and fake["source"] == "VIDEO"
-          and fake["facing"] == {"ideal": "environment"} and fake["detect"] >= len(reads), (digits, fake))
-    check("a read with a wrong check digit is never shown", EAN_BAD not in page.locator('[data-screen="scan"]').inner_text().replace(" ", ""))
-    check("the read says how long it took", re.search(r"Read in \d+\.\d s", page.locator('[data-screen="scan"]').inner_text()) is not None)
+    page.wait_for_function(f"() => window.__fake.detect >= {len(reads) + 2}")
+    fake = page.evaluate("() => ({ gum: window.__fake.gum, formats: window.__fake.formats, source: window.__fake.source, facing: window.__fake.constraints.video.facingMode })")
+    check("scan opens the rear camera and asks the reader for ean_13 from the video",
+          fake["formats"] == ["ean_13"] and fake["source"] == "VIDEO" and fake["facing"] == {"ideal": "environment"}, fake)
+    check("a read with a wrong check digit is never shown or looked up",
+          page.locator('[data-test="scan-code"]').is_hidden() and page.locator('[data-screen="scan"]').count() == 1)
     check("the camera is live while scanning", page.evaluate(TRACKS_JS) == ["live"], page.evaluate(TRACKS_JS))
-    fits(page, "scan screen with a read, 150 % text")
+    fits(page, "scan screen while scanning, 150 % text")
 
     page.get_by_role("button", name="Back").click()
     page.wait_for_selector('[data-screen="today"]')

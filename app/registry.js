@@ -7,3 +7,7 @@ PANTRY_FEATURES.push('app/today.js');
 PANTRY_FEATURES.push('app/log.js');
 PANTRY_FEATURES.push('app/scan.js');
 PANTRY_FEATURES.push('app/drawings.js');
+PANTRY_FEATURES.push('app/entry.js');
+PANTRY_FEATURES.push('app/sync.js');
+PANTRY_FEATURES.push('app/settings.js');
+PANTRY_FEATURES.push('app/newfood.js');
