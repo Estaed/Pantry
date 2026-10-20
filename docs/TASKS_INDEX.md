@@ -13,6 +13,14 @@ Run with `/otopilot` (Workflow). The wave report records, per finding, which len
 - [x] Task-05: Edit, move and delete an entry
 - [x] Task-06: Sync with the private data repo, and settings
 
+## Wave 3
+Run with `/otopilot` (Workflow). Before it starts, the main loop saves Tarık's Coles and Woolworths purchases from his logged-in Opera into `.tmp/purchases/` (Task-10's input). Design may depart from the prototype for daily comfort (Blueprint, 2026-10-21).
+
+- [ ] Task-07: Screens that move, a forgiving router, Edit Save with Undo, Settings day count and macro order
+- [ ] Task-08: Logging the MyNetDiary way: tick several foods, yesterday's meal, instant feedback on +
+- [ ] Task-09: Today in colour and motion: over budget at a glance, swipe the ring between days
+- [ ] Task-10: Barcode catalogue from his Coles and Woolworths purchases
+
 ## Later waves (draft)
 - Wave 3 (being planned, 2026-10-21; history already uploaded to `Pantry-Data`). Sources:
   `reports/2026-10-21-qol-research.md`, `reports/2026-10-21-woolworths-research.md`, and Tarık's list
