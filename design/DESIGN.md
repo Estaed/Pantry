@@ -22,3 +22,9 @@ not named here follows the base.
   haftalık gösterge sevmedim"), so the main screen carries no week. Wants total kcal visible, and
   MyNetDiary's three side-by-side macro bars that change with the day ("hangisi daha fazla ise o
   üstü"), improved, possibly with V8's macro ring. Round 5 (`design/yonler-3.html`).
+- 2026-10-20, round 5 (`design/yonler-3.html`): picked A3 (each meal owns the quarter facing its
+  corner) but with no outer overflow line: a meal past its quarter runs on into the next one, in its
+  own tone, the way A2's segments share one ring ("birbirlerinin alanlarına girsinler"); picked B1
+  (one row, each macro's width = its share of today's kcal). The week is not dropped: he used
+  MyNetDiary's strip to see past overages and to jump to a day by tapping or swiping. Round 6
+  (`design/yonler-4.html`) draws day navigation that also shows overage.
