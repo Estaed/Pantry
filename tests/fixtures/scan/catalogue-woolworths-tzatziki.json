@@ -1,0 +1,17 @@
+{
+ "note": "One doc.catalogue item (Blueprint, Screens and seams) holding exactly the Woolworths product data that design/screens.html shows for the scanned tzatziki (6. Found in Woolworths): name, pack size and the six values per 100 g. Brand, salt and fibre are not shown there, so they stay absent.",
+ "item": {
+  "barcode": "9312726072232",
+  "name": "Willow Farm Dip Tzatziki 200g",
+  "size": "200g",
+  "store": "woolworths",
+  "per100": {
+   "kcal": 108,
+   "protein": 5.7,
+   "carbs": 8.4,
+   "sugars": 3.4,
+   "fat": 5.5,
+   "satFat": 2.2
+  }
+ }
+}

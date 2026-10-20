@@ -1,0 +1,11 @@
+{
+ "url": "https://world.openfoodfacts.org/api/v2/product/9300000000026.json?fields=product_name,brands,quantity,nutriments",
+ "fetched": "2026-10-20T13:11:52Z",
+ "status": 404,
+ "note": "Open Food Facts' answer for a code with a valid check digit that it does not know, saved unchanged as fetched (curl, Date header).",
+ "body": {
+  "code": "9300000000026",
+  "status": 0,
+  "status_verbose": "product not found"
+ }
+}
