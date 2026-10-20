@@ -1,4 +1,5 @@
 # Task-01: Import the MyNetDiary history
+**Status: DONE** — verified 2026-10-20
 > **Execution:** agent `ultracode`
 > *Why:* v1 starts with Tarık's 464 real days and 115 foods, so his frequent lists and past days are full on day one.
 
@@ -30,16 +31,16 @@ Without it the app opens empty and the day strip shows nothing; with it every v1
 (frequent foods, past days, overage) runs on real data.
 
 ## Acceptance
-- [ ] `python tools/import_mynetdiary.py references/mynetdiary-history-2026-10-20.json -o .tmp/pantry-data.json` writes the document and prints the summary; on this source: 464 days, 2,722 entries, 115 foods, 16 foods without grams.
-- [ ] Per day, the output's kcal, protein, carbs, fat and salt sums equal the source entries' sums (within 1 kcal and 0.1 g); any mismatch makes the tool exit non-zero and write nothing. Days whose `eaten` differs from their entries are listed in the summary, not fatal (on this source: 2026-04-06).
-- [ ] Ids are stable across re-imports: food id = MyNetDiary `foodId`, entry id = `<date>-<entryNo>`.
-- [ ] A food's `per100.kcal` = its `gram` serving's kcal × 100 (present on every food with grams; butter comes out at 616.6, not 600 or 620 from a small entry); its other per 100 g values come from its entry with the most grams.
-- [ ] A food that never has grams has no `per100`; its servings keep label and `kcal` with `grams: null`, so it can be logged again by serving.
-- [ ] Nutrient mapping: carbs = `totalCarbs`, fat = `totalFat`, satFat = `satFat`, fibre = `fiber`, salt = `sodium` (mg) × 2.5 / 1000 g with `sodium` kept as is; the other MyNetDiary nutrients keep their names; `netCarbs` and `diabetesCarbCount` are dropped. A nutrient missing in the source stays absent, never 0; on the full source, entries with empty nutrients carry totals with `kcal` only.
-- [ ] name = `cleanName`, brand = `vendor` (absent when MyNetDiary has none); meals map Breakfast, Lunch, Dinner, Snacks to `breakfast`, `lunch`, `dinner`, `snacks`; `amount` stays as typed ("4 eggs", "2 scoops").
-- [ ] The output follows the document shape fixed in `tasks/Task-00.md`; settings hold the targets from `notes.md` (2,200 kcal; protein 20 %, carbs 45 %, fat 35 %; salt 5.8 g), written in the tool since the source has none.
-- [ ] The tool refuses an output path that `git check-ignore` does not report as ignored, and never writes inside `references/`.
-- [ ] `python tests/test_import.py` runs the tool on `tests/fixtures/mynetdiary-slice.json` and checks the cases above; it corrupts one fixture entry's kcal and asserts the tool exits non-zero and writes no file; when the full source exists it also checks the full counts, the 2026-04-06 listing, butter's 616.6 and the empty-nutrients case, and says so when it skips them.
+- [x] `python tools/import_mynetdiary.py references/mynetdiary-history-2026-10-20.json -o .tmp/pantry-data.json` writes the document and prints the summary; on this source: 464 days, 2,722 entries, 115 foods, 16 foods without grams.
+- [x] Per day, the output's kcal, protein, carbs, fat and salt sums equal the source entries' sums (within 1 kcal and 0.1 g); any mismatch makes the tool exit non-zero and write nothing. Days whose `eaten` differs from their entries are listed in the summary, not fatal (on this source: 2026-04-06).
+- [x] Ids are stable across re-imports: food id = MyNetDiary `foodId`, entry id = `<date>-<entryNo>`.
+- [x] A food's `per100.kcal` = its `gram` serving's kcal × 100 (present on every food with grams; butter comes out at 616.6, not 600 or 620 from a small entry); its other per 100 g values come from its entry with the most grams.
+- [x] A food that never has grams has no `per100`; its servings keep label and `kcal` with `grams: null`, so it can be logged again by serving.
+- [x] Nutrient mapping: carbs = `totalCarbs`, fat = `totalFat`, satFat = `satFat`, fibre = `fiber`, salt = `sodium` (mg) × 2.5 / 1000 g with `sodium` kept as is; the other MyNetDiary nutrients keep their names; `netCarbs` and `diabetesCarbCount` are dropped. A nutrient missing in the source stays absent, never 0; on the full source, entries with empty nutrients carry totals with `kcal` only.
+- [x] name = `cleanName`, brand = `vendor` (absent when MyNetDiary has none); meals map Breakfast, Lunch, Dinner, Snacks to `breakfast`, `lunch`, `dinner`, `snacks`; `amount` stays as typed ("4 eggs", "2 scoops").
+- [x] The output follows the document shape fixed in `tasks/Task-00.md`; settings hold the targets from `notes.md` (2,200 kcal; protein 20 %, carbs 45 %, fat 35 %; salt 5.8 g), written in the tool since the source has none.
+- [x] The tool refuses an output path that `git check-ignore` does not report as ignored, and never writes inside `references/`.
+- [x] `python tests/test_import.py` runs the tool on `tests/fixtures/mynetdiary-slice.json` and checks the cases above; it corrupts one fixture entry's kcal and asserts the tool exits non-zero and writes no file; when the full source exists it also checks the full counts, the 2026-04-06 listing, butter's 616.6 and the empty-nutrients case, and says so when it skips them.
 
 ## Out of scope
 - Uploading to the data repo (the sync task does that).

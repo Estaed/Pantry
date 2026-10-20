@@ -2,7 +2,7 @@
 
 ## Wave 1
 - [ ] Task-00: Thinnest path — PWA shell, data document, log a food, kcal left, camera scan probe, the gate
-- [ ] Task-01: Import the 464-day MyNetDiary history into the data document
+- [x] Task-01: Import the 464-day MyNetDiary history into the data document
 
 ## Later waves (draft)
 - Wave 2 (needs Task-00's registry and core; each feature one `app/<feature>.js`):
