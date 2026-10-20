@@ -14,7 +14,19 @@ Run with `/otopilot` (Workflow). The wave report records, per finding, which len
 - [x] Task-06: Sync with the private data repo, and settings
 
 ## Later waves (draft)
-- Wave 3: build the Coles barcode catalogue from his receipts into `doc.catalogue` (main loop, logged-in
-  browser); upload the imported history to `Pantry-Data` before his first sync; deploy; a week of real
-  use against the acceptance in Blueprint.
+- Wave 3 (being planned, 2026-10-21; history already uploaded to `Pantry-Data`). Sources:
+  `reports/2026-10-21-qol-research.md`, `reports/2026-10-21-woolworths-research.md`, and Tarık's list
+  after his first day on the phone:
+  - Over budget changes the screen: today the only sign is a word; it should be seen at a glance.
+  - Status colour: green while within budget, red once over (as MyNetDiary does), on the ring, bars
+    and strip. A second colour beside the one orange (Tarık: "bize bir renk daha lazım sanki").
+  - Macro order carbs, protein, fat everywhere (carbs in the middle reads oddly).
+  - The "59×" use counts beside the gram chips are unclear: drop or explain them.
+  - The toast can be swiped away; today he has to wait it out.
+  - Swiping the ring left or right moves to the previous or next day.
+  - Settings counts every day: MyNetDiary days plus Pantry days ("460 (+10)"), not "0 days".
+  - Adding a food and scanning work the way MyNetDiary does (looked at on his phone).
+  - Motion and feel picks from the comfort report; stay in the meal after Add (open question).
+  - Coles and Woolworths barcode catalogue from his receipts (main loop reads them in his Opera).
+- After wave 3: a week of real use against the acceptance in Blueprint.
 - v1.1: stock spike (receipts vs log vs kitchen), then stock and Hermes' weekly Discord list.

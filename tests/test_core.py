@@ -88,6 +88,27 @@ def main():
         page.get_by_role("button", name="Undo").click()
         A.check("the toast's action runs and the toast closes", page.evaluate("__undone") == 1 and page.locator("#toast .toast").count() == 0)
 
+        # toast: belongs to its action, so the second screen change after it removes it; a swipe dismisses it
+        page.evaluate("() => Pantry.toast('kept for one screen change')")
+        page.evaluate("Pantry.go('today')")
+        page.wait_for_selector('[data-screen="today"]')
+        one = page.locator("#toast .toast").count()
+        page.evaluate("Pantry.go('probeargs')")
+        page.wait_for_selector('[data-screen="probeargs"]')
+        A.check("a toast survives the screen change its action caused, not the next one",
+                one == 1 and page.locator("#toast .toast").count() == 0, (one, page.locator("#toast .toast").count()))
+        page.evaluate("() => Pantry.toast('swipe me', { drawing: '<svg></svg>' })")
+        box = page.locator("#toast .toast").bounding_box()
+        art = page.locator("#toast .toast-art svg").count()
+        page.mouse.move(box["x"] + 40, box["y"] + box["height"] / 2)
+        page.mouse.down()
+        page.mouse.move(box["x"] + 140, box["y"] + box["height"] / 2, steps=6)
+        page.mouse.up()
+        A.check("a toast carries the food's drawing and a sideways swipe dismisses it",
+                art == 1 and page.locator("#toast .toast").count() == 0, (art, page.locator("#toast .toast").count()))
+        A.check("Pantry.haptic exists and is silent without vibration; Pantry.MACROS is carbs, protein, fat",
+                page.evaluate("() => { Pantry.haptic('tap'); return Pantry.MACROS.join(','); }") == "carbs,protein,fat")
+
         A.check("no console errors or page errors", not errors, errors)
         browser.close()
     srv.shutdown()

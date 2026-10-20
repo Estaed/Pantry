@@ -14,6 +14,11 @@ not named here follows the base.
 - **Text size target: 1.0** (base: support 200 % without clipping). Tarık, 2026-10-21: "yazı boyutu
   1.0 olsun 2 gereksiz". Text stays in rem, so a larger phone setting still scales, but layouts are
   judged at 1.0 only.
+- **Budget status colour** (base: one saturated hue). Green (`--success`) while the day is within budget,
+  red (`--danger`) once it is over, on the ring, the kcal-left number, the macro bars and the day strip, as
+  MyNetDiary does (Tarık, 2026-10-21: "bize bir renk daha lazım"; over budget was hard to notice). Orange
+  stays the one accent for actions; status colour means only within or over. `app/base.css`: `--ok`, `--over`.
+- **Macro order: carbs, protein, fat** on every screen (Tarık, 2026-10-21; `Pantry.MACROS`).
 - **The prototype is a starting point.** A change that makes daily use faster or more comfortable may
   depart from `design/screens.html` (Tarık, 2026-10-21); it goes in `deviations.md`. The rules above
   and the base still bind.

@@ -48,8 +48,12 @@
      Pantry.home()                 back to Today, dropping the screens opened since.
      Pantry.css(text)              adds a feature's styles to the page. Prefix a feature's classes with its name
                                    (today-, log-, scan-, newfood-, entry-, settings-); shared ones live in base.css.
-     Pantry.toast(text, opts)      a toast above the bottom bar that survives screen changes; opts.action (button text),
-                                   opts.onAction, opts.ms (default 4000). A new toast replaces the shown one.
+     Pantry.toast(text, opts)      a toast above the bottom bar; opts.action (button text), opts.onAction, opts.ms
+                                   (default 4000), opts.drawing (the food's PantryDrawing markup, shown first),
+                                   opts.screens (screen changes it survives, default 1: the one its action caused).
+                                   A swipe sideways or down dismisses it. A new toast replaces the shown one.
+     Pantry.haptic(kind)           a short vibration: 'tap' (logged), 'undo', 'delete', 'scan'; silent where unsupported.
+     Pantry.MACROS                 ['carbs', 'protein', 'fat']: the order every screen shows the macros in (Tarık).
      Routes take positional args; an undefined or null arg is an empty segment and arrives as undefined.
      An unknown route opens Today with no args.
 
@@ -307,6 +311,7 @@
     if (current && current.def.leave) {
       try { current.def.leave(); } catch (e) { console.error('Pantry: leaving a screen failed', e); }
     }
+    if (current) screenChanged();
     current = { name: views[name] ? name : 'today', def, hash: location.hash };
     shownDay = today();
     const root = document.createElement('section');
@@ -340,6 +345,7 @@
   setInterval(checkDay, 60000);
 
   let toastTimer = 0;
+  let toastShown = null;   // { hide, screens }: the screen changes the shown toast may still survive
   function toast(text, opts = {}) {
     let host = document.getElementById('toast');
     if (!host) {
@@ -350,12 +356,45 @@
       document.body.appendChild(host);
     }
     clearTimeout(toastTimer);
-    host.innerHTML = `<div class="toast"><span>${esc(text)}</span>${opts.action ? `<button type="button" class="toast-act">${esc(opts.action)}</button>` : ''}</div>`;
-    const hide = () => { clearTimeout(toastTimer); host.innerHTML = ''; };
+    const art = opts.drawing ? `<span class="toast-art" aria-hidden="true">${opts.drawing}</span>` : '';
+    host.innerHTML = `<div class="toast">${art}<span>${esc(text)}</span>${opts.action ? `<button type="button" class="toast-act">${esc(opts.action)}</button>` : ''}</div>`;
+    const box = host.querySelector('.toast');
+    const hide = () => { clearTimeout(toastTimer); host.innerHTML = ''; if (toastShown && toastShown.hide === hide) toastShown = null; };
     const btn = host.querySelector('.toast-act');
     if (btn) btn.addEventListener('click', () => { hide(); if (opts.onAction) opts.onAction(); });
+    // A swipe sideways or down sends it away, so he never has to wait it out.
+    let start = null;
+    box.addEventListener('pointerdown', e => { if (e.target.closest('.toast-act')) return; start = { x: e.clientX, y: e.clientY }; box.setPointerCapture(e.pointerId); });
+    box.addEventListener('pointermove', e => {
+      if (!start) return;
+      const dx = e.clientX - start.x, dy = Math.max(0, e.clientY - start.y);
+      box.style.transform = Math.abs(dx) > dy ? `translateX(${dx}px)` : `translateY(${dy}px)`;
+      box.style.opacity = String(Math.max(0.2, 1 - Math.max(Math.abs(dx), dy) / 160));
+    });
+    const release = e => {
+      if (!start) return;
+      const dx = e.clientX - start.x, dy = e.clientY - start.y;
+      start = null;
+      if (Math.abs(dx) > 48 || dy > 32) hide();
+      else { box.style.transform = ''; box.style.opacity = ''; }
+    };
+    box.addEventListener('pointerup', release);
+    box.addEventListener('pointercancel', release);
+    toastShown = { hide, screens: opts.screens === undefined ? 1 : opts.screens };
     toastTimer = setTimeout(hide, opts.ms || 4000);
     return hide;
+  }
+  // The shown toast belongs to the action that raised it: it outlives the screen change that action
+  // caused (opts.screens, default 1), never the ones after it.
+  function screenChanged() {
+    if (!toastShown) return;
+    if (toastShown.screens > 0) toastShown.screens -= 1; else toastShown.hide();
+  }
+
+  // A short pulse on a tap that changed his log; silent where the phone or browser has no vibration.
+  const PULSE = { tap: 10, undo: 10, delete: 20, scan: 40 };
+  function haptic(kind = 'tap') {
+    try { if (navigator.vibrate) navigator.vibrate(PULSE[kind] || PULSE.tap); } catch (e) { /* no vibration here */ }
   }
 
   function css(text) {
@@ -389,8 +428,9 @@
     problem: () => problem,
     starter: freeze(structuredClone(STARTER)),
     today, dayLabel, mealNow, usualAmounts, totals, sum, fmt, esc, icon,
+    MACROS: Object.freeze(['carbs', 'protein', 'fat']),
     view(name, def) { views[name] = def; },
-    go, back, home, css, toast,
+    go, back, home, css, toast, haptic,
   });
 
   document.addEventListener('DOMContentLoaded', () => {

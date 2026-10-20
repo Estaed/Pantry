@@ -4,6 +4,8 @@
 @font-face { font-family: Manrope; src: url(../fonts/Manrope.woff2) format('woff2'); font-weight: 200 800; }
 
 *, *::before, *::after { box-sizing: border-box; }
+/* Budget status (Tarık, 2026-10-21, design/DESIGN.md): green while within budget, red once over. */
+:root { --ok: var(--success); --over: var(--danger); }
 html { font-size: 100%; background: var(--canvas); -webkit-text-size-adjust: none; text-size-adjust: none; }
 body {
   margin: 0; min-height: 100vh; min-height: 100dvh; background: var(--canvas); color: var(--ink);
@@ -79,5 +81,8 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
   background: var(--surface-3); border: 1px solid var(--hairline-strong); border-radius: var(--r-md);
   box-shadow: var(--shadow-3); font: 500 0.875rem/1.4 var(--font-sans);
 }
-.toast > span { flex: 1; min-width: 0; }
+.toast { touch-action: none; transition: transform var(--dur-fast) var(--ease-standard), opacity var(--dur-fast) var(--ease-standard); }
+.toast-art { flex: none; display: grid; place-items: center; width: 32px; height: 32px; }
+.toast-art svg { width: 32px; height: 32px; }
+.toast > span:not(.toast-art) { flex: 1; min-width: 0; }
 .toast-act { flex: none; min-height: 44px; padding: 0 4px; background: none; border: 0; font-weight: 700; }
