@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pantry griler</title>
+<link rel="stylesheet" href="../../../TarikOS/.brain/skills/tasarim/references/tokens.css">
+<link rel="stylesheet" href="../../../TarikOS/.brain/skills/tasarim/assets/fonts/archivo.css">
+<style>
+  /* Pantry round 8 (2026-10-20). No hues: four ways to tell meals apart in greys, grown from R2, and
+     the day strip with a translucent, slowly waving fill per day. English UI. Tested on 8 Aug 2026
+     (all four meals) and 20 Oct after dinner. Phones at real size (360x780), shown at 72 %. */
+  @font-face { font-family: Manrope; src: url(../../../TarikOS/.brain/skills/tasarim/assets/fonts/Manrope.woff2) format('woff2'); font-weight: 200 800; }
+  * { box-sizing: border-box; }
+  body.page { margin: 0; background: #161616; color: #EEEEEE; font: 500 16px/1.5 Manrope, system-ui, sans-serif; }
+  .page main { max-width: 1700px; margin: 0 auto; padding: 44px 32px 120px; }
+  .page h1 { font: 700 40px/1.05 Archivo, sans-serif; font-stretch: 118%; letter-spacing: -0.8px; margin: 0 0 10px; }
+  .page .lede { color: #ABABAB; max-width: 62ch; margin: 0; font-size: 15px; }
+  .page .lede b, .page p b { color: #EEEEEE; }
+  .page h3 { font: 700 20px/1.2 Archivo, sans-serif; font-stretch: 118%; margin: 44px 0 2px; }
+  .page h3 + p { color: #ABABAB; margin: 0 0 12px; font-size: 14px; max-width: 70ch; }
+  .row { display: flex; gap: 14px; flex-wrap: wrap; zoom: 0.72; }
+  .cap { width: 360px; font: 600 15px Manrope; color: #ABABAB; margin-top: 8px; }
+
+  .phone { background-color: var(--canvas); color: var(--ink); font-family: var(--font-sans); width: 360px; height: 780px; border-radius: 32px; overflow: hidden; border: 1px solid #3A3A3A; display: flex; flex-direction: column; position: relative; flex: none; cursor: zoom-in;
+    --g1: var(--ink); --g2: color-mix(in oklab, var(--ink) 66%, var(--canvas)); --g3: color-mix(in oklab, var(--ink) 40%, var(--canvas)); --g4: color-mix(in oklab, var(--ink) 22%, var(--canvas)); }
+  .phone * { font-variant-numeric: tabular-nums; }
+  .eyebrow { font: 600 12px/1.3 var(--font-sans); color: var(--ink-muted); }
+  .title { font: var(--display-weight) 29px/1.06 var(--font-display); font-stretch: var(--display-stretch); letter-spacing: -0.5px; margin-top: 2px; }
+  .disp { font-family: var(--font-display); font-weight: var(--display-weight); font-stretch: var(--display-stretch); }
+  .top { padding: 18px 20px 0; }
+  .ibtn { width: 44px; height: 44px; display: grid; place-items: center; color: var(--ink); border-radius: var(--r-md); flex: none; }
+  .ibtn.box { background: var(--surface-2); width: 48px; height: 48px; }
+  svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+  .btn { height: 48px; border-radius: var(--r-button); background: var(--action); color: var(--on-action); display: flex; align-items: center; justify-content: center; gap: 8px; font: 700 16px var(--font-sans); border: 0; width: 100%; }
+  .btn svg.i { width: 20px; height: 20px; }
+  .bottom { margin-top: auto; padding: 0 20px 18px; display: flex; gap: 10px; align-items: center; }
+  .acc { color: var(--primary-display); }
+  .fig { font: 600 12px var(--font-figure); color: var(--ink-subtle); }
+
+  /* day strip: each day a small tank, filled to its share of the budget, with a slow wave on top */
+  .days { display: flex; gap: 5px; padding: 12px 14px 0; }
+  .day { flex: 1; min-width: 0; height: 74px; position: relative; border-radius: 14px; background: var(--surface-1); border: 1px solid var(--hairline); overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; font: 600 11px var(--font-sans); color: var(--ink-muted); }
+  .day b { font: 700 15px var(--font-figure); color: var(--ink); line-height: 1.2; }
+  .day em { font: 700 11px var(--font-figure); font-style: normal; color: var(--ink-subtle); margin-top: 1px; }
+  .day em.ov { color: var(--ink); }
+  .day > span, .day > b, .day > em { position: relative; z-index: 1; }
+  .day .liq { position: absolute; left: 0; right: 0; bottom: 0; background: color-mix(in oklab, var(--ink) 13%, transparent); }
+  .day.over .liq { background: color-mix(in oklab, var(--ink) 24%, transparent); }
+  .day.on { border: 1.5px solid var(--ink); }
+  .day.on .liq { background: color-mix(in oklab, var(--primary) 20%, transparent); }
+  .day .wv { position: absolute; left: 0; bottom: calc(100% - 1px); width: 200%; height: 7px; animation: wave 5s linear infinite; }
+  .day:nth-child(2n) .wv { animation-duration: 6.2s; animation-delay: -1.3s; }
+  .day:nth-child(3n) .wv { animation-duration: 5.6s; animation-delay: -2.7s; }
+  .day .bud { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--ink-subtle); z-index: 1; }
+  @keyframes wave { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce) { .day .wv { animation: none; } }
+
+  .frame { position: relative; margin: 8px 20px 0; height: 246px; }
+  .mid { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 196px; height: 196px; }
+  .mid > svg { display: block; overflow: visible; }
+  .center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .num { line-height: 1; letter-spacing: -1.5px; }
+  .lbl { font: 600 12px var(--font-sans); color: var(--ink-muted); margin-top: 3px; }
+  .tot { font: 600 12px var(--font-figure); color: var(--ink-subtle); margin-top: 6px; } .tot b { color: var(--ink); font-weight: 700; }
+  .corner { position: absolute; width: 92px; font: 600 12px var(--font-sans); color: var(--ink-muted); }
+  .corner.r { text-align: right; }
+  .corner .sw { display: inline-block; width: 12px; height: 12px; vertical-align: -2px; margin-right: 5px; }
+  .corner.r .sw { margin: 0 0 0 5px; }
+  .corner b { display: block; font: 700 19px/1.15 var(--font-figure); color: var(--ink); }
+  .corner .fs { display: flex; margin-top: 4px; } .corner.r .fs { justify-content: flex-end; }
+  .corner .fs span { width: 30px; height: 30px; border-radius: 50%; background: var(--surface-2); display: grid; place-items: center; border: 2px solid var(--canvas); }
+  .corner .fs span + span { margin-left: -8px; }
+  .corner .fs svg { width: 24px; height: 24px; }
+  .corner .addm { width: 30px; height: 30px; border-radius: 50%; border: 1.5px dashed var(--hairline-strong); display: grid; place-items: center; color: var(--ink-muted); margin-top: 4px; }
+  .corner.r .addm { margin-left: auto; } .corner .addm svg.i { width: 16px; height: 16px; }
+
+  .mac { margin: 12px 20px 0; }
+  .mh { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .b1 { display: flex; gap: 4px; }
+  .b1 > div { min-width: 0; }
+  .b1 .bar { height: 14px; border-radius: 7px; display: block; width: 100%; }
+  .b1 .bar svg { display: block; width: 100%; height: 100%; }
+  .b1 .lab { display: flex; flex-direction: column; margin-top: 6px; font: 600 12px var(--font-sans); color: var(--ink-muted); white-space: nowrap; }
+  .b1 .lab b { order: -1; color: var(--ink); font: 700 16px var(--font-figure); }
+  .b1 .g { font: 500 12px var(--font-figure); color: var(--ink-subtle); white-space: nowrap; }
+  .b1.in .bar { height: 30px; border-radius: 8px; display: flex; align-items: center; padding: 0 8px; font: 700 13px var(--font-figure); white-space: nowrap; overflow: hidden; }
+  .ticks { display: flex; gap: 2px; height: 22px; align-items: stretch; }
+  .ticks i { flex: 1; border-radius: 1.5px; }
+  .tl { display: flex; margin-top: 6px; }
+  .tl > div { min-width: 0; font: 600 12px var(--font-sans); color: var(--ink-muted); white-space: nowrap; }
+  .tl b { display: block; color: var(--ink); font: 700 16px var(--font-figure); }
+  .tl span { display: block; font: 500 12px var(--font-figure); color: var(--ink-subtle); }
+
+  .ate { margin: 12px 20px 0; }
+  .fr { display: flex; align-items: center; gap: 12px; min-height: 44px; }
+  .fr + .fr { border-top: 1px solid var(--hairline); }
+  .fr .food { width: 36px; height: 36px; border-radius: 50%; background: var(--surface-2); display: grid; place-items: center; flex: none; }
+  .fr .food svg { width: 28px; height: 28px; }
+  .fr .t { flex: 1; min-width: 0; font: 600 14px/1.3 var(--font-sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fr .t span { display: block; font: 500 12px var(--font-figure); color: var(--ink-muted); }
+  .fr .k { font: 700 14px var(--font-figure); }
+  .page :focus-visible, .phone :focus-visible { outline: 2px solid var(--primary, #FF5A00); outline-offset: 2px; }
+  #zoom { position: fixed; inset: 0; background: #000000D9; display: none; place-items: center; z-index: 9; cursor: zoom-out; }
+  #zoom.on { display: grid; }
+  #zoom > * { zoom: 1.1; }
+</style>
+</head>
+<body class="page">
+<main>
+  <h1>Pantry, griler</h1>
+  <p class="lede">Renk yok, sadece gri ve tek turuncu. R2'den türeyen dört biçim; hepsinde üstte yeni gün şeridi: her gün küçük bir kap, <b>o gün ne kadar dolduysa o kadar yarı saydam dolu</b>, üstünde yavaş bir dalga. Kesikli çizgi 2.200 bütçe; aşan günün dolumu çizginin üstüne çıkar ve koyulaşır. Seçili gün turuncu tonda. Arayüz İngilizce. Cevap biçimi: <b>"G?"</b></p>
+  <div id="all"></div>
+</main>
+<div id="zoom"></div>
+<script>
+const P = {
+  scan: '<path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M8 7v10M12 7v10M16 7v10"/>',
+  plus: '<path d="M5 12h14M12 5v14"/>' };
+const ic = k => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${P[k]}</svg>`;
+const n = v => Math.round(v).toLocaleString('en-AU');
+const sg = v => (v > 0 ? '+' : '−') + n(Math.abs(v));
+
+const F = {
+  chicken: [['f', 'M9 31c-2-8 5-17 16-18 8-1 14 3 14 9 0 8-9 14-19 15-6 0-10-2-11-6z', '#F2B2A2'], ['l', 'M15 28c5-4 11-6 18-6M17 33c4-2 9-3 13-3', '#D98875']],
+  grilled: [['f', 'M9 31c-2-8 5-17 16-18 8-1 14 3 14 9 0 8-9 14-19 15-6 0-10-2-11-6z', '#C98A55'], ['l', 'M14 30l16-12M18 34l16-12', '#7A4A26']],
+  tzatziki: [['f', 'M6 25h36c0 9-8 15-18 15S6 34 6 25z', '#4F86B8'], ['f', 'M9 25c2-6 8-9 15-9s13 3 15 9z', '#F4F1E8'], ['f', 'M17 20.5a1.6 1.6 0 1 0 0.1 0zM25 18.5a1.6 1.6 0 1 0 0.1 0zM31 21a1.6 1.6 0 1 0 0.1 0z', '#6E9E4A']],
+  pizza: [['f', 'M11 19c8-4 18-4 26 0L24 42z', '#F2C65A'], ['f', 'M8 14c10-5 22-5 32 0l-3 5c-8-4-18-4-26 0z', '#D49A4C'], ['f', 'M20 22.5a2.6 2.6 0 1 0 0.1 0zM28.5 22a2.4 2.4 0 1 0 0.1 0zM24 29.5a2.4 2.4 0 1 0 0.1 0z', '#C84A31']],
+  potato: [['f', 'M7 27c0-8 8-14 18-14s16 5 16 12-8 12-18 12S7 34 7 27z', '#D6A468'], ['f', 'M16 23.5a1.4 1.4 0 1 0 0.1 0zM28 21a1.4 1.4 0 1 0 0.1 0zM31 30a1.4 1.4 0 1 0 0.1 0zM20 31a1.2 1.2 0 1 0 0.1 0z', '#8A5A2B']],
+  sandwich: [['f', 'M7 34L24 11l17 23z', '#E8C38A'], ['f', 'M10 30h28l-2 4H12z', '#8B4A3A'], ['f', 'M9 28h30l-1 2H10z', '#7FAE52']],
+  bread: [['f', 'M8 22c0-6 7-9 16-9s16 3 16 9c0 2-2 3-3 3v12H11V25c-1 0-3-1-3-3z', '#C98B4A'], ['f', 'M17 19a1.2 1.2 0 1 0 0.1 0zM24 17a1.2 1.2 0 1 0 0.1 0zM30 20a1.2 1.2 0 1 0 0.1 0zM21 23a1.2 1.2 0 1 0 0.1 0zM28 24a1.2 1.2 0 1 0 0.1 0z', '#5C3D22']],
+};
+const art = (k, s = 48, x = 0, y = 0) => `<svg x="${x}" y="${y}" width="${s}" height="${s}" viewBox="0 0 48 48" aria-hidden="true">${F[k].map(([t, d, c]) => t === 'l' ? `<path d="${d}" fill="none" stroke="${c}" stroke-width="1.75" stroke-linecap="round"/>` : `<path d="${d}" fill="${c}"/>`).join('')}</svg>`;
+
+const T = { kcal: 2200, c: 248, p: 110, f: 86 };
+const DN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTH = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const DAYNAME = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const day = s => new Date(s + 'T00:00:00Z');
+const AUG8 = { date: '2026-08-08', kcal: 1976, p: 257.7, c: 185.7, f: 33.8, meals: [888, 350, 590, 148], foods: [['grilled'], ['sandwich'], ['potato'], ['bread']],
+  week: [['2026-08-02', 2134], ['2026-08-03', 2177], ['2026-08-04', 1794], ['2026-08-05', 2114], ['2026-08-06', 2458], ['2026-08-07', 2073], ['2026-08-08', 1976]],
+  ate: [['grilled', 'Chicken grilled', 'Breakfast, 3 pieces', 888], ['potato', 'Washed white potato', 'Dinner, 1000 g', 590]], open: false };
+const OCT20 = { date: '2026-10-20', kcal: 1795, p: 144, c: 158.2, f: 62.2, meals: [1304, 0, 491, 0], foods: [['pizza'], [], ['chicken', 'tzatziki'], []],
+  week: [['2026-10-14', 2292], ['2026-10-15', 2149], ['2026-10-16', 2217], ['2026-10-17', 2292], ['2026-10-18', 2568], ['2026-10-19', 2292], ['2026-10-20', 1795]],
+  ate: [['chicken', 'Chicken breast raw', 'Dinner, 350 g', 378], ['tzatziki', 'Tzatziki dip', 'Dinner, 125 g', 113]], open: true };
+const MEALS = ['Breakfast', 'Lunch', 'Dinner', 'Snacks'];
+const QS = [-90, 0, 90, 180];
+const MACS = [['p', 'Protein'], ['c', 'Carbs'], ['f', 'Fat']];
+const share = D => { const k = { p: D.p * 4, c: D.c * 4, f: D.f * 9 }, s = k.p + k.c + k.f; return { p: k.p / s * 100, c: k.c / s * 100, f: k.f / s * 100 }; };
+const GREYS = ['var(--g1)', 'var(--g2)', 'var(--g3)', 'var(--g4)'];
+
+const pt = (cx, cy, r, a) => [cx + r * Math.sin(a * Math.PI / 180), cy - r * Math.cos(a * Math.PI / 180)];
+const f1 = v => v.toFixed(1);
+const arc = (cx, cy, r, a0, a1) => { if (a1 - a0 >= 359) return arc(cx, cy, r, a0, a0 + 180) + arc(cx, cy, r, a0 + 180, a1).replace('M', ' M'); const [x0, y0] = pt(cx, cy, r, a0), [x1, y1] = pt(cx, cy, r, a1); return `M${f1(x0)} ${f1(y0)}A${r} ${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${f1(x1)} ${f1(y1)}`; };
+const stroke = (d, col, w, extra = '') => `<path d="${d}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="butt" ${extra}/>`;
+// segments: where each meal starts and ends on the ring (own quarter, or where the one before ended)
+function spans(D) { let end = -999; return D.meals.map((v, i) => { if (!v) return null; const s = Math.max(QS[i], end), e = s + v / T.kcal * 360; end = e; return [s, e]; }); }
+let uid = 0;
+const pats = (id) => `<defs><pattern id="h${id}" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="var(--g4)"/><rect width="2.4" height="5" fill="var(--ink)"/></pattern>
+  <pattern id="d${id}" width="5" height="5" patternUnits="userSpaceOnUse"><rect width="5" height="5" fill="var(--g4)"/><circle cx="2.5" cy="2.5" r="1.3" fill="var(--ink)"/></pattern></defs>`;
+
+const G = {
+  G1: { name: 'Gri basamaklar', desc: 'Dört gri, açıktan koyuya net aralıklarla; komşu iki öğün hep belirgin farklı. Makrolar da aynı basamaklarda.',
+    ring(D, c, r, w, id) { return spans(D).map((sp, i) => sp ? stroke(arc(c, c, r, sp[0] + 2, sp[1] - 2), GREYS[i], w) : '').join(''); },
+    sw: i => `<i class="sw" style="background:${GREYS[i]};border-radius:3px"></i>`,
+    mac(D) { const s = share(D); return `<div class="b1">${MACS.map(([k, l], i) => `<div style="flex:${s[k]}"><span class="bar" style="background:${GREYS[i]}"></span><div class="lab"><b>${Math.round(s[k])}%</b>${l}</div><div class="g">${n(D[k])} / ${n(T[k])} g</div></div>`).join('')}</div>`; } },
+  G2: { name: 'Desenler', desc: 'R2\'nin deseni, toparlanmış: kahvaltı dolu, öğle çizgili, akşam noktalı, ara öğün boş çerçeve. Gri tonu az, desen çok; renk yok ama karışmıyor.',
+    ring(D, c, r, w, id) { return pats(id) + spans(D).map((sp, i) => { if (!sp) return ''; const d = arc(c, c, r, sp[0] + 2, sp[1] - 2);
+      return i === 0 ? stroke(d, 'var(--ink)', w) : i === 1 ? stroke(d, `url(#h${id})`, w) : i === 2 ? stroke(d, `url(#d${id})`, w) : stroke(d, 'var(--ink)', w) + stroke(d, 'var(--canvas)', w - 3.5); }).join(''); },
+    sw: i => [`<i class="sw" style="background:var(--ink);border-radius:3px"></i>`, `<i class="sw" style="border-radius:3px;background:repeating-linear-gradient(45deg,var(--ink) 0 2px,var(--g4) 2px 4px)"></i>`, `<i class="sw" style="border-radius:3px;background:radial-gradient(var(--ink) 30%,var(--g4) 36%) 0 0/4px 4px"></i>`, `<i class="sw" style="border-radius:3px;box-shadow:inset 0 0 0 1.75px var(--ink)"></i>`][i],
+    mac(D) { const s = share(D), bg = ['background:var(--ink)', 'background:repeating-linear-gradient(45deg,var(--ink) 0 2.5px,var(--g4) 2.5px 5px)', 'box-shadow:inset 0 0 0 1.75px var(--ink)'];
+      return `<div class="b1">${MACS.map(([k, l], i) => `<div style="flex:${s[k]}"><span class="bar" style="${bg[i]}"></span><div class="lab"><b>${Math.round(s[k])}%</b>${l}</div><div class="g">${n(D[k])} / ${n(T[k])} g</div></div>`).join('')}</div>`; } },
+  G3: { name: 'Sırayla iki ton ve harf', desc: 'Öğünler sırayla koyu ve açık; yan yana iki parça hiç aynı olmaz. Her parçanın ortasında öğünün baş harfi (B, L, D, S). Makrolarda yazı barın içinde.',
+    ring(D, c, r, w, id) { return spans(D).map((sp, i) => { if (!sp) return ''; const col = i % 2 ? 'var(--g3)' : 'var(--g1)', [x, y] = pt(c, c, r, (sp[0] + sp[1]) / 2);
+      return stroke(arc(c, c, r, sp[0] + 2.5, sp[1] - 2.5), col, w) + `<text x="${f1(x)}" y="${f1(y + 4)}" text-anchor="middle" style="font:800 11px var(--font-sans)" fill="${i % 2 ? 'var(--ink)' : 'var(--canvas)'}">${MEALS[i][0]}</text>`; }).join(''); },
+    sw: i => `<i class="sw" style="background:${i % 2 ? 'var(--g3)' : 'var(--g1)'};border-radius:50%;width:16px;height:16px;text-align:center;font:800 10px/16px var(--font-sans);font-style:normal;color:${i % 2 ? 'var(--ink)' : 'var(--canvas)'}">${MEALS[i][0]}</i>`,
+    mac(D) { const s = share(D); return `<div class="b1 in">${MACS.map(([k, l], i) => `<div style="flex:${s[k]}"><span class="bar" style="background:${i % 2 ? 'var(--g3)' : 'var(--g1)'};color:${i % 2 ? 'var(--ink)' : 'var(--canvas)'}">${Math.round(s[k])}%</span><div class="lab">${l}</div><div class="g">${n(D[k])} / ${n(T[k])} g</div></div>`).join('')}</div>`; } },
+  G4: { name: 'Kadran çentikleri', desc: 'Halka 72 ince çentikten oluşur, saat kadranı gibi (D6\'yı sevmiştin). Her öğün kendi gri basamağında, boş çentikler soluk. Makrolar da aynı çentiklerle tek şerit.',
+    ring(D, c, r, w, id) { const sp = spans(D), N = 72; let out = '';
+      for (let k = 0; k < N; k++) { const a = -90 + k * 5 + 2.5; let col = 'var(--surface-3)';
+        sp.forEach((s, i) => { if (s && a >= s[0] && a < s[1]) col = GREYS[i]; });
+        const [x1, y1] = pt(c, c, r - w / 2, a), [x2, y2] = pt(c, c, r + w / 2, a);
+        out += `<line x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}" stroke="${col}" stroke-width="3.2" stroke-linecap="round"/>`; }
+      return out; },
+    sw: i => `<i class="sw" style="width:4px;height:12px;border-radius:2px;background:${GREYS[i]}"></i>`,
+    mac(D) { const s = share(D), N = 50, cut = [Math.round(s.p / 100 * N), Math.round((s.p + s.c) / 100 * N)];
+      return `<div class="ticks">${Array.from({ length: N }, (_, k) => `<i style="background:${GREYS[k < cut[0] ? 0 : k < cut[1] ? 1 : 2]}"></i>`).join('')}</div>
+        <div class="tl">${MACS.map(([k, l]) => `<div style="flex:${s[k]}"><b>${Math.round(s[k])}%</b>${l}<span>${n(D[k])} / ${n(T[k])} g</span></div>`).join('')}</div>`; } },
+};
+
+function ringSvg(D, g) { const size = 196, w = 14, c = size / 2, r = c - w / 2 - 4, id = ++uid;
+  const tracks = g === G.G4 ? '' : QS.map(s => stroke(arc(c, c, r, s + 3, s + 87), 'var(--surface-3)', w)).join('');
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${tracks}${g.ring(D, c, r, w, id)}</svg>`; }
+function corners(D, g) {
+  const pos = ['left:0;top:0', 'right:0;top:0', 'right:0;bottom:0', 'left:0;bottom:0'];
+  return MEALS.map((m, i) => { const r = i === 1 || i === 2 ? ' r' : '', sw = g.sw(i);
+    const body = D.meals[i] ? `<b>${n(D.meals[i])}</b><div class="fs">${D.foods[i].map(k => `<span>${art(k)}</span>`).join('')}</div>` : `<div class="addm">${ic('plus')}</div>`;
+    return `<div class="corner${r}" style="${pos[i]}">${r ? m + sw : sw + m}${body}</div>`; }).join('');
+}
+const wavePath = 'M0 3 Q 5 0 10 3 T 20 3 T 30 3 T 40 3 T 50 3 T 60 3 T 70 3 T 80 3 V 6 H 0 Z';
+const days = D => `<div class="days">${D.week.map(([d, v], i) => { const today = d === '2026-10-20', ov = v > T.kcal && !today, sel = i === 6, lvl = Math.min(100, v / 2750 * 100);
+  const col = sel ? 'color-mix(in oklab, var(--primary) 20%, transparent)' : ov ? 'color-mix(in oklab, var(--ink) 24%, transparent)' : 'color-mix(in oklab, var(--ink) 13%, transparent)';
+  return `<div class="day ${ov ? 'over' : ''} ${sel ? 'on' : ''}" title="${d}: ${n(v)} kcal"><div class="liq" style="height:${lvl}%">${true ? `<svg class="wv" viewBox="0 0 80 6" preserveAspectRatio="none" aria-hidden="true"><path d="${wavePath}" fill="${col}"/></svg>` : ''}</div><i class="bud" style="bottom:${T.kcal / 2750 * 100}%"></i>
+    <span>${DN[day(d).getUTCDay()]}</span><b>${day(d).getUTCDate()}</b><em class="${ov ? 'ov' : ''}">${today ? 'today' : sg(v - T.kcal)}</em></div>`; }).join('')}</div>`;
+const head = D => { const d = day(D.date); return `<div class="top"><div class="eyebrow">${DAYNAME[d.getUTCDay()]}, ${d.getUTCDate()} ${MONTH[d.getUTCMonth()]}</div><div class="title">${D.open ? 'Today' : `${d.getUTCDate()} ${MONTH[d.getUTCMonth()].slice(0, 3)}`}</div></div>`; };
+const screen = (D, g) => `${head(D)}${days(D)}<div class="frame"><div class="mid">${ringSvg(D, g)}<div class="center"><span class="num disp acc" style="font-size:44px">${n(T.kcal - D.kcal)}</span><span class="lbl">kcal left</span><span class="tot"><b>${n(D.kcal)}</b> / ${n(T.kcal)}</span></div></div>${corners(D, g)}</div>
+  <div class="mac"><div class="mh"><span class="eyebrow">Calories from</span><span class="fig">target 20 / 45 / 35%</span></div>${g.mac(D)}</div>
+  <div class="ate"><div class="eyebrow">${D.open ? 'Eaten today' : 'Eaten that day'}</div>${D.ate.map(([k, t, s, kc]) => `<div class="fr"><span class="food">${art(k)}</span><span class="t">${t}<span>${s}</span></span><span class="k">${n(kc)}</span></div>`).join('')}</div>
+  <div class="bottom"><button class="btn">${ic('plus')}${D.open ? 'Add to dinner' : 'Add to this day'}</button><span class="ibtn box">${ic('scan')}</span></div>`;
+const phone = (mode, html, cap) => `<div><div class="phone" data-theme="${mode}" aria-label="${cap}">${html}</div><div class="cap">${cap}</div></div>`;
+document.getElementById('all').innerHTML = Object.entries(G).map(([id, g]) => `<h3>${id}. ${g.name}</h3><p>${g.desc}</p><div class="row">
+  ${phone('dark', screen(AUG8, g), '8 Ağustos, koyu')}${phone('light', screen(AUG8, g), '8 Ağustos, açık')}${phone('dark', screen(OCT20, g), '20 Ekim akşamdan sonra, koyu')}${phone('light', screen(OCT20, g), '20 Ekim akşamdan sonra, açık')}</div>`).join('');
+
+const zoom = document.getElementById('zoom');
+document.addEventListener('click', e => {
+  if (zoom.classList.contains('on')) { zoom.classList.remove('on'); zoom.innerHTML = ''; return; }
+  const p = e.target.closest('.phone'); if (p) { zoom.innerHTML = p.outerHTML; zoom.classList.add('on'); }
+});
+</script>
+</body>
+</html>

@@ -72,6 +72,7 @@ values, no cooked conversion is needed, and raw grams subtract straight from pac
 - **Eating out:** left out of v1, or logged loosely by ingredients. History shows he has logged
   restaurant meals as one item ("Whopper junior by Burger King", "2X Chicken Royale and 2X Medium
   Chips"), so such foods simply never touch kitchen stock.
+- **UI language:** English (Tarık, 2026-10-20); food names are English already and the repo may go public.
 
 ## MyNetDiary history (pulled 2026-10-20)
 `references/mynetdiary-history-2026-10-20.json` (gitignored, personal data): every day from

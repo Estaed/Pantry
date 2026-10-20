@@ -31,3 +31,8 @@ not named here follows the base.
 - 2026-10-20, round 6 (`design/yonler-4.html`): picked W3, the date strip with each day's
   difference to budget ("şimdilik o olsun"). The meal tones in the ring and the macro strip read
   poorly ("okunabilirliği biraz zor"); round 7 (`design/yonler-5.html`) tries three colour treatments.
+- 2026-10-20, round 7 (`design/yonler-5.html`): rejected all three; the validated chart hues (blue,
+  teal, amber, violet) look garish, for the whole app ("renkli olan cırtlak duruyor for rest of the
+  app"): the app stays grey + one orange, the only other colour lives inside the food drawings.
+  Build on R2 (greys and patterns). The W3 day cells get a translucent fill showing how full each day
+  is, with a wave animation (his ask; details Eko's). UI language: English (Tarık).
