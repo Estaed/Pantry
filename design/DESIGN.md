@@ -11,3 +11,9 @@ not named here follows the base.
 - **Layout direction: open.** Tarık on v2 (2026-10-20): "blok blok değil, daha harmony içinde",
   "benzer ama biraz daha özgür". Six whole directions in `design/yonler.html` (D1 Akış, D2 Tabak,
   D3 Şerit, D4 Katman, D5 Izgara, D6 Gösterge); he picks parts.
+
+## Taste record (Pantry)
+- 2026-10-20, round 3 (`design/yonler.html`): liked D2 Tabak, D6 Gösterge and D1 Akış ("orijinale
+  benzer"); passed on D3 Şerit, D4 Katman, D5 Izgara. Read across (hypothesis): one round measuring
+  object (ring, plate, dial) as the centre of the screen, standing on the open canvas, no boxes.
+  Round 4 (`design/yonler-2.html`) varies that family.
