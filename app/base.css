@@ -4,7 +4,7 @@
 @font-face { font-family: Manrope; src: url(../fonts/Manrope.woff2) format('woff2'); font-weight: 200 800; }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { font-size: 100%; background: var(--canvas); }
+html { font-size: 100%; background: var(--canvas); -webkit-text-size-adjust: none; text-size-adjust: none; }
 body {
   margin: 0; min-height: 100vh; min-height: 100dvh; background: var(--canvas); color: var(--ink);
   font: 500 1rem/1.5 var(--font-sans); font-variant-numeric: tabular-nums; -webkit-tap-highlight-color: transparent;
