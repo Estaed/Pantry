@@ -44,6 +44,7 @@ results for that text. A match is CLEAR when exactly one result passes and is th
      Woolworths and XL is Extra Large;
   2. its pack size agrees with the size the line prints: no stated grams, mL or pack count differs and,
      when the line prints one, at least one is the same ("Potato White Washed 2Kg" is not the loose potato);
+     a multi-pack on both sides has the same count of the same size ("2X125g" is not "250g x 2 pack");
   3. when the line names the brand it names all of it ("WW Pasta Spaghetti" is not Woolworths Essentials);
   4. its name adds at most 2 words the line does not have, leaving out the brand when the line leaves it out
      and packaging words (bottle, tub, bag, punnet, ...), and every other passing result adds more.
@@ -400,24 +401,26 @@ def _plain(text):
 
 
 def sizes(text):
-    """({'mass': grams, 'volume': mL, 'count': packs}, the text without them)."""
+    """({'mass': grams, 'volume': mL, 'count': packs, 'pack': (count, each one's size)}, the text without them).
+    A multi-pack keeps its count and each one's size together, so 2 x 125g is not 250g x 2."""
     t = _plain(text)
-    found = {"mass": set(), "volume": set(), "count": set()}
+    found = {"mass": set(), "volume": set(), "count": set(), "pack": set()}
 
     def put(number, unit):
         unit = "l" if unit.startswith("li") or unit == "ltr" else unit
         grams = {"kg": 1000, "g": 1, "gm": 1}.get(unit)
         if grams:
             found["mass"].add(round(number * grams, 1))
-        else:
-            found["volume"].add(round(number * (1000 if unit == "l" else 1), 1))
+            return "mass", round(number * grams, 1)
+        found["volume"].add(round(number * (1000 if unit == "l" else 1), 1))
+        return "volume", round(number * (1000 if unit == "l" else 1), 1)
     for m in MULT.finditer(t):
         found["count"].add(int(m.group(1)))
-        put(float(m.group(2)), m.group(3))
+        found["pack"].add((int(m.group(1)), put(float(m.group(2)), m.group(3))))
         put(int(m.group(1)) * float(m.group(2)), m.group(3))
     for m in MULT_AFTER.finditer(t):
         found["count"].add(int(m.group(3)))
-        put(float(m.group(1)), m.group(2))
+        found["pack"].add((int(m.group(3)), put(float(m.group(1)), m.group(2))))
         put(int(m.group(3)) * float(m.group(1)), m.group(2))
     for m in AMOUNT.finditer(t):
         put(float(m.group(1)), m.group(2))
@@ -430,7 +433,8 @@ def sizes(text):
 
 def words(text):
     _, rest = sizes(text)
-    return [w for w in re.findall(r"[a-z]+", rest) if len(w) >= 2 and w not in STOP]
+    # a word keeps its digits once it has a letter: the brand A2 has to be in the name too
+    return [w for w in re.findall(r"[a-z0-9]*[a-z][a-z0-9]*", rest) if len(w) >= 2 and w not in STOP]
 
 
 def _forms(w):

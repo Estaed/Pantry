@@ -347,6 +347,25 @@ def size_rule():
           and fits("Carrots 750g", 288440) == ["it states no size the line can be checked against"], (loose, review.get("Carrots 750g")))
 
 
+def matching_edges():
+    """Two lines the clear rule once passed wrongly (Codex review, 2026-10-21): a multi-pack of another size, and
+    a brand made of a letter and a digit that the name does not carry. Made-up results, judged directly."""
+    sys.path.insert(0, str(ROOT / "tools"))
+    import catalogue as C
+    rice = {"Stockcode": 1, "Name": "Woolworths Basmati Rice Microwave Cup", "PackageSize": "250g x 2 pack"}
+    same = {"Stockcode": 2, "Name": "Woolworths Basmati Rice Microwave Cup", "PackageSize": "125g x 2 pack"}
+    milk = {"Stockcode": 3, "Name": "Dairy Farmers Full Cream Milk", "PackageSize": "2L"}
+    a2 = {"Stockcode": 4, "Name": "a2 Milk Full Cream Milk", "PackageSize": "2L"}
+    line_ = "WW Basmati Rice Microwave Cup 2X125g"
+    check("'2X125g' is not a clear match for '250g x 2 pack'", C.judge(line_, [rice])[0] == "review", C.judge(line_, [rice])[:2])
+    check("'2X125g' is a clear match for '125g x 2 pack'", C.judge(line_, [same])[0] == "clear", C.judge(line_, [same])[:2])
+    line_ = "A2 Full Cream Milk 2L"
+    check("'A2 Full Cream Milk 2L' is not a clear match for another brand's full cream milk",
+          C.judge(line_, [milk])[0] == "review", C.judge(line_, [milk])[:2])
+    check("'A2 Full Cream Milk 2L' is a clear match for a2 Milk Full Cream Milk 2L",
+          C.judge(line_, [a2])[0] == "clear", C.judge(line_, [a2])[:2])
+
+
 def review_upkeep():
     """The review file keeps one entry per line: an answer that is not a Stockcode stays on its open line, and a
     line answered twice (as a file from an older run could hold) keeps the last answer that can be read."""
@@ -502,6 +521,7 @@ def main():
         cat = guarded("answered run", answered_run, *first) if first else None
         guarded("label edge cases", label_edge_cases)
         guarded("size rule", size_rule)
+        guarded("matching edges", matching_edges)
         guarded("review upkeep", review_upkeep)
         if first and cat:
             doc = guarded("merge", merges, first[0], cat)
