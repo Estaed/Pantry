@@ -81,6 +81,12 @@ nutrients (protein, fat, carbs, fiber, sodium…) and the food's serving list. 1
 grams (ml drinks, restaurant "servings") but still carry kcal. Pulled from the signed-in web app's
 `GET /muiGetMeals.do?date=YYYY-MM-DD` (free account, one call per day, ~2 s each, in Opera).
 So v1 starts with his real food list, per-meal frequent lists and last grams; nothing to type in.
+Coverage per entry: kcal, protein, carbs, fat, sugars, sat fat and sodium on ~98 %; fiber 83 %;
+vitamins, minerals and cholesterol only on ~20 % (generic foods, not Coles labels). Not in it:
+water (no such trackable), barcodes, body weight history (MyNetDiary shows -12 kg since 14 Jul
+2025, last weigh-in 75 kg; another endpoint), steps (Samsung Health), the 100+ other nutrients
+MyNetDiary lists (only what the food's label carries). Targets read: 2,200 kcal, carbs 45 %,
+protein 20 %, fat 35 %, salt 5.8 g.
 Top staples: butter 5 g (316×), Coles tuna 185 g (225×), chicken breast raw 350 g, Coles basmati
 100 g, iceberg blend 300 g, tzatziki 125 g.
 
@@ -88,7 +94,13 @@ Top staples: butter 5 g (316×), Coles tuna 185 g (225×), chicken breast raw 35
 - Where it runs: Coles session lives in Tarık's Opera on the PC; can Hermes (Azure) fetch receipts?
 
 ## Screens
-<Eko fills by asking, before any mockup>
+Tarık uses one screen in MyNetDiary (2026-10-20): the calorie budget, the list of foods to add,
+and the amount screen a tap opens. Prototype: `design/screens.html` (Tarik Base v6, his real
+20 Oct data, both modes, empty / loading / barcode-not-found states). One screen "Bugün": anchor
+box with kcal left, carbs / protein / fat / salt against target, meal segments with their kcal,
+search + barcode, the meal's frequent foods. Tapping a row opens a gram sheet (chips = his most
+used amounts for that food, live kcal and macros, "kcal left after"); the row's **+** logs the
+last amount in one tap with "Geri al". MyNetDiary's four steps become two. Stock screen not drawn yet.
 
 ## After v1
 - 2026-10-20: adding to the Coles/Woolworths trolley; no official API, browser automation is fragile.
