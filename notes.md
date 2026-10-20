@@ -52,6 +52,11 @@ is actually in the kitchen.
 5. Barcode button exists; not used in the recording.
 So the core loop is: meal → pick a frequent food → grams → save. Few taps, no typing.
 
+Tarık's own rules (2026-10-20): a product (or a meal) is scanned by barcode **once**, then always
+picked from the frequent list; a food he logged before offers its earlier grams, otherwise he types
+them. He logs the **raw** weight, and the cooking oil as its own line. So foods carry raw per-100 g
+values, no cooked conversion is needed, and raw grams subtract straight from pack stock.
+
 ## Ideas
 - Frequent foods per meal + gram chips are the whole logging UI; search and barcode for new items.
 - New product without data: photo of the nutrition panel, a model reads it once.
@@ -60,11 +65,18 @@ So the core loop is: meal → pick a frequent food → grams → save. Few taps,
 
 ## Open questions (Tarık, 2026-10-20)
 - **Eating out:** how is a restaurant meal logged, and kept out of kitchen stock?
-- **Calorie math:** where per-100 g values come from (label, Coles product page, Open Food Facts,
-  MyNetDiary history), raw vs cooked weight (rice, pasta, chicken), oil added in cooking.
-- Bring the past year from MyNetDiary (yearly Excel) or start fresh?
+- **Calorie math:** answered: raw weight + oil as its own line (above). Per-100 g values come
+  from his MyNetDiary foods if exportable, else barcode / label photo.
+- **MyNetDiary history (2026-10-20):** help pages promise only a free yearly "consolidated"
+  Excel (food-level detail unknown) and paid PDF/XLS reports; nothing tested. Next: Tarık signs in
+  at mynetdiary.com in Opera, Eko looks at the web diary and its network calls (like Coles). What
+  matters is his food list (name, per-100 g, last grams), not daily totals.
+- **Stack, Eko's recommendation:** single-file PWA like Calisthenics-App (index.html + sw.js,
+  localStorage, GitHub sync, GitHub Pages); Android only. Camera barcode via Chrome Android's
+  built-in `BarcodeDetector` (HTTPS, `ean_13`), no library. Installs to the home screen, opens
+  offline, open-sourcing is just a public repo, and the v1.2 merge is one codebase style. Native
+  (Kotlin/Flutter) rejected: an APK to build and sideload, nothing v1 needs. Awaiting Tarık.
 - Where it runs: Coles session lives in Tarık's Opera on the PC; can Hermes (Azure) fetch receipts?
-- Stack: same as Calisthenics-App (single-file PWA, localStorage + GitHub sync) to ease the v1.2 merge?
 
 ## Screens
 <Eko fills by asking, before any mockup>
