@@ -1,4 +1,5 @@
 # Task-04: Scan and new product — barcode to a food he can log
+**Status: DONE** — verified 2026-10-21, eye check pending: 1 (Scan, Found, From the label; five real packs after deploy)
 > **Execution:** agent `ultracode`
 > *Why:* a new product must become a loggable food in under a minute, without typing a label when the data exists.
 
@@ -38,15 +39,15 @@ Retires the second half of v1's riskiest assumption (scan must beat typing) and 
 probe with the real flow.
 
 ## Acceptance
-- [ ] With a fake camera and detector (as Task-00's gate injects them), reading the barcode of a food already in the document opens `food <id> <meal> <date>` with no lookup request.
-- [ ] A code in `doc.catalogue` shows Found with the catalogue's values and store, with no network request; saving adds one food (source `coles` or `woolworths`, the barcode, per100) and opens its gram sheet.
-- [ ] A code in neither goes to Open Food Facts (tests mock the endpoint with the real tzatziki answer saved under `tests/fixtures/scan/` with its URL and fetch date); Found shows 108 kcal per 100 g from it and none of the unlisted fields; saving gives source `off`.
-- [ ] On Found, "This is my …" lists his foods matching the name ("tzatziki" finds Classic Tzatziki Dip on the starter document); picking it adds the barcode to that food, makes no new food, and opens its gram sheet.
-- [ ] A code found nowhere, or Open Food Facts down or offline, shows the label form; saving with energy in kJ stores kcal = kJ ÷ 4.184; a missing name or energy is said in words and nothing is saved.
-- [ ] A barcode is never stored twice: scanning a saved product again opens the same food.
-- [ ] Every camera track stops when the scan screen is left by any route (Task-00's checks keep passing); an EAN-13 with a wrong check digit is ignored, not looked up.
-- [ ] At 360 × 780 with text at 150 % and at 240 px: no horizontal scroll, no console errors, dark and light both render.
-- [ ] The tests fail when unlisted Open Food Facts fields are copied into per100, and when a listed 0 is dropped (shown once each, restored).
+- [x] With a fake camera and detector (as Task-00's gate injects them), reading the barcode of a food already in the document opens `food <id> <meal> <date>` with no lookup request.
+- [x] A code in `doc.catalogue` shows Found with the catalogue's values and store, with no network request; saving adds one food (source `coles` or `woolworths`, the barcode, per100) and opens its gram sheet.
+- [x] A code in neither goes to Open Food Facts (tests mock the endpoint with the real tzatziki answer saved under `tests/fixtures/scan/` with its URL and fetch date); Found shows 108 kcal per 100 g from it and none of the unlisted fields; saving gives source `off`.
+- [x] On Found, "This is my …" lists his foods matching the name ("tzatziki" finds Classic Tzatziki Dip on the starter document); picking it adds the barcode to that food, makes no new food, and opens its gram sheet.
+- [x] A code found nowhere, or Open Food Facts down or offline, shows the label form; saving with energy in kJ stores kcal = kJ ÷ 4.184; a missing name or energy is said in words and nothing is saved.
+- [x] A barcode is never stored twice: scanning a saved product again opens the same food.
+- [x] Every camera track stops when the scan screen is left by any route (Task-00's checks keep passing); an EAN-13 with a wrong check digit is ignored, not looked up.
+- [x] At 360 × 780 with text at 150 % and at 240 px: no horizontal scroll, no console errors, dark and light both render.
+- [x] The tests fail when unlisted Open Food Facts fields are copied into per100, and when a listed 0 is dropped (shown once each, restored).
 - [ ] (eye) On `terra_nt` at 360 dp: Scan, Found and From the label match `design/screens.html` → *5*, *6*, *6b*. Tarık scans five real packs on his phone at https://estaed.github.io/Pantry/ after deploy (also closes Task-00's open eye check).
 
 ## Out of scope

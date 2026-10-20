@@ -1,4 +1,5 @@
 # Task-03: Meal list and gram sheet — frequent foods, usual grams, one-tap add
+**Status: DONE** — verified 2026-10-21, eye check pending: 1 (list and gram sheet at the largest font on Tarık's phone)
 > **Execution:** agent `ultracode`
 > *Why:* logging a frequent food in three taps or fewer is v1's acceptance, and this is where it happens.
 
@@ -41,15 +42,15 @@ supplements, cereal, cheese, steak, wraps; style C, the same 48 × 48 geometry s
 It replaces MyNetDiary's search screen, the step he uses most; the + makes a frequent food two taps.
 
 ## Acceptance
-- [ ] With synthetic entries built in the test (one food logged at dinner 5 times as 350 g and once as 375 g most recently, another 3 times, a third once), the Dinner list ranks them 5, 3, 1 and the first row says 350 g; when the full history exists at `D:/Projects/Pantry/references/mynetdiary-history-2026-10-20.json`, the same ranking is checked against counts computed in the test (skip says so when absent).
-- [ ] The row's + logs one entry with that amount, its totals fixed at log time, the entry's date and meal from the route, and the list stays; Undo in the toast removes it and adds its `removed` line; after the toast, the entry stays.
-- [ ] The gram sheet: typing 375 shows `Pantry.totals(food, 375).kcal` rounded; a chip sets the grams; "Add to <meal>" logs and returns to Today; an empty, zero or non-number amount says so in words and logs nothing.
-- [ ] A food with no `per100` offers its servings; logging 2 servings of the Roy Rogers sandwich (fixture, 2026-08-08: 350 kcal, protein 39) stores grams null and totals = 2 × that entry's totals (700 kcal, protein 78); a serving food with no entry gets kcal only.
-- [ ] On the starter document, search "tza" finds Classic Tzatziki Dip and "coles" lists the two Coles foods; no match says so and offers Scan.
-- [ ] Routes `add meal [date]` and `food id meal [date]` work as Blueprint → *Screens and seams* says; a bad food id shows a plain message and a way back.
-- [ ] `PantryDrawing` gives its own drawing (not the generic pack) for at least 90 % of entries of the full history when it exists (the test prints every food name with its drawing key into the report for review; no new key covers unrelated foods, and no catch-all pattern), and for every food of the fixture.
-- [ ] At 360 × 780 with text at 150 % and at 240 px: no horizontal scroll, long names end with an ellipsis on one line, no console errors, dark and light both render.
-- [ ] The tests fail when the usual amount is taken from the latest entry instead of the most typed one (shown once, restored).
+- [x] With synthetic entries built in the test (one food logged at dinner 5 times as 350 g and once as 375 g most recently, another 3 times, a third once), the Dinner list ranks them 5, 3, 1 and the first row says 350 g; when the full history exists at `D:/Projects/Pantry/references/mynetdiary-history-2026-10-20.json`, the same ranking is checked against counts computed in the test (skip says so when absent).
+- [x] The row's + logs one entry with that amount, its totals fixed at log time, the entry's date and meal from the route, and the list stays; Undo in the toast removes it and adds its `removed` line; after the toast, the entry stays.
+- [x] The gram sheet: typing 375 shows `Pantry.totals(food, 375).kcal` rounded; a chip sets the grams; "Add to <meal>" logs and returns to Today; an empty, zero or non-number amount says so in words and logs nothing.
+- [x] A food with no `per100` offers its servings; logging 2 servings of the Roy Rogers sandwich (fixture, 2026-08-08: 350 kcal, protein 39) stores grams null and totals = 2 × that entry's totals (700 kcal, protein 78); a serving food with no entry gets kcal only.
+- [x] On the starter document, search "tza" finds Classic Tzatziki Dip and "coles" lists the two Coles foods; no match says so and offers Scan.
+- [x] Routes `add meal [date]` and `food id meal [date]` work as Blueprint → *Screens and seams* says; a bad food id shows a plain message and a way back.
+- [x] `PantryDrawing` gives its own drawing (not the generic pack) for at least 90 % of entries of the full history when it exists (the test prints every food name with its drawing key into the report for review; no new key covers unrelated foods, and no catch-all pattern), and for every food of the fixture.
+- [x] At 360 × 780 with text at 150 % and at 240 px: no horizontal scroll, long names end with an ellipsis on one line, no console errors, dark and light both render.
+- [x] The tests fail when the usual amount is taken from the latest entry instead of the most typed one (shown once, restored).
 - [ ] (eye) On `terra_nt` at 360 dp and the largest font: the list and the gram sheet (closed and with all nutrients) match `design/screens.html` → *2*, *3*, *3b*; the new drawings sit with the existing ones (same weight and colour logic).
 
 ## Out of scope

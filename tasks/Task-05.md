@@ -1,4 +1,5 @@
 # Task-05: Edit, move and delete an entry
+**Status: DONE** — verified 2026-10-21, eye check pending: 1 (Edit an entry against design 8)
 > **Execution:** agent `ultracode`
 > *Why:* a wrong gram or a meal logged under the wrong meal must be fixed in two taps, on any day.
 
@@ -26,13 +27,13 @@ and drops that line. Moving keeps the id.
 Without it a mistake stays in the log, and every past day's total is wrong.
 
 ## Acceptance
-- [ ] `entry <id>` for a fixture entry of 2026-08-08 shows its food, meal, date and amount; an unknown id shows a plain message and a way back.
-- [ ] After the test sets the potato food's `per100.kcal` to 999, setting the 2026-08-08 entry from 1,000 g to 500 g gives kcal 295 and protein exactly half the entry's own (11.333…), not 11.35 from per100.
-- [ ] Moving an entry from dinner to lunch keeps its id, date and totals; Today's corners change accordingly (tests read the document, not Today's DOM).
-- [ ] Delete removes the entry and appends `{ id, at }` (ISO time) to `doc.removed`; the toast is still there on the day screen after the return; Undo puts the same entry back at the same index (deep equal) and removes that line; after the toast is gone, the deletion stands.
-- [ ] An empty, zero or non-number amount is said in words and nothing is saved.
-- [ ] At 360 × 780 with text at 150 % and at 240 px: no horizontal scroll, no console errors, dark and light both render.
-- [ ] The tests fail when grams are edited by recomputing from per100 instead of scaling the entry (shown once, restored).
+- [x] `entry <id>` for a fixture entry of 2026-08-08 shows its food, meal, date and amount; an unknown id shows a plain message and a way back.
+- [x] After the test sets the potato food's `per100.kcal` to 999, setting the 2026-08-08 entry from 1,000 g to 500 g gives kcal 295 and protein exactly half the entry's own (11.333…), not 11.35 from per100.
+- [x] Moving an entry from dinner to lunch keeps its id, date and totals; Today's corners change accordingly (tests read the document, not Today's DOM).
+- [x] Delete removes the entry and appends `{ id, at }` (ISO time) to `doc.removed`; the toast is still there on the day screen after the return; Undo puts the same entry back at the same index (deep equal) and removes that line; after the toast is gone, the deletion stands.
+- [x] An empty, zero or non-number amount is said in words and nothing is saved.
+- [x] At 360 × 780 with text at 150 % and at 240 px: no horizontal scroll, no console errors, dark and light both render.
+- [x] The tests fail when grams are edited by recomputing from per100 instead of scaling the entry (shown once, restored).
 - [ ] (eye) On `terra_nt` at 360 dp: the screen carries the content and order of `design/screens.html` → *8. Edit an entry*; Delete is outlined in the danger colour, never filled.
 
 ## Out of scope

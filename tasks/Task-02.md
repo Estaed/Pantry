@@ -1,4 +1,5 @@
 # Task-02: Today in full — day strip, meals in the corners, ring, macro strip
+**Status: DONE** — verified 2026-10-21, eye check pending: 1 (Today and a past day at the largest font on Tarık's phone)
 > **Execution:** agent `ultracode`
 > *Why:* Today is the screen Tarık opens many times a day; it has to read at a glance, as designed.
 
@@ -39,15 +40,15 @@ It is the dashboard of v1 and the reference all eye checks start from; the day s
 checks past overage and jumps to a day (he used MyNetDiary's strip exactly for that).
 
 ## Acceptance
-- [ ] With the 8 Aug 2026 day of `tests/fixtures/mynetdiary-slice.json` loaded (converted with `tools/import_mynetdiary.py` into the document), Today for `2026-08-08` shows 224 kcal left, 1,976 / 2,200, the corners 888, 350, 590, 148, and the macro shares 50 / 36 / 15 % in that order (the design shows the same numbers).
-- [ ] The ring's segments, measured from the drawn arcs, start and end where the spill rule puts them: on 2026-08-08 breakfast −90° to 55°, lunch 55° to 112°, dinner 112° to 209°, snacks 209° to 233°; on 2026-10-19 (breakfast 988, no lunch, dinner 1,304) dinner starts at 90°, not at 71.7° (within 2°).
-- [ ] The day strip shows the seven days ending at the shown day; each day's fill height is its kcal ÷ 2,750 (capped), its label is the signed difference to the budget, a day over budget is marked; tapping a day opens it, a swipe moves a week; with no entries on a day its tank is empty and labelled "−2,200".
-- [ ] With reduced motion off each day's wave has a running CSS animation (`animationName` not `none`, `animationPlayState` running); with `prefers-reduced-motion: reduce` none does.
-- [ ] Tapping each corner, the bottom button, the scan button, an eaten row and the gear calls `Pantry.go` with the route and arguments from Blueprint → *Screens and seams* (tests spy on `location.hash`).
-- [ ] At 360 × 780 with text at 150 % and at 240 px: no horizontal scroll, the corner labels never overlap the ring (bounding boxes), no console errors; in dark and in light the computed canvas and ink colours differ and both are screenshotted to `.tmp/`. Every text, the ring's initials included, is sized in rem (the gate's text-growth check).
-- [ ] Today updates within the same frame when an entry is added or removed (subscribe), and when the day turns at midnight Darwin time.
-- [ ] With `lastError` set, Today shows the banner and its sentence; cleared, it goes; the first-launch state shows when entries is empty.
-- [ ] The tests in `tests/test_today.py` fail when the spill rule is replaced by plain consecutive segments, and when the strip uses UTC dates (shown once in the report, then restored).
+- [x] With the 8 Aug 2026 day of `tests/fixtures/mynetdiary-slice.json` loaded (converted with `tools/import_mynetdiary.py` into the document), Today for `2026-08-08` shows 224 kcal left, 1,976 / 2,200, the corners 888, 350, 590, 148, and the macro shares 50 / 36 / 15 % in that order (the design shows the same numbers).
+- [x] The ring's segments, measured from the drawn arcs, start and end where the spill rule puts them: on 2026-08-08 breakfast −90° to 55°, lunch 55° to 112°, dinner 112° to 209°, snacks 209° to 233°; on 2026-10-19 (breakfast 988, no lunch, dinner 1,304) dinner starts at 90°, not at 71.7° (within 2°).
+- [x] The day strip shows the seven days ending at the shown day; each day's fill height is its kcal ÷ 2,750 (capped), its label is the signed difference to the budget, a day over budget is marked; tapping a day opens it, a swipe moves a week; with no entries on a day its tank is empty and labelled "−2,200".
+- [x] With reduced motion off each day's wave has a running CSS animation (`animationName` not `none`, `animationPlayState` running); with `prefers-reduced-motion: reduce` none does.
+- [x] Tapping each corner, the bottom button, the scan button, an eaten row and the gear calls `Pantry.go` with the route and arguments from Blueprint → *Screens and seams* (tests spy on `location.hash`).
+- [x] At 360 × 780 with text at 150 % and at 240 px: no horizontal scroll, the corner labels never overlap the ring (bounding boxes), no console errors; in dark and in light the computed canvas and ink colours differ and both are screenshotted to `.tmp/`. Every text, the ring's initials included, is sized in rem (the gate's text-growth check).
+- [x] Today updates within the same frame when an entry is added or removed (subscribe), and when the day turns at midnight Darwin time.
+- [x] With `lastError` set, Today shows the banner and its sentence; cleared, it goes; the first-launch state shows when entries is empty.
+- [x] The tests in `tests/test_today.py` fail when the spill rule is replaced by plain consecutive segments, and when the strip uses UTC dates (shown once in the report, then restored).
 - [ ] (eye) On the `terra_nt` emulator at 360 dp and the largest font, Today for 20 Oct and for 8 Aug matches `design/screens.html` → *1. Today* and *7. A past day*; the long empty-state text does not balloon (Chrome text boosting) next to the rest.
 
 ## Out of scope

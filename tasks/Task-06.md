@@ -1,4 +1,5 @@
 # Task-06: Sync with the private data repo, and settings
+**Status: DONE** — verified 2026-10-21, eye check pending: 1 (Settings; paste the token after deploy and see the 464 days)
 > **Execution:** agent `ultracode`
 > *Why:* one lost phone must not lose the log, and the 464 imported days reach the phone through this.
 
@@ -40,16 +41,16 @@ v1's data lives on one phone until this exists; it is also the only way the impo
 the store catalogue reach the phone.
 
 ## Acceptance
-- [ ] Against a mocked GitHub API (as Calisthenics-App's `tests/acceptance.py` mocks it), a remote built with `tools/import_mynetdiary.py` from `tests/fixtures/mynetdiary-slice.json` (9 entries, 7 foods) merged into a phone with the starter foods and two own entries ends with 11 entries, no duplicate ids, and the overlapping starter (potato) deep-equal to the remote food; when `D:/Projects/Pantry/references/mynetdiary-history-2026-10-20.json` exists, the same with the full history gives 2,722 + 2 entries (skip says so when absent).
-- [ ] An edit made while a push is in flight survives: the phone stays dirty and the next pull keeps the edit.
-- [ ] An entry deleted on the phone (in `doc.removed`) stays deleted after a pull from a repo that still has it; an entry deleted in the repo's `removed` disappears from the phone after a pull.
-- [ ] A change made while offline is pushed once back online, with the `sha` it read; a 409 or `sha` mismatch makes it pull, merge and push again, never overwrite.
-- [ ] A remote file above 1 MB is read through the raw media type and its `sha` through the object media type; the mock answers the default media type above 1 MB the way GitHub does (no content) and serves both sizes; that answer is never shown as a token problem.
-- [ ] A bad or expired token (401/403/404) shows the banner on Today and a plain reason in Settings; the local document is untouched and still marked dirty.
-- [ ] The token never appears in the document, in `pantry-data.json` or in any URL; only under `pantry.sync`.
-- [ ] Changing targets in Settings updates Today's numbers (the kcal budget and macro targets) and is synced; a later pull with the repo's old targets does not undo it.
-- [ ] At 360 × 780 with text at 150 % and at 240 px: Settings has no horizontal scroll, no console errors, dark and light both render.
-- [ ] The tests fail when the merge is replaced by a whole-document replace, and when `doc.removed` is ignored (shown once each, restored).
+- [x] Against a mocked GitHub API (as Calisthenics-App's `tests/acceptance.py` mocks it), a remote built with `tools/import_mynetdiary.py` from `tests/fixtures/mynetdiary-slice.json` (9 entries, 7 foods) merged into a phone with the starter foods and two own entries ends with 11 entries, no duplicate ids, and the overlapping starter (potato) deep-equal to the remote food; when `D:/Projects/Pantry/references/mynetdiary-history-2026-10-20.json` exists, the same with the full history gives 2,722 + 2 entries (skip says so when absent).
+- [x] An edit made while a push is in flight survives: the phone stays dirty and the next pull keeps the edit.
+- [x] An entry deleted on the phone (in `doc.removed`) stays deleted after a pull from a repo that still has it; an entry deleted in the repo's `removed` disappears from the phone after a pull.
+- [x] A change made while offline is pushed once back online, with the `sha` it read; a 409 or `sha` mismatch makes it pull, merge and push again, never overwrite.
+- [x] A remote file above 1 MB is read through the raw media type and its `sha` through the object media type; the mock answers the default media type above 1 MB the way GitHub does (no content) and serves both sizes; that answer is never shown as a token problem.
+- [x] A bad or expired token (401/403/404) shows the banner on Today and a plain reason in Settings; the local document is untouched and still marked dirty.
+- [x] The token never appears in the document, in `pantry-data.json` or in any URL; only under `pantry.sync`.
+- [x] Changing targets in Settings updates Today's numbers (the kcal budget and macro targets) and is synced; a later pull with the repo's old targets does not undo it.
+- [x] At 360 × 780 with text at 150 % and at 240 px: Settings has no horizontal scroll, no console errors, dark and light both render.
+- [x] The tests fail when the merge is replaced by a whole-document replace, and when `doc.removed` is ignored (shown once each, restored).
 - [ ] (eye) On `terra_nt` at 360 dp: Settings matches `design/screens.html` → *9. Settings* (without the theme row: the theme follows the phone in v1). After deploy, Tarık pastes his token and the phone shows his 464 days.
 
 ## Out of scope

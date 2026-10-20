@@ -7,11 +7,11 @@
 ## Wave 2
 Run with `/otopilot` (Workflow). The wave report records, per finding, which lens found it, real or false alarm, and who would have caught it without the Workflow; plus time, agents and both quota windows. Baseline: wave 1 report. Decision: `D:/TarikOS/850-Companion 🔮/Kararlar.md`, check 2026-10-27.
 
-- [ ] Task-02: Today in full — day strip with waves, meals in the corners, G3 ring, macro strip, eaten list
-- [ ] Task-03: Meal list and gram sheet — frequent foods, usual grams, one-tap add, more drawings
-- [ ] Task-04: Scan and new product — his foods, store catalogue, Open Food Facts, label form
-- [ ] Task-05: Edit, move and delete an entry
-- [ ] Task-06: Sync with the private data repo, and settings
+- [x] Task-02: Today in full — day strip with waves, meals in the corners, G3 ring, macro strip, eaten list
+- [x] Task-03: Meal list and gram sheet — frequent foods, usual grams, one-tap add, more drawings
+- [x] Task-04: Scan and new product — his foods, store catalogue, Open Food Facts, label form
+- [x] Task-05: Edit, move and delete an entry
+- [x] Task-06: Sync with the private data repo, and settings
 
 ## Later waves (draft)
 - Wave 3: build the Coles barcode catalogue from his receipts into `doc.catalogue` (main loop, logged-in
