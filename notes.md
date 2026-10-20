@@ -94,16 +94,22 @@ Top staples: butter 5 g (316×), Coles tuna 185 g (225×), chicken breast raw 35
 - Where it runs: Coles session lives in Tarık's Opera on the PC; can Hermes (Azure) fetch receipts?
 
 ## Screens
-Tarık uses one screen in MyNetDiary (2026-10-20): the calorie budget, the list of foods to add,
-and the amount screen a tap opens. Prototype: `design/screens.html` (Tarik Base v6, his real
-20 Oct data, both modes, empty / loading / barcode-not-found states). One screen "Bugün": anchor
-box with kcal left, carbs / protein / fat / salt against target, meal segments with their kcal,
-search + barcode, the meal's frequent foods. Tapping a row opens a gram sheet (chips = his most
-used amounts for that food, live kcal and macros, "kcal left after"); the row's **+** logs the
-last amount in one tap with "Geri al". MyNetDiary's four steps become two. Stock screen not drawn yet.
+Tarık uses one screen in MyNetDiary: the calorie budget, the list of foods to add, and the amount
+screen a tap opens. Prototype v2 `design/screens.html` (2026-10-20), after his notes on v1 ("biraz
+fazla kalabalık", MyNetDiary-like but original, illustrations welcome, visuals over text, only
+protein / carbs / fat up front, "o alttaki bar hoşuma gidiyordu"):
+1. **Bugün:** the anchor box holds a plate ring (kcal left, orange) and the four meals with their
+   kcal; three macro bars; the last 7 days as bars against the 2,200 line, today orange; a bottom
+   "Akşama ekle" button and a barcode button.
+2. **Meal list:** search + barcode, his frequent foods for that meal, each with a food drawing,
+   "350 g, 378 kcal" and a **+** that logs the last amount in one tap.
+3. **Gram sheet:** drawing, his most used amounts as chips, grams, kcal, the food's protein / carbs
+   / fat as one split bar; salt, sugar, fiber, sat fat and the rest under "Tüm besinler".
+Open: the drawing style (A thin line, B flat greys, C flat natural colours), Tarık picks.
+No stock screen in v1: the weekly Discord list covers stock (Tarık, 2026-10-20).
 
 ## After v1
 - 2026-10-20: adding to the Coles/Woolworths trolley; no official API, browser automation is fragile.
 - 2026-10-20: auto-checkout with a virtual card; saves one tap, adds the riskiest step. Payment stays with Tarık.
-- 2026-10-20: merge with the workout app (v1.2, Tarık).
+- 2026-10-20: merge with the workout app (v1.2, Tarık); body weight comes with it, not in v1 (Tarık no longer weighs in).
 - 2026-10-20: Woolworths receipts, if needed (all receipts so far are Coles).
