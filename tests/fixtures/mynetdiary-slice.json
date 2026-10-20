@@ -1,0 +1,470 @@
+{
+ "exported": "2026-10-20T07:05:59.399Z",
+ "source": "mynetdiary.com /muiGetMeals.do?date=YYYY-MM-DD",
+ "days": [
+  {
+   "date": "2026-08-08",
+   "eaten": "1,976",
+   "entries": [
+    {
+     "meal": "Breakfast",
+     "entryNo": 102,
+     "foodId": "v1.ThhS7hFFI9cb6m8qNXZVIoPp8D65NE4V86oCDpWPsCO16OJnBTvHcxP4aHI=",
+     "food": "Chicken grilled",
+     "cleanName": "Chicken Grilled",
+     "amount": "3 pieces",
+     "weightTitle": "piece",
+     "weightAmount": "3",
+     "grams": 576,
+     "kcal": 888,
+     "nutrients": {
+      "totalFat": 18.600000019200003,
+      "satFat": 6.000000019199999,
+      "transFat": 0,
+      "polyUnsatFat": 4.5,
+      "monoUnsatFat": 7.2,
+      "totalCarbs": 0,
+      "fiber": 0,
+      "sugars": 0,
+      "netCarbs": 0,
+      "diabetesCarbCount": 1e-05,
+      "protein": 180,
+      "cholesterol": 612,
+      "sodium": 306,
+      "vitaminA": 199.9999999872,
+      "vitaminC": 0,
+      "vitaminD": 6.000000019199999,
+      "calcium": 29.400000019199997,
+      "iron": 2.7,
+      "potassium": 2297.9999999808,
+      "alcohol": 0,
+      "caffeine": 0
+     },
+     "servings": [
+      {
+       "amount": "1",
+       "title": "piece",
+       "gm": "192 g",
+       "kcal": 296.0000000064
+      },
+      {
+       "amount": "1",
+       "title": "oz",
+       "gm": "28.3 g",
+       "kcal": 43.70551546509192
+      },
+      {
+       "amount": "1",
+       "title": "gram",
+       "gm": "1 g",
+       "kcal": 1.5416666667
+      },
+      {
+       "amount": "1",
+       "title": "lb",
+       "gm": "453.6 g",
+       "kcal": 699.2882474414707
+      }
+     ]
+    },
+    {
+     "meal": "Lunch",
+     "entryNo": 201,
+     "foodId": "v1.L1aeZ4jJ7z9D03z0RtXaO4j2DZBMQBEm*Qx0u8GJHBbq1MMvKI1jOH55HtE=",
+     "food": "Sandwiches roast beef sand whole grain by Roy Rogers",
+     "cleanName": "Sandwiches Roast Beef Sand Whole Grain",
+     "vendor": "Roy Rogers",
+     "amount": "1 servings",
+     "weightTitle": "serving",
+     "weightAmount": "1",
+     "kcal": 350,
+     "nutrients": {
+      "totalFat": 7,
+      "satFat": 2,
+      "totalCarbs": 29,
+      "fiber": 2,
+      "sugars": 3,
+      "netCarbs": 27,
+      "diabetesCarbCount": 29.00001,
+      "protein": 39,
+      "cholesterol": 85,
+      "sodium": 750
+     },
+     "servings": [
+      {
+       "amount": "1",
+       "title": "serving",
+       "kcal": 350
+      }
+     ]
+    },
+    {
+     "meal": "Dinner",
+     "entryNo": 301,
+     "foodId": "v1.iDrOYS8VTR3WqlsjSmhKQquNuENy*Ye3zEYbkuAybx6Agegqo+nWunqLTjg=",
+     "food": "Washed white potato by Woolworths",
+     "cleanName": "Washed White Potato",
+     "vendor": "Woolworths",
+     "amount": "1000 g",
+     "weightTitle": "gram",
+     "weightAmount": "1000",
+     "grams": 1000,
+     "kcal": 590,
+     "nutrients": {
+      "totalFat": 1.3333332999999998,
+      "satFat": 1.3333332999999998,
+      "totalCarbs": 148,
+      "fiber": 18.6666667,
+      "sugars": 6.6666667,
+      "netCarbs": 129.3333333,
+      "diabetesCarbCount": 138.66667665,
+      "protein": 22.6666667,
+      "sodium": 53.33333330000001
+     },
+     "servings": [
+      {
+       "amount": "1",
+       "title": "gram",
+       "gm": "1 g",
+       "kcal": 0.5895474825
+      },
+      {
+       "amount": "1",
+       "title": "serving",
+       "gm": "75 g",
+       "kcal": 44.2160611875
+      },
+      {
+       "amount": "1",
+       "title": "oz",
+       "gm": "28.3 g",
+       "kcal": 16.713390235623336
+      },
+      {
+       "amount": "1",
+       "title": "lb",
+       "gm": "453.6 g",
+       "kcal": 267.4142437699734
+      }
+     ]
+    },
+    {
+     "meal": "Snacks",
+     "entryNo": 401,
+     "foodId": "v1.HoK+YEsJyoxzidNekezKUJRd*K9QY9r5k9d1Uzqs3AQBHg2bUxhFXeRU6PI=",
+     "food": "High protein 85% lower carb mixed seeds loaf by Coles",
+     "cleanName": "High Protein 85% Lower Carb Mixed Seeds Loaf",
+     "vendor": "Coles",
+     "amount": "1.5 slices",
+     "weightTitle": "slices",
+     "weightAmount": "1.5",
+     "grams": 58,
+     "kcal": 148,
+     "nutrients": {
+      "totalFat": 6.900000001124999,
+      "satFat": 0.975000000975,
+      "transFat": 0.075000000075,
+      "polyUnsatFat": 3.8999999981249998,
+      "monoUnsatFat": 1.95000000195,
+      "totalCarbs": 8.69999999715,
+      "fiber": 6.3750000006,
+      "sugars": 0.7500000007500001,
+      "netCarbs": 2.32499999655,
+      "diabetesCarbCount": 5.5125099968499995,
+      "protein": 16.049999998725,
+      "sodium": 207.74999999985002
+     },
+     "servings": [
+      {
+       "amount": "2",
+       "title": "slices",
+       "gm": "77 g",
+       "kcal": 197.99999999780002
+      },
+      {
+       "amount": "1",
+       "title": "oz",
+       "gm": "28.3 g",
+       "kcal": 72.89877482741964
+      },
+      {
+       "amount": "1",
+       "title": "gram",
+       "gm": "1 g",
+       "kcal": 2.5714285714
+      },
+      {
+       "amount": "1",
+       "title": "lb",
+       "gm": "453.6 g",
+       "kcal": 1166.3803972387143
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "date": "2026-10-19",
+   "eaten": "2,292",
+   "entries": [
+    {
+     "meal": "Breakfast",
+     "entryNo": 101,
+     "foodId": "v1.iDrOYS8VTR3WqlsjSmhKQquNuENy*Ye3zEYbkuAybx6Agegqo+nWunqLTjg=",
+     "food": "Washed white potato by Woolworths",
+     "cleanName": "Washed White Potato",
+     "vendor": "Woolworths",
+     "amount": "350 g",
+     "weightTitle": "gram",
+     "weightAmount": "350",
+     "grams": 350,
+     "kcal": 206,
+     "nutrients": {
+      "totalFat": 0.466666655,
+      "satFat": 0.466666655,
+      "totalCarbs": 51.8,
+      "fiber": 6.533333345,
+      "sugars": 2.3333333450000002,
+      "netCarbs": 45.266666654999995,
+      "diabetesCarbCount": 48.5333433275,
+      "protein": 7.933333345000001,
+      "sodium": 18.666666655
+     },
+     "servings": [
+      {
+       "amount": "1",
+       "title": "gram",
+       "gm": "1 g",
+       "kcal": 0.5895474825
+      },
+      {
+       "amount": "1",
+       "title": "serving",
+       "gm": "75 g",
+       "kcal": 44.2160611875
+      },
+      {
+       "amount": "1",
+       "title": "oz",
+       "gm": "28.3 g",
+       "kcal": 16.713390235623336
+      },
+      {
+       "amount": "1",
+       "title": "lb",
+       "gm": "453.6 g",
+       "kcal": 267.4142437699734
+      }
+     ]
+    },
+    {
+     "meal": "Breakfast",
+     "entryNo": 102,
+     "foodId": "v1.q1PecffN00lR5wdKE483RWXLDY90l+06qOSkkTMJREMEOjj6yrUhD9aHckA=",
+     "food": "Australian mozzarella cheese shredded by Coles",
+     "cleanName": "Australian Mozzarella Cheese Shredded",
+     "vendor": "Coles",
+     "amount": "150 g",
+     "weightTitle": "gram",
+     "weightAmount": "150",
+     "grams": 150,
+     "kcal": 486,
+     "nutrients": {
+      "totalFat": 36.6,
+      "satFat": 25.2,
+      "totalCarbs": 12,
+      "fiber": 6,
+      "sugars": 6,
+      "netCarbs": 6,
+      "diabetesCarbCount": 9.00001,
+      "protein": 38.4,
+      "sodium": 720,
+      "calcium": 1158
+     },
+     "servings": [
+      {
+       "amount": "1",
+       "title": "gram",
+       "gm": "1 g",
+       "kcal": 3.24
+      },
+      {
+       "amount": "1",
+       "title": "serving",
+       "gm": "25 g",
+       "kcal": 81
+      },
+      {
+       "amount": "1",
+       "title": "oz",
+       "gm": "28.3 g",
+       "kcal": 91.85245628356934
+      },
+      {
+       "amount": "1",
+       "title": "lb",
+       "gm": "453.6 g",
+       "kcal": 1469.6393005371094
+      }
+     ]
+    },
+    {
+     "meal": "Breakfast",
+     "entryNo": 103,
+     "foodId": "v1.7A6SHcRE+o0eog*m5pb8L0KGQw73tbZ3SsfUidgzCOqg1qp5UB30YmmTkU0=",
+     "food": "Extra large free range eggs by Coles",
+     "cleanName": "Extra Large Free Range Eggs",
+     "vendor": "Coles",
+     "amount": "4 eggs",
+     "weightTitle": "eggs",
+     "weightAmount": "4",
+     "grams": 208,
+     "kcal": 296,
+     "nutrients": {
+      "totalFat": 20.599999991999997,
+      "satFat": 6.8000000016,
+      "totalCarbs": 4.8000000048,
+      "fiber": 1.9999999968,
+      "sugars": 1.9999999968,
+      "netCarbs": 2.8000000080000005,
+      "diabetesCarbCount": 4.8000100048,
+      "protein": 25.3999999968,
+      "sodium": 282.0000000064,
+      "iron": 3.3999999904000004
+     },
+     "servings": [
+      {
+       "amount": "2",
+       "title": "eggs",
+       "gm": "104 g",
+       "kcal": 148.0000000024
+      },
+      {
+       "amount": "1",
+       "title": "gram",
+       "gm": "1 g",
+       "kcal": 1.4230769231
+      },
+      {
+       "amount": "1",
+       "title": "oz",
+       "gm": "28.3 g",
+       "kcal": 40.343552736789846
+      },
+      {
+       "amount": "1",
+       "title": "lb",
+       "gm": "453.6 g",
+       "kcal": 645.4968437886375
+      }
+     ]
+    },
+    {
+     "meal": "Dinner",
+     "entryNo": 301,
+     "foodId": "v1.AaXrHp8yjLLkNvxwp*PVeve4n8ReQ5gN1xHHGpCvIk88t8oOJ+Wfj9PyCY4=",
+     "food": "Margherita family pizza by McCain",
+     "cleanName": "Margherita Family Pizza",
+     "vendor": "McCain",
+     "amount": "500 g",
+     "weightTitle": "gram",
+     "weightAmount": "500",
+     "grams": 500,
+     "kcal": 1304,
+     "nutrients": {
+      "totalFat": 47.6,
+      "satFat": 31.6,
+      "totalCarbs": 143.2,
+      "sugars": 30.8,
+      "netCarbs": 143.2,
+      "diabetesCarbCount": 143.20001,
+      "protein": 66.8,
+      "sodium": 1556
+     },
+     "servings": [
+      {
+       "amount": "1",
+       "title": "serving",
+       "gm": "125 g",
+       "kcal": 326
+      },
+      {
+       "amount": "1",
+       "title": "gram",
+       "gm": "1 g",
+       "kcal": 2.608
+      },
+      {
+       "amount": "1",
+       "title": "oz",
+       "gm": "28.3 g",
+       "kcal": 73.93555740356446
+      },
+      {
+       "amount": "1",
+       "title": "lb",
+       "gm": "453.6 g",
+       "kcal": 1182.9689184570314
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "date": "2026-10-20",
+   "eaten": "1,304",
+   "entries": [
+    {
+     "meal": "Breakfast",
+     "entryNo": 101,
+     "foodId": "v1.AaXrHp8yjLLkNvxwp*PVeve4n8ReQ5gN1xHHGpCvIk88t8oOJ+Wfj9PyCY4=",
+     "food": "Margherita family pizza by McCain",
+     "cleanName": "Margherita Family Pizza",
+     "vendor": "McCain",
+     "amount": "500 g",
+     "weightTitle": "gram",
+     "weightAmount": "500",
+     "grams": 500,
+     "kcal": 1304,
+     "nutrients": {
+      "totalFat": 47.6,
+      "satFat": 31.6,
+      "totalCarbs": 143.2,
+      "sugars": 30.8,
+      "netCarbs": 143.2,
+      "diabetesCarbCount": 143.20001,
+      "protein": 66.8,
+      "sodium": 1556
+     },
+     "servings": [
+      {
+       "amount": "1",
+       "title": "serving",
+       "gm": "125 g",
+       "kcal": 326
+      },
+      {
+       "amount": "1",
+       "title": "gram",
+       "gm": "1 g",
+       "kcal": 2.608
+      },
+      {
+       "amount": "1",
+       "title": "oz",
+       "gm": "28.3 g",
+       "kcal": 73.93555740356446
+      },
+      {
+       "amount": "1",
+       "title": "lb",
+       "gm": "453.6 g",
+       "kcal": 1182.9689184570314
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "errors": []
+}
