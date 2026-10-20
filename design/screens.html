@@ -1,133 +1,189 @@
 <!doctype html>
-<html lang="tr">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pantry ekranları</title>
+<title>Pantry screens</title>
 <link rel="stylesheet" href="../../../TarikOS/.brain/skills/tasarim/references/tokens.css">
 <link rel="stylesheet" href="../../../TarikOS/.brain/skills/tasarim/assets/fonts/archivo.css">
 <style>
-  /* Pantry prototype v2 (2026-10-20), Tarik Base v6. Phones drawn at real size (360x780) and shown at
-     72 % with CSS zoom; click one to see it full size. Data is Tarık's own MyNetDiary history
-     (references/mynetdiary-history-2026-10-20.json): 20 Oct as logged, the week before it. */
+  /* Pantry v1 screens, the visual source of truth (2026-10-20). Tarik Base v6 + design/DESIGN.md:
+     meals in the four corners around the spill ring (G3: alternating greys with initials), the macro
+     strip (B1), the waving day strip (W3), food drawings in style C, English UI, grey + one orange.
+     Real data from references/mynetdiary-history-2026-10-20.json; Woolworths product data for the
+     scanned tzatziki. Phones drawn at real size (360x780), shown at 72 %; click to enlarge. */
   @font-face { font-family: Manrope; src: url(../../../TarikOS/.brain/skills/tasarim/assets/fonts/Manrope.woff2) format('woff2'); font-weight: 200 800; }
   * { box-sizing: border-box; }
   body.page { margin: 0; background: #161616; color: #EEEEEE; font: 500 16px/1.5 Manrope, system-ui, sans-serif; }
-  .page main { max-width: 1900px; margin: 0 auto; padding: 44px 32px 120px; }
+  .page main { max-width: 1700px; margin: 0 auto; padding: 44px 32px 120px; }
   .page h1 { font: 700 40px/1.05 Archivo, sans-serif; font-stretch: 118%; letter-spacing: -0.8px; margin: 0 0 10px; }
-  .page .lede { color: #ABABAB; max-width: 56ch; margin: 0; font-size: 15px; }
+  .page .lede { color: #ABABAB; max-width: 64ch; margin: 0; font-size: 15px; }
   .page .lede b { color: #EEEEEE; }
   .page h2 { font: 700 24px/1.15 Archivo, sans-serif; font-stretch: 118%; margin: 56px 0 6px; }
-  .page h2 + p { color: #ABABAB; margin: 0 0 18px; font-size: 15px; max-width: 56ch; }
-  .page h2 + p b { color: #EEEEEE; }
+  .page h2 + p { color: #ABABAB; margin: 0 0 18px; font-size: 15px; max-width: 64ch; }
   .page h3 { font: 600 14px Manrope; color: #ABABAB; margin: 22px 0 10px; }
-  .row { display: flex; gap: 18px; flex-wrap: wrap; zoom: 0.72; }
+  .row { display: flex; gap: 14px; flex-wrap: wrap; zoom: 0.72; }
   .cap { width: 360px; font: 600 15px Manrope; color: #ABABAB; margin-top: 8px; }
 
-  .phone { background-color: var(--canvas); color: var(--ink); font-family: var(--font-sans); width: 360px; height: 780px; border-radius: 32px; overflow: hidden; border: 1px solid #3A3A3A; display: flex; flex-direction: column; position: relative; flex: none; cursor: zoom-in; }
+  .phone { background-color: var(--canvas); color: var(--ink); font-family: var(--font-sans); width: 360px; height: 780px; border-radius: 32px; overflow: hidden; border: 1px solid #3A3A3A; display: flex; flex-direction: column; position: relative; flex: none; cursor: zoom-in;
+    --g1: var(--ink); --g3: color-mix(in oklab, var(--ink) 40%, var(--canvas)); }
   .phone * { font-variant-numeric: tabular-nums; }
-  .top { padding: 18px 12px 0 20px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .top.back { padding-left: 8px; justify-content: flex-start; }
   .eyebrow { font: 600 12px/1.3 var(--font-sans); color: var(--ink-muted); }
   .title { font: var(--display-weight) 29px/1.06 var(--font-display); font-stretch: var(--display-stretch); letter-spacing: -0.5px; margin-top: 2px; }
-  .body { padding: 0 20px; display: flex; flex-direction: column; gap: 14px; margin-top: 14px; }
-  .nav { display: flex; }
+  .disp { font-family: var(--font-display); font-weight: var(--display-weight); font-stretch: var(--display-stretch); }
+  .top { padding: 18px 20px 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .top.back { padding-left: 8px; justify-content: flex-start; }
   .ibtn { width: 44px; height: 44px; display: grid; place-items: center; color: var(--ink); border-radius: var(--r-md); flex: none; }
   .ibtn.box { background: var(--surface-2); width: 48px; height: 48px; }
+  .ibtn.round { background: var(--surface-2); border-radius: 50%; width: 46px; height: 46px; }
   svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; flex: none; }
-
-  .card { background-color: var(--surface-1); border: var(--card-border); border-radius: var(--r-card); box-shadow: var(--shadow-card); padding: 14px 16px; }
-
-  /* hero: the anchor box holds the plate ring and the four meals */
-  .anchor { background-color: var(--anchor); color: var(--on-anchor); border-radius: var(--r-anchor); box-shadow: var(--shadow-anchor); padding: 16px 16px 16px 14px; margin-right: 7px; display: flex; align-items: center; gap: 14px; }
-  .plate { position: relative; width: 148px; height: 148px; flex: none; }
-  .plate svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-  .plate .mid { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .plate .num { font: var(--display-weight) 40px/1 var(--font-display); font-stretch: var(--display-stretch); letter-spacing: -1px; color: var(--on-anchor-accent); }
-  .plate .lbl { font: 600 12px var(--font-sans); color: var(--on-anchor-muted); margin-top: 4px; }
-  .meals { flex: 1; display: flex; flex-direction: column; }
-  .meal { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 0; font: 600 14px var(--font-sans); color: var(--on-anchor-muted); }
-  .meal + .meal { border-top: 1px solid color-mix(in oklab, var(--on-anchor-muted) 25%, transparent); }
-  .meal b { font: 700 15px var(--font-figure); color: var(--on-anchor); }
-  .meal b.none { color: var(--on-anchor-muted); font-weight: 600; }
-
-  /* macros: three bars */
-  .macros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-  .macros .v { font: 700 16px var(--font-sans); margin-top: 2px; white-space: nowrap; }
-  .macros .v small { font: 600 12px var(--font-figure); color: var(--ink-subtle); }
-  .mbar { height: 6px; border-radius: 9999px; background: var(--surface-3); margin-top: 8px; overflow: hidden; }
-  .mbar i { display: block; height: 100%; background: var(--ink-muted); border-radius: 9999px; }
-
-  /* the week: bars against the budget line, today orange */
-  .week { position: relative; height: 92px; display: flex; align-items: flex-end; gap: 10px; border-bottom: 1.5px solid var(--ink); margin-top: 10px; }
-  .week .budget { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--ink-subtle); }
-  .week .budget span { position: absolute; right: 0; top: -17px; font: 600 11px var(--font-figure); color: var(--ink-subtle); }
-  .week i { flex: 1; border-radius: 3px 3px 0 0; background: var(--chart-neutral); }
-  .week i.k { background: var(--chart-1); }
-  .wdays { display: flex; gap: 10px; margin-top: 6px; }
-  .wdays span { flex: 1; text-align: center; font: 600 11px var(--font-sans); color: var(--ink-subtle); }
-  .wdays span.k { color: var(--primary-text); }
-
-  .bottom { margin-top: auto; padding: 0 20px 18px; display: flex; gap: 10px; align-items: center; }
   .btn { height: 48px; border-radius: var(--r-button); background: var(--action); color: var(--on-action); display: flex; align-items: center; justify-content: center; gap: 8px; font: 700 16px var(--font-sans); border: 0; width: 100%; }
   .btn svg.i { width: 20px; height: 20px; }
   .btn.sec { background: var(--surface-2); color: var(--ink); }
+  .btn.danger { background: transparent; box-shadow: inset 0 0 0 1px var(--danger); color: var(--danger); }
+  .bottom { margin-top: auto; padding: 0 20px 18px; display: flex; gap: 10px; align-items: center; }
+  .acc { color: var(--primary-display); }
+  .fig { font: 600 12px var(--font-figure); color: var(--ink-subtle); }
+  .body { padding: 0 20px; display: flex; flex-direction: column; gap: 14px; margin-top: 14px; }
 
+  /* day strip (W3 with waves) */
+  .days { display: flex; gap: 5px; padding: 12px 14px 0; }
+  .day { flex: 1; min-width: 0; height: 74px; position: relative; border-radius: 14px; background: var(--surface-1); border: 1px solid var(--hairline); overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; font: 600 11px var(--font-sans); color: var(--ink-muted); }
+  .day b { font: 700 15px var(--font-figure); color: var(--ink); line-height: 1.2; }
+  .day em { font: 700 11px var(--font-figure); font-style: normal; color: var(--ink-subtle); margin-top: 1px; }
+  .day em.ov { color: var(--ink); }
+  .day > span, .day > b, .day > em { position: relative; z-index: 1; }
+  .day .liq { position: absolute; left: 0; right: 0; bottom: 0; }
+  .day .bud { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--ink-subtle); z-index: 1; }
+  .day.on { border: 1.5px solid var(--ink); }
+  .day .wv { position: absolute; left: 0; bottom: calc(100% - 1px); width: 200%; height: 7px; animation: wave 5s linear infinite; }
+  .day:nth-child(2n) .wv { animation-duration: 6.2s; animation-delay: -1.3s; }
+  .day:nth-child(3n) .wv { animation-duration: 5.6s; animation-delay: -2.7s; }
+  @keyframes wave { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce) { .day .wv { animation: none; } }
+
+  /* corners + ring */
+  .frame { position: relative; margin: 8px 20px 0; height: 246px; }
+  .mid { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 196px; height: 196px; }
+  .mid > svg { display: block; overflow: visible; }
+  .center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .num { line-height: 1; letter-spacing: -1.5px; }
+  .lbl { font: 600 12px var(--font-sans); color: var(--ink-muted); margin-top: 3px; }
+  .tot { font: 600 12px var(--font-figure); color: var(--ink-subtle); margin-top: 6px; } .tot b { color: var(--ink); font-weight: 700; }
+  .corner { position: absolute; width: 96px; font: 600 12px var(--font-sans); color: var(--ink-muted); }
+  .corner.r { text-align: right; }
+  .corner .sw { display: inline-block; width: 16px; height: 16px; border-radius: 50%; text-align: center; font: 800 10px/16px var(--font-sans); font-style: normal; vertical-align: -3px; margin-right: 5px; }
+  .corner.r .sw { margin: 0 0 0 5px; }
+  .corner b { display: block; font: 700 19px/1.15 var(--font-figure); color: var(--ink); }
+  .corner .fs { display: flex; margin-top: 4px; } .corner.r .fs { justify-content: flex-end; }
+  .corner .fs span { width: 30px; height: 30px; border-radius: 50%; background: var(--surface-2); display: grid; place-items: center; border: 2px solid var(--canvas); }
+  .corner .fs span + span { margin-left: -8px; }
+  .corner .fs svg { width: 24px; height: 24px; }
+  .corner .addm { width: 30px; height: 30px; border-radius: 50%; border: 1.5px dashed var(--hairline-strong); display: grid; place-items: center; color: var(--ink-muted); margin-top: 4px; }
+  .corner.r .addm { margin-left: auto; } .corner .addm svg.i { width: 16px; height: 16px; }
+
+  /* macro strip (B1, G3 tones, values inside) */
+  .mac { margin: 12px 20px 0; }
+  .mh { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .b1 { display: flex; gap: 4px; }
+  .b1 > div { min-width: 0; }
+  .b1 .bar { height: 30px; border-radius: 8px; display: flex; align-items: center; padding: 0 8px; font: 700 13px var(--font-figure); white-space: nowrap; overflow: hidden; }
+  .b1 .lab { margin-top: 4px; font: 600 12px var(--font-sans); color: var(--ink-muted); white-space: nowrap; }
+  .b1 .g { font: 500 12px var(--font-figure); color: var(--ink-subtle); white-space: nowrap; }
+
+  /* rows */
+  .sec { margin: 12px 20px 0; }
+  .fr { display: flex; align-items: center; gap: 12px; min-height: 52px; position: relative; }
+  .fr + .fr { border-top: 1px solid var(--hairline); }
+  .fr .food { width: 40px; height: 40px; border-radius: 50%; background: var(--surface-2); display: grid; place-items: center; flex: none; }
+  .fr .food svg { width: 32px; height: 32px; }
+  .fr .t { flex: 1; min-width: 0; font: 600 15px/1.3 var(--font-sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fr .t span { display: block; font: 500 13px var(--font-figure); color: var(--ink-muted); }
+  .fr .k { font: 700 14px var(--font-figure); }
+  .fr .add { width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid var(--hairline-strong); display: grid; place-items: center; flex: none; }
+  .fr .add svg.i { width: 18px; height: 18px; }
+  .fr.sel::after { content: ''; position: absolute; inset: 2px -8px; border: 2px solid var(--primary); border-radius: 12px; pointer-events: none; }
   .search { display: flex; gap: 8px; }
-  .input { flex: 1; height: 48px; border-radius: var(--r-md); background: var(--surface-2); display: flex; align-items: center; gap: 10px; padding: 0 14px; font: 500 15px var(--font-sans); color: var(--ink-muted); }
+  .input { flex: 1; height: 46px; border-radius: 23px; background: var(--surface-2); display: flex; align-items: center; gap: 10px; padding: 0 16px; font: 500 15px var(--font-sans); color: var(--ink-muted); }
   .input svg.i { width: 18px; height: 18px; }
-  .input.val { color: var(--ink); font: 700 20px var(--font-sans); }
-  .input.val small { font: 600 14px var(--font-sans); color: var(--ink-muted); margin-left: -4px; }
-  .input.focus { box-shadow: inset 0 0 0 2px var(--primary); }
+  .seg { display: flex; gap: 18px; border-bottom: 1px solid var(--hairline); }
+  .seg span { padding: 8px 0; font: 600 14px var(--font-sans); color: var(--ink-subtle); position: relative; }
+  .seg span.on { color: var(--ink); } .seg span.on::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--ink); }
 
-  .list { background-color: var(--surface-1); border: var(--card-border); border-radius: var(--r-card); box-shadow: var(--shadow-card); }
-  .li { display: flex; gap: 12px; align-items: center; padding: 6px 4px 6px 10px; min-height: 60px; position: relative; }
-  .li + .li { border-top: 1px solid var(--hairline); }
-  .li .t { flex: 1; min-width: 0; font: 600 15px/1.3 var(--font-sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .li .s { display: block; font: 500 13px var(--font-figure); color: var(--ink-muted); }
-  .li .add { width: 44px; height: 44px; display: grid; place-items: center; color: var(--ink-muted); }
-  .food { width: 44px; height: 44px; border-radius: var(--r-md); background: var(--surface-2); display: grid; place-items: center; flex: none; }
-  .food svg { width: 36px; height: 36px; }
-
-  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
-  .chip { height: 36px; padding: 0 14px; border-radius: var(--r-chip); border: 1px solid var(--hairline-strong); display: inline-flex; align-items: center; font: 600 14px var(--font-sans); }
-  .chip.on { background: var(--action); color: var(--on-action); border-color: var(--action); }
-
+  /* sheets */
   .scrim { position: absolute; inset: 0; background: var(--scrim); }
-  .sheet { position: absolute; left: 0; right: 0; bottom: 0; background: var(--surface-1); border-top: 1px solid var(--hairline-strong); border-radius: var(--r-xl) var(--r-xl) 0 0; box-shadow: var(--shadow-3); padding: 10px 20px 18px; display: flex; flex-direction: column; gap: 14px; }
-  .sheet .handle { width: 36px; height: 4px; border-radius: 4px; background: var(--hairline-strong); margin: 0 auto; }
-  .sheet .hd { display: flex; gap: 14px; align-items: center; }
-  .sheet .hd .food { width: 64px; height: 64px; border-radius: var(--r-card); }
-  .sheet .hd .food svg { width: 54px; height: 54px; }
-  .sheet h4 { font: 700 19px/1.25 var(--font-sans); margin: 0; }
-  .sheet .sub { font: 500 13px var(--font-sans); color: var(--ink-muted); }
-  .amount { display: flex; gap: 12px; align-items: center; }
-  .amount .input { flex: none; width: 116px; }
-  .kc { font: var(--display-weight) 34px/1 var(--font-display); font-stretch: var(--display-stretch); letter-spacing: -0.8px; }
-  .kc small { font: 600 14px var(--font-sans); color: var(--ink-muted); letter-spacing: 0; margin-left: 4px; }
-  /* macro split of this food: one bar, three tones, labelled underneath */
-  .split { display: flex; height: 10px; border-radius: 9999px; overflow: hidden; gap: 2px; }
-  .split i:nth-child(1) { background: var(--ink); } .split i:nth-child(2) { background: var(--ink-muted); } .split i:nth-child(3) { background: var(--chart-neutral); }
-  .legend { display: flex; justify-content: space-between; margin-top: 8px; font: 500 13px var(--font-sans); color: var(--ink-muted); }
-  .legend b { color: var(--ink); font-weight: 700; }
-  .legend span::before { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; vertical-align: 1px; }
-  .legend span:nth-child(1)::before { background: var(--ink); } .legend span:nth-child(2)::before { background: var(--ink-muted); } .legend span:nth-child(3)::before { background: var(--chart-neutral); }
-  .more { display: flex; justify-content: space-between; align-items: center; min-height: 44px; border-top: 1px solid var(--hairline); padding-top: 4px; font: 600 14px var(--font-sans); color: var(--ink-muted); }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; background: var(--surface-1); border-radius: 28px 28px 0 0; border-top: 1px solid var(--hairline-strong); padding: 10px 20px 18px; display: flex; flex-direction: column; align-items: center; gap: 12px; box-shadow: var(--shadow-3); }
+  .sheet .handle { width: 36px; height: 4px; border-radius: 4px; background: var(--hairline-strong); }
+  .sheet .hero { width: 104px; height: 104px; border-radius: 50%; background: var(--surface-2); display: grid; place-items: center; }
+  .sheet .hero svg { width: 78px; height: 78px; }
+  .sheet h4 { margin: 0; font: 700 19px var(--font-sans); text-align: center; }
+  .sheet .per { font: 500 13px var(--font-sans); color: var(--ink-muted); margin-top: -10px; }
+  .amt { display: flex; align-items: baseline; gap: 18px; }
+  .amt .g { font-size: 44px; line-height: 1; letter-spacing: -1px; border-bottom: 2px solid var(--primary); padding: 0 4px 2px; }
+  .amt small { font: 600 15px var(--font-sans); color: var(--ink-muted); letter-spacing: 0; margin-left: 4px; }
+  .amt .k { font-size: 28px; line-height: 1; color: var(--ink-muted); }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .chip { height: 36px; padding: 0 14px; border-radius: 18px; border: 1px solid var(--hairline-strong); display: inline-flex; align-items: center; font: 600 14px var(--font-sans); }
+  .chip.on { background: var(--action); color: var(--on-action); border-color: var(--action); }
+  .chip em { font-style: normal; font-weight: 500; font-size: 12px; color: var(--ink-subtle); margin-left: 5px; }
+  .chip.on em { color: var(--on-action); opacity: .7; }
+  .full { width: 100%; }
+  .more { width: 100%; display: flex; justify-content: space-between; align-items: center; min-height: 40px; font: 600 14px var(--font-sans); color: var(--ink-muted); border-top: 1px solid var(--hairline); }
   .more svg.i { width: 18px; height: 18px; }
-  .nutr { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; margin-top: -6px; }
-  .nutr div { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--hairline); font: 500 14px var(--font-sans); color: var(--ink-muted); }
+  .nutr { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; margin-top: -6px; }
+  .nutr div { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--hairline); font: 500 14px var(--font-sans); color: var(--ink-muted); }
   .nutr b { color: var(--ink); font: 600 14px var(--font-figure); }
+  .two { display: flex; gap: 10px; width: 100%; }
+
+  /* scanner */
+  .cam { position: absolute; inset: 0; background: #0B0B0B; }
+  .cam .shelf { position: absolute; left: 0; right: 0; top: 0; height: 64%; background: linear-gradient(#1A1A1A, #101010); }
+  .viewfinder { position: absolute; left: 50%; top: 32%; transform: translate(-50%, -50%); width: 260px; height: 150px; }
+  .viewfinder i { position: absolute; width: 34px; height: 34px; border: 3px solid #EEEEEE; }
+  .viewfinder i:nth-child(1) { left: 0; top: 0; border-right: 0; border-bottom: 0; border-radius: 12px 0 0 0; }
+  .viewfinder i:nth-child(2) { right: 0; top: 0; border-left: 0; border-bottom: 0; border-radius: 0 12px 0 0; }
+  .viewfinder i:nth-child(3) { left: 0; bottom: 0; border-right: 0; border-top: 0; border-radius: 0 0 0 12px; }
+  .viewfinder i:nth-child(4) { right: 0; bottom: 0; border-left: 0; border-top: 0; border-radius: 0 0 12px 0; }
+  .viewfinder .laser { position: absolute; left: 18px; right: 18px; top: 50%; height: 2px; background: var(--chart-1); border-radius: 2px; }
+  .camtop { position: absolute; left: 0; right: 0; top: 0; padding: 18px 8px; display: flex; justify-content: space-between; color: #EEEEEE; }
+  .camtop .ibtn { color: #EEEEEE; }
+  .camhint { position: absolute; left: 0; right: 0; top: 52%; text-align: center; font: 600 15px var(--font-sans); color: #ABABAB; }
+
+  /* form */
+  .field label { display: block; font: 700 14px var(--font-sans); margin-bottom: 6px; }
+  .finput { height: 46px; border-radius: var(--r-md); background: var(--surface-2); display: flex; align-items: center; padding: 0 14px; font: 500 15px var(--font-sans); color: var(--ink); justify-content: space-between; }
+  .finput.ph { color: var(--ink-subtle); }
+  .finput.focus { box-shadow: inset 0 0 0 2px var(--primary); }
+  .finput small { color: var(--ink-subtle); font: 600 13px var(--font-sans); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+  .help { font: 500 12px var(--font-sans); color: var(--ink-muted); margin-top: 6px; }
+  .src { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: var(--r-card); background: var(--surface-1); border: 1px solid var(--hairline); }
+  .src .food { width: 52px; height: 52px; border-radius: 50%; background: var(--surface-2); display: grid; place-items: center; flex: none; }
+  .src .food svg { width: 42px; height: 42px; }
+  .src b { display: block; font: 700 15px var(--font-sans); } .src span { font: 500 13px var(--font-sans); color: var(--ink-muted); }
+  .tag { display: inline-flex; height: 22px; align-items: center; padding: 0 8px; border-radius: var(--r-sm); border: 1px solid var(--hairline-strong); font: 600 12px var(--font-sans); color: var(--ink-muted); }
+
+  /* settings */
+  .list { display: flex; flex-direction: column; }
+  .lr { display: flex; justify-content: space-between; align-items: center; min-height: 54px; border-bottom: 1px solid var(--hairline); font: 600 15px var(--font-sans); gap: 12px; }
+  .lr span { display: block; font: 500 13px var(--font-sans); color: var(--ink-muted); }
+  .lr .v { font: 700 15px var(--font-figure); text-align: right; white-space: nowrap; }
+  .pill { white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px; border-radius: 9999px; border: 1px solid currentColor; font: 600 12px var(--font-sans); }
+  .pill.ok { color: var(--success); } .pill.bad { color: var(--danger); }
+  .toggle { width: 44px; height: 26px; border-radius: 9999px; background: var(--action); position: relative; flex: none; }
+  .toggle::after { content: ''; position: absolute; top: 3px; left: 21px; width: 20px; height: 20px; border-radius: 50%; background: var(--on-action); }
 
   .toast { position: absolute; left: 20px; right: 20px; bottom: 84px; display: flex; align-items: center; gap: 12px; background: var(--surface-3); border: 1px solid var(--hairline-strong); border-radius: var(--r-md); padding: 8px 16px 8px 8px; font: 500 14px var(--font-sans); box-shadow: var(--shadow-3); }
-  .toast .food { width: 36px; height: 36px; } .toast .food svg { width: 30px; height: 30px; }
-  .toast span { flex: 1; } .toast b { font-weight: 700; }
-  .banner { display: flex; gap: 12px; align-items: flex-start; background: var(--surface-2); border-radius: var(--r-card); padding: 12px 14px; font: 500 14px/1.45 var(--font-sans); }
+  .toast .food { width: 34px; height: 34px; border-radius: 50%; background: var(--surface-2); display: grid; place-items: center; } .toast .food svg { width: 28px; height: 28px; }
+  .toast > span:not(.food) { flex: 1; } .toast b { font-weight: 700; }
+  .banner { display: flex; gap: 12px; align-items: flex-start; background: var(--surface-2); border-radius: var(--r-card); padding: 12px 14px; font: 500 14px/1.45 var(--font-sans); margin: 12px 20px 0; }
   .banner svg.i { color: var(--danger); width: 20px; height: 20px; margin-top: 1px; }
   .sk { background: var(--surface-2); border-radius: var(--r-sm); }
   .empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 28px; }
   .empty .art svg { width: 132px; height: 132px; }
   .empty .title { font-size: 26px; margin-top: 10px; }
   .empty p { margin: 8px 0 0; font: 500 14px/1.5 var(--font-sans); color: var(--ink-muted); }
+  .empty .btn { margin-top: 18px; }
   .page :focus-visible, .phone :focus-visible { outline: 2px solid var(--primary, #FF5A00); outline-offset: 2px; }
   #zoom { position: fixed; inset: 0; background: #000000D9; display: none; place-items: center; z-index: 9; cursor: zoom-out; }
   #zoom.on { display: grid; }
@@ -136,123 +192,171 @@
 </head>
 <body class="page">
 <main>
-  <h1>Pantry</h1>
-  <p class="lede">MyNetDiary'nin düzeni, bizim dille: halka ve öğünler bir kutuda, altta <b>üç makro</b> ve <b>haftanın barları</b>. Öğüne dokununca resimli liste, yemeğe dokununca gram. Tuz, şeker, lif yemeğin detayında. Veriler senin 20 Ekim'in.</p>
-
-  <h2>Akış</h2>
-  <p>Ana ekran, öğünün listesi, gram sayfası, tüm besinler açık, eklendi.</p>
-  <h3>Koyu</h3><div class="row" id="fd"></div>
-  <h3>Açık</h3><div class="row" id="fl"></div>
-
-  <h2>Çizim tarzı: A? B? C?</h2>
-  <p>Yemek resimleri üç tarzda, gerisi aynı. <b>A</b> ince çizgi (tasarım dilimizin çizim tarzı), <b>B</b> gri tonlarda düz, <b>C</b> yemeğin kendi renginde düz. Akış yukarıda A ile çizildi.</p>
-  <h3>Koyu</h3><div class="row" id="id"></div>
-  <h3>Açık</h3><div class="row" id="il"></div>
-
-  <h2>Durumlar</h2>
-  <p>İlk açılış, yükleniyor ve barkod bulunamadı.</p>
-  <h3>Koyu</h3><div class="row" id="sd"></div>
-  <h3>Açık</h3><div class="row" id="sl"></div>
+  <h1>Pantry v1</h1>
+  <p class="lede">The visual source of truth for v1. <b>Today</b>: day strip, four meals in the corners around the ring, the macro strip, what you ate. Tap a corner or <b>Add</b> for the meal's foods, tap a food for grams. Scan for a new product. Real data: 20 Oct and 8 Aug 2026 from your MyNetDiary history.</p>
+  <h2>Log</h2><p>Today, the meal list, the gram sheet (closed and with all nutrients), added.</p>
+  <h3>Dark</h3><div class="row" id="ld"></div><h3>Light</h3><div class="row" id="ll"></div>
+  <h2>New product</h2><p>Scan; a barcode found in the store catalogue fills itself in; a missing one is typed once from the label.</p>
+  <h3>Dark</h3><div class="row" id="nd"></div><h3>Light</h3><div class="row" id="nl"></div>
+  <h2>Past days and settings</h2><p>A past day from the strip, editing an entry, settings with targets, sync and import.</p>
+  <h3>Dark</h3><div class="row" id="pd"></div><h3>Light</h3><div class="row" id="pl"></div>
+  <h2>States</h2><p>First launch, loading, sync failed.</p>
+  <h3>Dark</h3><div class="row" id="sd"></div><h3>Light</h3><div class="row" id="sl"></div>
 </main>
 <div id="zoom"></div>
 <script>
 const P = {
-  left: '<path d="m15 18-6-6 6-6"/>', right: '<path d="m9 18 6-6-6-6"/>', down: '<path d="m6 9 6 6 6-6"/>', up: '<path d="m18 15-6-6-6 6"/>',
-  search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  left: '<path d="m15 18-6-6 6-6"/>', down: '<path d="m6 9 6 6 6-6"/>', up: '<path d="m18 15-6-6-6 6"/>', x: '<path d="M18 6 6 18M6 6l12 12"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>', gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
   scan: '<path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M8 7v10M12 7v10M16 7v10"/>',
-  plus: '<path d="M5 12h14M12 5v14"/>', alert: '<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>' };
+  plus: '<path d="M5 12h14M12 5v14"/>', alert: '<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>', check: '<path d="M5 12l5 5 9-10"/>',
+  flash: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>', kbd: '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>' };
 const ic = k => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${P[k]}</svg>`;
-const n = v => Math.round(v).toLocaleString('tr-TR');
+const n = v => Math.round(v).toLocaleString('en-AU');
+const d1 = v => (Math.round(v * 10) / 10).toLocaleString('en-AU');
+const sg = v => (v > 0 ? '+' : '−') + n(Math.abs(v));
 
-// Food drawings, 48x48. Each shape: [kind, d, natural colour, grey level 1-3]; kind 'f' fill, 'l' line.
-// One geometry, three treatments: A line (ink stroke), B flat greys, C flat natural colours.
+// Style C food drawings, 48x48: [kind, d, colour].
 const F = {
-  chicken: [['f', 'M9 31c-2-8 5-17 16-18 8-1 14 3 14 9 0 8-9 14-19 15-6 0-10-2-11-6z', '#F2B2A2', 2], ['l', 'M15 28c5-4 11-6 18-6M17 33c4-2 9-3 13-3', '#D98875', 3]],
-  tzatziki: [['f', 'M6 25h36c0 9-8 15-18 15S6 34 6 25z', '#4F86B8', 2], ['f', 'M9 25c2-6 8-9 15-9s13 3 15 9z', '#F4F1E8', 1], ['f', 'M17 20.5a1.6 1.6 0 1 0 0.1 0zM25 18.5a1.6 1.6 0 1 0 0.1 0zM31 21a1.6 1.6 0 1 0 0.1 0z', '#6E9E4A', 3]],
-  rice: [['f', 'M6 26h36c0 8-8 14-18 14S6 34 6 26z', '#B9B2A6', 2], ['f', 'M9 26c1-8 7-12 15-12s14 4 15 12z', '#FBF8F0', 1], ['l', 'M16 21l3-1M23 18h3M29 21l3 1M20 24h3', '#D8CFBA', 3]],
-  butter: [['f', 'M5 34h38l-4 5H9z', '#CFCFCF', 2], ['f', 'M11 21l19-5 8 6v10l-19 5-8-6z', '#F5D664', 1], ['l', 'M11 21l8 6 19-5M19 27v10', '#D9B43C', 3]],
-  potato: [['f', 'M7 27c0-8 8-14 18-14s16 5 16 12-8 12-18 12S7 34 7 27z', '#D6A468', 2], ['f', 'M16 23.5a1.4 1.4 0 1 0 0.1 0zM28 21a1.4 1.4 0 1 0 0.1 0zM31 30a1.4 1.4 0 1 0 0.1 0zM20 31a1.2 1.2 0 1 0 0.1 0z', '#8A5A2B', 3]],
-  pizza: [['f', 'M11 19c8-4 18-4 26 0L24 42z', '#F2C65A', 1], ['f', 'M8 14c10-5 22-5 32 0l-3 5c-8-4-18-4-26 0z', '#D49A4C', 2], ['f', 'M20 22.5a2.6 2.6 0 1 0 0.1 0zM28.5 22a2.4 2.4 0 1 0 0.1 0zM24 29.5a2.4 2.4 0 1 0 0.1 0z', '#C84A31', 3]],
-  tuna: [['f', 'M9 22v12c0 3 7 5 15 5s15-2 15-5V22', '#B6BCC2', 2], ['f', 'M9 27c0 3 7 5 15 5s15-2 15-5v5c0 3-7 5-15 5S9 35 9 32z', '#2F6DB5', 3], ['f', 'M9 22c0-3 7-5 15-5s15 2 15 5-7 5-15 5-15-2-15-5z', '#DDE2E6', 1]],
-  eggs: [['f', 'M17 40c-6 0-9-5-9-11s4-15 9-15 9 9 9 15-3 11-9 11z', '#F1E2CD', 1], ['f', 'M31 40c-5 0-8-4-8-9s4-12 8-12 8 7 8 12-3 9-8 9z', '#E3C9A6', 2]],
-  plate: [['f', 'M24 6a18 18 0 1 0 0.1 0z', '#E6E6E6', 1], ['l', 'M24 13a11 11 0 1 0 0.1 0z', '#BDBDBD', 3], ['l', 'M4 10v9M7 10v9M4 19c0 2 1.5 3 1.5 3v18M44 10c-3 1-4 5-4 10h3v20', '#9E9E9E', 3]],
+  chicken: [['f', 'M9 31c-2-8 5-17 16-18 8-1 14 3 14 9 0 8-9 14-19 15-6 0-10-2-11-6z', '#F2B2A2'], ['l', 'M15 28c5-4 11-6 18-6M17 33c4-2 9-3 13-3', '#D98875']],
+  grilled: [['f', 'M9 31c-2-8 5-17 16-18 8-1 14 3 14 9 0 8-9 14-19 15-6 0-10-2-11-6z', '#C98A55'], ['l', 'M14 30l16-12M18 34l16-12', '#7A4A26']],
+  tzatziki: [['f', 'M6 25h36c0 9-8 15-18 15S6 34 6 25z', '#4F86B8'], ['f', 'M9 25c2-6 8-9 15-9s13 3 15 9z', '#F4F1E8'], ['f', 'M17 20.5a1.6 1.6 0 1 0 0.1 0zM25 18.5a1.6 1.6 0 1 0 0.1 0zM31 21a1.6 1.6 0 1 0 0.1 0z', '#6E9E4A']],
+  rice: [['f', 'M6 26h36c0 8-8 14-18 14S6 34 6 26z', '#B9B2A6'], ['f', 'M9 26c1-8 7-12 15-12s14 4 15 12z', '#FBF8F0'], ['l', 'M16 21l3-1M23 18h3M29 21l3 1M20 24h3', '#D8CFBA']],
+  butter: [['f', 'M5 34h38l-4 5H9z', '#CFCFCF'], ['f', 'M11 21l19-5 8 6v10l-19 5-8-6z', '#F5D664'], ['l', 'M11 21l8 6 19-5M19 27v10', '#D9B43C']],
+  potato: [['f', 'M7 27c0-8 8-14 18-14s16 5 16 12-8 12-18 12S7 34 7 27z', '#D6A468'], ['f', 'M16 23.5a1.4 1.4 0 1 0 0.1 0zM28 21a1.4 1.4 0 1 0 0.1 0zM31 30a1.4 1.4 0 1 0 0.1 0zM20 31a1.2 1.2 0 1 0 0.1 0z', '#8A5A2B']],
+  pizza: [['f', 'M11 19c8-4 18-4 26 0L24 42z', '#F2C65A'], ['f', 'M8 14c10-5 22-5 32 0l-3 5c-8-4-18-4-26 0z', '#D49A4C'], ['f', 'M20 22.5a2.6 2.6 0 1 0 0.1 0zM28.5 22a2.4 2.4 0 1 0 0.1 0zM24 29.5a2.4 2.4 0 1 0 0.1 0z', '#C84A31']],
+  tuna: [['f', 'M9 22v12c0 3 7 5 15 5s15-2 15-5V22', '#B6BCC2'], ['f', 'M9 27c0 3 7 5 15 5s15-2 15-5v5c0 3-7 5-15 5S9 35 9 32z', '#2F6DB5'], ['f', 'M9 22c0-3 7-5 15-5s15 2 15 5-7 5-15 5-15-2-15-5z', '#DDE2E6']],
+  sandwich: [['f', 'M7 34L24 11l17 23z', '#E8C38A'], ['f', 'M10 30h28l-2 4H12z', '#8B4A3A'], ['f', 'M9 28h30l-1 2H10z', '#7FAE52']],
+  bread: [['f', 'M8 22c0-6 7-9 16-9s16 3 16 9c0 2-2 3-3 3v12H11V25c-1 0-3-1-3-3z', '#C98B4A'], ['f', 'M17 19a1.2 1.2 0 1 0 0.1 0zM24 17a1.2 1.2 0 1 0 0.1 0zM30 20a1.2 1.2 0 1 0 0.1 0zM21 23a1.2 1.2 0 1 0 0.1 0zM28 24a1.2 1.2 0 1 0 0.1 0z', '#5C3D22']],
+  plate: [['f', 'M24 6a18 18 0 1 0 0.1 0z', '#E6E6E6'], ['f', 'M24 12a12 12 0 1 0 0.1 0z', '#F4F4F4'], ['l', 'M4 10v9M7 10v9M4 19c0 2 1.5 3 1.5 3v18M44 10c-3 1-4 5-4 10h3v20', '#9E9E9E']],
+  box: [['f', 'M8 16l16-7 16 7v18l-16 7-16-7z', '#D9C3A0'], ['f', 'M8 16l16 7 16-7-16-7z', '#EAD9BD'], ['l', 'M24 23v18', '#B89B6E']],
 };
-const GREY = { 1: 'var(--hairline-strong)', 2: 'var(--chart-neutral)', 3: 'var(--ink-muted)' };
-function art(k, st = 'A') {
-  const sh = F[k].map(([kind, d, c, g]) => {
-    if (st === 'A') return `<path d="${d}" fill="none" stroke="var(--ink)" stroke-width="${kind === 'l' ? 1.5 : 1.75}" stroke-linecap="round" stroke-linejoin="round"/>`;
-    const col = st === 'B' ? GREY[g] : c;
-    return kind === 'l' ? `<path d="${d}" fill="none" stroke="${col}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>` : `<path d="${d}" fill="${col}"/>`;
-  }).join('');
-  return `<svg viewBox="0 0 48 48" aria-hidden="true">${sh}</svg>`;
-}
-const food = (k, st) => `<span class="food">${art(k, st)}</span>`;
+const art = (k, s = 48, x = 0, y = 0) => `<svg x="${x}" y="${y}" width="${s}" height="${s}" viewBox="0 0 48 48" aria-hidden="true">${F[k].map(([t, d, c]) => t === 'l' ? `<path d="${d}" fill="none" stroke="${c}" stroke-width="1.75" stroke-linecap="round"/>` : `<path d="${d}" fill="${c}"/>`).join('')}</svg>`;
 
-// Tarık's targets (MyNetDiary plan): 2,200 kcal; carbs 45 %, protein 20 %, fat 35 %.
 const T = { kcal: 2200, c: 248, p: 110, f: 86 };
-const DAY0 = { kcal: 1304, c: 143.2, p: 66.8, f: 47.6, meals: [1304, 0, 0, 0] };
-const DAY1 = { kcal: 1682, c: 143.2, p: 138, f: 58.1, meals: [1304, 0, 378, 0] };
-const WEEK = [['Ç', 2292, 'Çarşamba 14'], ['P', 2149, 'Perşembe 15'], ['C', 2217, 'Cuma 16'], ['C', 2292, 'Cumartesi 17'], ['P', 2568, 'Pazar 18'], ['P', 2292, 'Pazartesi 19']];
-// Dinner, most frequent since 20 Jul 2026, with the amount used last time.
-const DINNER = [['chicken', 'Chicken breast raw', '350 g', 378], ['tzatziki', 'Classic tzatziki dip', '125 g', 113], ['rice', 'Indian basmati rice', '100 g', 360],
-  ['butter', 'Spreadable butter', '10 g', 62], ['potato', 'Washed white potato', '350 g', 206], ['pizza', 'Margherita family pizza', '500 g', 1304],
-  ['tuna', 'Tuna chunks in olive oil', '140 g', 265], ['eggs', 'Free range eggs XL', '4 eggs', 296]];
-const MEALS = ['Kahvaltı', 'Öğle', 'Akşam', 'Ara öğün'];
+const DN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTH = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const DAYNAME = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const day = s => new Date(s + 'T00:00:00Z');
+const MEALS = ['Breakfast', 'Lunch', 'Dinner', 'Snacks'];
+const QS = [-90, 0, 90, 180];
+const MACS = [['p', 'Protein'], ['c', 'Carbs'], ['f', 'Fat']];
+const share = D => { const k = { p: D.p * 4, c: D.c * 4, f: D.f * 9 }, s = k.p + k.c + k.f; return { p: k.p / s * 100, c: k.c / s * 100, f: k.f / s * 100 }; };
 
-function plate(D) {
-  const r = 62, c = 2 * Math.PI * r, f = Math.min(1, D.kcal / T.kcal);
-  return `<div class="plate"><svg viewBox="0 0 148 148" aria-hidden="true"><circle cx="74" cy="74" r="${r}" fill="none" stroke="var(--on-anchor-muted)" stroke-opacity=".28" stroke-width="12"/>
-    <circle cx="74" cy="74" r="${r}" fill="none" stroke="var(--on-anchor)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${(c * f).toFixed(1)} ${c.toFixed(1)}"/></svg>
-    <div class="mid"><span class="num">${n(T.kcal - D.kcal)}</span><span class="lbl">kcal kaldı</span></div></div>`;
+// Real days.
+const WEEK_OCT = [['2026-10-14', 2292], ['2026-10-15', 2149], ['2026-10-16', 2217], ['2026-10-17', 2292], ['2026-10-18', 2568], ['2026-10-19', 2292]];
+const NOW = { date: '2026-10-20', today: true, kcal: 1304, p: 66.8, c: 143.2, f: 47.6, meals: [1304, 0, 0, 0], foods: [['pizza'], [], [], []], week: [...WEEK_OCT, ['2026-10-20', 1304]],
+  ate: [['pizza', 'Margherita family pizza', 'Breakfast, 500 g', 1304]] };
+const AFTER = { ...NOW, kcal: 1682, p: 138, c: 143.2, f: 58.1, meals: [1304, 0, 378, 0], foods: [['pizza'], [], ['chicken'], []], week: [...WEEK_OCT, ['2026-10-20', 1682]],
+  ate: [['chicken', 'Chicken breast raw', 'Dinner, 350 g', 378], ['pizza', 'Margherita family pizza', 'Breakfast, 500 g', 1304]] };
+const AUG8 = { date: '2026-08-08', today: false, kcal: 1976, p: 257.7, c: 185.7, f: 33.8, meals: [888, 350, 590, 148], foods: [['grilled'], ['sandwich'], ['potato'], ['bread']],
+  week: [['2026-08-02', 2134], ['2026-08-03', 2177], ['2026-08-04', 1794], ['2026-08-05', 2114], ['2026-08-06', 2458], ['2026-08-07', 2073], ['2026-08-08', 1976]],
+  ate: [['grilled', 'Chicken grilled', 'Breakfast, 3 pieces', 888], ['sandwich', 'Roast beef sandwich', 'Lunch, 1 serving', 350], ['potato', 'Washed white potato', 'Dinner, 1000 g', 590], ['bread', 'High protein seeds loaf', 'Snacks, 1.5 slices', 148]] };
+// Dinner: most frequent since 20 Jul 2026, with the amount used last time.
+const DINNER = [['chicken', 'Chicken breast raw', '350 g', 378], ['tzatziki', 'Classic tzatziki dip', 'Coles, 125 g', 113], ['rice', 'Indian basmati rice', 'Coles, 100 g', 360],
+  ['butter', 'Spreadable butter', 'Western Star, 10 g', 62], ['potato', 'Washed white potato', 'Woolworths, 350 g', 206], ['pizza', 'Margherita family pizza', 'McCain, 500 g', 1304], ['tuna', 'Tuna chunks in olive oil', 'Coles, 140 g', 265]];
+
+const pt = (cx, cy, r, a) => [cx + r * Math.sin(a * Math.PI / 180), cy - r * Math.cos(a * Math.PI / 180)];
+const f1 = v => v.toFixed(1);
+const arc = (cx, cy, r, a0, a1) => { if (a1 - a0 >= 359) return arc(cx, cy, r, a0, a0 + 180) + arc(cx, cy, r, a0 + 180, a1).replace('M', ' M'); const [x0, y0] = pt(cx, cy, r, a0), [x1, y1] = pt(cx, cy, r, a1); return `M${f1(x0)} ${f1(y0)}A${r} ${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${f1(x1)} ${f1(y1)}`; };
+const stroke = (d, col, w) => `<path d="${d}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="butt"/>`;
+const tone = i => i % 2 ? 'var(--g3)' : 'var(--g1)', onTone = i => i % 2 ? 'var(--ink)' : 'var(--canvas)';
+
+// Each meal starts in its own quarter (or where the one before ended) and runs on into the next.
+function ring(D) {
+  const size = 196, w = 14, c = size / 2, r = c - w / 2 - 4;
+  let end = -999, out = QS.map(s => stroke(arc(c, c, r, s + 3, s + 87), 'var(--surface-3)', w)).join('');
+  D.meals.forEach((v, i) => { if (!v) return; const s = Math.max(QS[i], end), e = s + v / T.kcal * 360; end = e; const [x, y] = pt(c, c, r, (s + e) / 2);
+    out += stroke(arc(c, c, r, s + 2.5, e - 2.5), tone(i), w) + (e - s > 14 ? `<text x="${f1(x)}" y="${f1(y + 4)}" text-anchor="middle" style="font:800 11px var(--font-sans)" fill="${onTone(i)}">${MEALS[i][0]}</text>` : ''); });
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="${n(D.kcal)} of ${n(T.kcal)} kcal">${out}</svg>`;
 }
-const hero = D => `<div class="anchor" role="img" aria-label="${n(D.kcal)} yendi, bütçe ${n(T.kcal)}">${plate(D)}<div class="meals">${MEALS.map((m, i) => `<div class="meal">${m}<b class="${D.meals[i] ? '' : 'none'}">${D.meals[i] ? n(D.meals[i]) : '+'}</b></div>`).join('')}</div></div>`;
-const macro = (l, v, t) => `<div><div class="eyebrow">${l}</div><div class="v">${n(v)} <small>/ ${n(t)} g</small></div><div class="mbar"><i style="width:${Math.min(100, v / t * 100)}%"></i></div></div>`;
-const macros = D => `<div class="card macros">${macro('Protein', D.p, T.p)}${macro('Karb', D.c, T.c)}${macro('Yağ', D.f, T.f)}</div>`;
-function week(today) {
-  const h = 92, max = 2700, b = T.kcal / max * h;
-  const all = [...WEEK, ['S', today, 'Bugün']];
-  return `<div class="card"><div class="eyebrow">Son 7 gün</div><div class="week"><div class="budget" style="bottom:${b}px"><span>2.200</span></div>
-    ${all.map(([, v, l], i) => `<i class="${i === 6 ? 'k' : ''}" style="height:${v / max * h}px"><title>${l}: ${n(v)} kcal</title></i>`).join('')}</div>
-    <div class="wdays">${all.map(([d], i) => `<span class="${i === 6 ? 'k' : ''}">${d}</span>`).join('')}</div></div>`;
+function corners(D) {
+  const pos = ['left:0;top:0', 'right:0;top:0', 'right:0;bottom:0', 'left:0;bottom:0'];
+  return MEALS.map((m, i) => { const r = i === 1 || i === 2 ? ' r' : '', sw = `<i class="sw" style="background:${tone(i)};color:${onTone(i)}">${m[0]}</i>`;
+    const body = D.meals[i] ? `<b>${n(D.meals[i])}</b><div class="fs">${D.foods[i].map(k => `<span>${art(k)}</span>`).join('')}</div>` : `<div class="addm" aria-label="Add to ${m}">${ic('plus')}</div>`;
+    return `<div class="corner${r}" style="${pos[i]}">${r ? m + sw : sw + m}${body}</div>`; }).join('');
 }
-const dayHead = () => `<div class="top"><div><div class="eyebrow">Salı, 20 Ekim</div><div class="title">Bugün</div></div>
-  <div class="nav"><span class="ibtn" aria-label="Önceki gün">${ic('left')}</span><span class="ibtn" aria-label="Sonraki gün">${ic('right')}</span></div></div>`;
-const addBar = () => `<div class="bottom"><button class="btn">${ic('plus')}Akşama ekle</button><span class="ibtn box" aria-label="Barkod okut">${ic('scan')}</span></div>`;
-const row = ([k, t, a, kc], st = 'A') => `<div class="li">${food(k, st)}<span class="t">${t}<span class="s">${a}, ${n(kc)} kcal</span></span><span class="add" aria-label="${t} ekle">${ic('plus')}</span></div>`;
-const listScreen = (st = 'A', rows = 8) => `<div class="top back"><span class="ibtn" aria-label="Geri">${ic('left')}</span><div><div class="eyebrow">Salı, 20 Ekim</div><div class="title">Akşam</div></div></div>
-  <div class="body"><div class="search"><div class="input">${ic('search')}Yemek ya da marka</div><span class="ibtn box" aria-label="Barkod okut">${ic('scan')}</span></div>
-  <div class="list">${DINNER.slice(0, rows).map(r => row(r, st)).join('')}</div></div>`;
-const NUTR = [['Tuz', '1,5 g'], ['Şeker', '0 g'], ['Lif', '0 g'], ['Doymuş yağ', '1,9 g'], ['Kolesterol', '224 mg'], ['Potasyum', '1.163 mg'], ['Demir', '1,2 mg'], ['D vitamini', '7 mcg']];
-const sheet = open => `<div class="scrim"></div><div class="sheet" role="dialog" aria-label="Chicken breast raw"><div class="handle"></div>
-  <div class="hd">${food('chicken')}<div><h4>Chicken breast raw</h4><div class="sub">100 g'da 108 kcal</div></div></div>
-  <div class="chips"><span class="chip on">350 g</span><span class="chip">375 g</span><span class="chip">300 g</span><span class="chip">400 g</span></div>
-  <div class="amount"><div class="input val focus">350 <small>g</small></div><div class="kc">378<small>kcal</small></div></div>
-  <div><div class="split"><i style="flex:76"></i><i style="flex:0.5"></i><i style="flex:25"></i></div>
-    <div class="legend"><span>Protein <b>71 g</b></span><span>Karb <b>0 g</b></span><span>Yağ <b>10,5 g</b></span></div></div>
-  <div class="more">Tüm besinler${ic(open ? 'up' : 'down')}</div>
-  ${open ? `<div class="nutr">${NUTR.map(([l, v]) => `<div>${l}<b>${v}</b></div>`).join('')}</div>` : ''}
-  <button class="btn">Akşama ekle</button></div>`;
+const wavePath = 'M0 3 Q 5 0 10 3 T 20 3 T 30 3 T 40 3 T 50 3 T 60 3 T 70 3 T 80 3 V 7 H 0 Z';
+const days = D => `<div class="days">${D.week.map(([d, v], i) => { const today = d === '2026-10-20', ov = v > T.kcal && !today, sel = d === D.date, lvl = Math.min(100, v / 2750 * 100);
+  const col = sel ? 'color-mix(in oklab, var(--primary) 20%, transparent)' : ov ? 'color-mix(in oklab, var(--ink) 24%, transparent)' : 'color-mix(in oklab, var(--ink) 13%, transparent)';
+  return `<div class="day ${sel ? 'on' : ''}" title="${d}: ${n(v)} kcal"><div class="liq" style="height:${lvl}%;background:${col}"><svg class="wv" viewBox="0 0 80 7" preserveAspectRatio="none" aria-hidden="true"><path d="${wavePath}" fill="${col}"/></svg></div><i class="bud" style="bottom:${T.kcal / 2750 * 100}%"></i>
+    <span>${DN[day(d).getUTCDay()]}</span><b>${day(d).getUTCDate()}</b><em class="${ov ? 'ov' : ''}">${today ? 'today' : sg(v - T.kcal)}</em></div>`; }).join('')}</div>`;
+const macro = D => { const s = share(D);
+  return `<div class="mac"><div class="mh"><span class="eyebrow">Calories from</span><span class="fig">target 20 / 45 / 35%</span></div><div class="b1">${MACS.map(([k, l], i) => `<div style="flex:${s[k]}"><span class="bar" style="background:${tone(i)};color:${onTone(i)}">${Math.round(s[k])}%</span><div class="lab">${l}</div><div class="g">${n(D[k])} / ${n(T[k])} g</div></div>`).join('')}</div></div>`; };
+const dateLine = D => { const d = day(D.date); return `${DAYNAME[d.getUTCDay()]}, ${d.getUTCDate()} ${MONTH[d.getUTCMonth()]}`; };
+const head = D => `<div class="top"><div><div class="eyebrow">${dateLine(D)}</div><div class="title">${D.today ? 'Today' : `${day(D.date).getUTCDate()} ${MONTH[day(D.date).getUTCMonth()].slice(0, 3)}`}</div></div><span class="ibtn" aria-label="Settings">${ic('gear')}</span></div>`;
+const frame = D => `<div class="frame"><div class="mid">${ring(D)}<div class="center"><span class="num disp acc" style="font-size:44px">${n(T.kcal - D.kcal)}</span><span class="lbl">kcal left</span><span class="tot"><b>${n(D.kcal)}</b> / ${n(T.kcal)}</span></div></div>${corners(D)}</div>`;
+const row = ([k, t, s, kc], tail = 'k', cls = '') => `<div class="fr ${cls}"><span class="food">${art(k)}</span><span class="t">${t}<span>${s}</span></span>${tail === 'add' ? `<span class="fig" style="color:var(--ink);font-size:14px">${n(kc)}</span><span class="add" aria-label="Add ${t}">${ic('plus')}</span>` : `<span class="k">${n(kc)}</span>`}</div>`;
+const addBar = (label = 'Add to dinner') => `<div class="bottom"><button class="btn">${ic('plus')}${label}</button><span class="ibtn box" aria-label="Scan a barcode">${ic('scan')}</span></div>`;
+const today = (D, rows = 1, extra = '') => `${head(D)}${days(D)}${frame(D)}${macro(D)}<div class="sec"><div class="eyebrow">${D.today ? 'Eaten today' : 'Eaten that day'}</div>${D.ate.slice(0, rows).map(r => row(r)).join('')}</div>${extra}${addBar(D.today ? 'Add to dinner' : 'Add to this day')}`;
+const listScreen = (rows = 7) => `<div class="top back"><span class="ibtn" aria-label="Back">${ic('left')}</span><div><div class="eyebrow">Tuesday, 20 October</div><div class="title">Dinner</div></div></div>
+  <div class="body"><div class="search"><div class="input">${ic('search')}Food or brand</div><span class="ibtn round" aria-label="Scan a barcode">${ic('scan')}</span></div>
+  <div class="seg"><span class="on">Frequent</span><span>Recent</span><span>My foods</span></div>
+  <div>${DINNER.slice(0, rows).map(r => row(r, 'add')).join('')}</div></div>`;
+// One food's portion: the same strip, labels in one row underneath so a tiny share never crowds.
+const portion = (p, c, f) => { const D = { p, c, f }, s = share(D);
+  return `<div class="mh"><span class="eyebrow">This portion</span></div><div class="b1">${MACS.map(([k], i) => `<div style="flex:${Math.max(s[k], 1)}"><span class="bar" style="background:${tone(i)};color:${onTone(i)}">${s[k] >= 12 ? Math.round(s[k]) + '%' : ''}</span></div>`).join('')}</div>
+    <div class="mh" style="margin:6px 0 0">${MACS.map(([k, l]) => `<span class="fig" style="color:var(--ink-muted)">${l} <b style="color:var(--ink)">${d1(D[k])} g</b></span>`).join('')}</div>`; };
+const NUTR = [['Salt', '1.5 g'], ['Sugars', '0 g'], ['Fibre', '0 g'], ['Saturated fat', '1.9 g'], ['Cholesterol', '224 mg'], ['Potassium', '1,163 mg'], ['Iron', '1.2 mg'], ['Vitamin D', '7 mcg']];
+const gramSheet = (open = false) => `<div class="scrim"></div><div class="sheet" role="dialog" aria-label="Chicken breast raw"><div class="handle"></div><div class="hero">${art('chicken')}</div>
+  <h4>Chicken breast raw</h4><div class="per">108 kcal per 100 g</div>
+  <div class="amt"><span class="g disp">350<small>g</small></span><span class="k disp">378<small>kcal</small></span></div>
+  <div class="chips"><span class="chip on">350 g<em>54×</em></span><span class="chip">375 g<em>32×</em></span><span class="chip">300 g<em>31×</em></span></div>
+  <div class="full">${portion(71.2, 0.3, 10.5)}</div>
+  <div class="more">All nutrients${ic(open ? 'up' : 'down')}</div>${open ? `<div class="nutr">${NUTR.map(([l, v]) => `<div>${l}<b>${v}</b></div>`).join('')}</div>` : ''}
+  <button class="btn">Add to dinner</button></div>`;
+
+const scanner = () => `<div class="cam"><div class="shelf"></div></div><div class="camtop"><span class="ibtn" aria-label="Close">${ic('x')}</span><span class="ibtn" aria-label="Torch">${ic('flash')}</span></div>
+  <div class="viewfinder"><i></i><i></i><i></i><i></i><span class="laser"></span></div><div class="camhint">Point at the barcode</div>
+  <div class="sheet" style="gap:10px"><div class="handle"></div><div style="font:700 17px var(--font-sans)">Scanning for Dinner</div><div class="per" style="margin:0;text-align:center">Looks in your foods, then Coles and Woolworths, then Open Food Facts.</div>
+  <button class="btn sec">${ic('kbd')}Type the barcode</button></div>`;
+const found = () => `<div class="top back"><span class="ibtn" aria-label="Back">${ic('left')}</span><div><div class="eyebrow">Barcode 9312726072232</div><div class="title">New food</div></div></div>
+  <div class="body"><div class="src"><span class="food">${art('tzatziki')}</span><div style="flex:1"><b>Willow Farm Dip Tzatziki 200g</b><span>108 kcal per 100 g</span></div><span class="tag">Woolworths</span></div>
+  <div class="grid2">${[['Energy', '108 kcal'], ['Protein', '5.7 g'], ['Carbs', '8.4 g'], ['Sugars', '3.4 g'], ['Fat', '5.5 g'], ['Saturated fat', '2.2 g']].map(([l, v]) => `<div class="field"><label>${l}</label><div class="finput">${v.split(' ')[0]}<small>${v.split(' ')[1]} / 100 g</small></div></div>`).join('')}</div>
+  <div class="field"><label>Pack size</label><div class="finput">200<small>g</small></div><div class="help">From the store's label data. Check it once; it is saved to your foods.</div></div></div>
+  ${addBar('Save and choose grams').replace(`<span class="ibtn box" aria-label="Scan a barcode">${ic('scan')}</span>`, '')}`;
+const manual = () => `<div class="top back"><span class="ibtn" aria-label="Back">${ic('left')}</span><div><div class="eyebrow">Not found in any catalogue</div><div class="title">From the label</div></div></div>
+  <div class="body" style="gap:12px"><div class="field"><label>Name</label><div class="finput focus ph">e.g. Greek yoghurt</div></div>
+  <div class="grid2"><div class="field"><label>Brand</label><div class="finput ph">optional</div></div><div class="field"><label>Pack size</label><div class="finput ph">g<small>g</small></div></div></div>
+  <div class="eyebrow" style="margin-top:4px">Per 100 g, as printed</div>
+  <div class="grid2">${['Energy (kJ or kcal)', 'Protein', 'Carbs', 'Fat'].map(l => `<div class="field"><label>${l}</label><div class="finput ph">0<small>${l.startsWith('Energy') ? 'kJ' : 'g'}</small></div></div>`).join('')}</div>
+  <div class="help">Sugars, salt and fibre can be added later. kJ is turned into kcal.</div></div>${addBar('Save and choose grams').replace(`<span class="ibtn box" aria-label="Scan a barcode">${ic('scan')}</span>`, '')}`;
+const editSheet = () => `<div class="scrim"></div><div class="sheet" role="dialog" aria-label="Edit entry"><div class="handle"></div><div class="hero" style="width:84px;height:84px">${art('potato')}</div>
+  <h4>Washed white potato</h4><div class="per">Dinner, 8 Aug</div><div class="amt"><span class="g disp">1,000<small>g</small></span><span class="k disp">590<small>kcal</small></span></div>
+  <div class="chips"><span class="chip">500 g</span><span class="chip on">1,000 g</span><span class="chip">Move to lunch</span></div>
+  <div class="two"><button class="btn danger">Delete</button><button class="btn">Save</button></div></div>`;
+const settings = () => `<div class="top back"><span class="ibtn" aria-label="Back">${ic('left')}</span><div><div class="eyebrow">Pantry</div><div class="title">Settings</div></div></div>
+  <div class="body" style="gap:4px"><div class="eyebrow" style="margin-top:4px">Targets</div><div class="list">
+  <div class="lr">Daily calories<span class="v">2,200 kcal</span></div><div class="lr"><div>Macro split<span>Protein, carbs, fat</span></div><span class="v">20 / 45 / 35%</span></div><div class="lr">Salt<span class="v">5.8 g</span></div></div>
+  <div class="eyebrow" style="margin-top:18px">Sync</div><div class="list"><div class="lr"><div>GitHub data repo<span>Estaed/Pantry-Data, private</span></div><span class="pill ok">${ic('check').replace('class="i"', 'class="i" style="width:14px;height:14px"')}Synced</span></div>
+  <div class="lr"><div>Last sync<span>This phone</span></div><span class="v" style="font-weight:600">2 min ago</span></div></div>
+  <div class="eyebrow" style="margin-top:18px">Data</div><div class="list"><div class="lr"><div>MyNetDiary history<span>14 Jul 2025 to 20 Oct 2026</span></div><span class="v">464 days</span></div>
+  <div class="lr"><div>Your foods<span>with barcode or label values</span></div><span class="v">115</span></div><div class="lr">Follow phone theme<span class="toggle"></span></div></div></div>`;
 
 const S = {
-  bugun: () => `${dayHead()}<div class="body">${hero(DAY0)}${macros(DAY0)}${week(DAY0.kcal)}</div>${addBar()}`,
-  liste: () => listScreen(),
-  gram: () => `${listScreen('A', 6)}${sheet(false)}`,
-  detay: () => `${listScreen('A', 6)}${sheet(true)}`,
-  eklendi: () => `${dayHead()}<div class="body">${hero(DAY1)}${macros(DAY1)}${week(DAY1.kcal)}</div>${addBar()}
-    <div class="toast">${food('chicken')}<span>350 g akşama eklendi</span><b>Geri al</b></div>`,
-  bos: () => `${dayHead()}<div class="empty"><div class="art">${art('plate', 'A')}</div><div class="title">Tabak boş.</div>
-    <p>İlk ürünü barkodla ekle; sık yediklerin buradan büyür.</p></div>${addBar()}`,
-  yukleniyor: () => `${dayHead()}<div class="body" aria-busy="true"><div class="sk" style="height:180px;border-radius:var(--r-anchor)"></div>
-    <div class="sk" style="height:76px;border-radius:var(--r-card)"></div><div class="sk" style="height:150px;border-radius:var(--r-card)"></div></div>`,
-  hata: () => `${listScreen('A', 3).replace('<div class="list">', `<div class="banner">${ic('alert')}<div><b>Barkod tanınmadı.</b><br>Etiketteki 100 g değerlerini bir kez gir, sonra hep listende.</div></div><button class="btn sec">Elle gir</button><div class="list">`)}`,
+  today: () => today(NOW),
+  list: () => listScreen(),
+  gram: () => `${listScreen(5)}${gramSheet(false)}`,
+  gramOpen: () => `${listScreen(4)}${gramSheet(true)}`,
+  added: () => today(AFTER, 2, `<div class="toast"><span class="food">${art('chicken')}</span><span>350 g added to dinner</span><b>Undo</b></div>`),
+  scan: () => scanner(),
+  found: () => found(),
+  manual: () => manual(),
+  past: () => `${head(AUG8)}${days(AUG8)}${frame(AUG8)}${macro(AUG8)}<div class="sec"><div class="eyebrow">Eaten that day</div>${AUG8.ate.slice(0, 2).map(r => row(r)).join('')}</div>${addBar('Add to this day')}`,
+  edit: () => `${head(AUG8)}${days(AUG8)}<div class="sec"><div class="eyebrow">Eaten that day</div>${AUG8.ate.map((r, i) => row(r, 'k', i === 2 ? 'sel' : '')).join('')}</div>${editSheet()}`,
+  settings: () => settings(),
+  empty: () => `${head(NOW)}<div class="empty"><div class="art">${art('plate')}</div><div class="title">An empty plate.</div><p>Bring your MyNetDiary history in once, or scan your first product. Your frequent foods grow from here.</p>
+    <button class="btn">Import MyNetDiary history</button><button class="btn sec" style="margin-top:10px">${ic('scan')}Scan a product</button></div>`,
+  loading: () => `${head(NOW)}<div style="display:flex;gap:5px;padding:12px 14px 0">${Array(7).fill('<div class="sk" style="flex:1;height:74px;border-radius:14px"></div>').join('')}</div>
+    <div style="display:grid;place-items:center;margin-top:30px"><div class="sk" style="width:196px;height:196px;border-radius:50%"></div></div><div class="sk" style="margin:30px 20px 0;height:30px;border-radius:8px"></div><div class="sk" style="margin:24px 20px 0;height:52px"></div>`,
+  syncError: () => today(NOW, 1).replace(`${days(NOW)}`, `${days(NOW)}<div class="banner">${ic('alert')}<div><b>Sync failed.</b> Saved on this phone; it will try again. The GitHub token may have expired: Settings, Sync.</div></div>`),
 };
-const CAP = { bugun: '1. Ana ekran', liste: '2. Öğüne dokununca', gram: '3. Yemeğe dokununca', detay: '3b. Tüm besinler', eklendi: '4. Eklendi', bos: 'İlk açılış', yukleniyor: 'Yükleniyor', hata: 'Barkod bulunamadı' };
-const phone = (mode, html, cap) => `<div><div class="phone" data-theme="${mode}" aria-label="${cap}">${html}</div><div class="cap">${cap}</div></div>`;
-const fill = (id, mode, keys) => document.getElementById(id).innerHTML = keys.map(k => phone(mode, S[k](), CAP[k])).join('');
-fill('fd', 'dark', ['bugun', 'liste', 'gram', 'detay', 'eklendi']); fill('fl', 'light', ['bugun', 'liste', 'gram', 'detay', 'eklendi']);
-fill('sd', 'dark', ['bos', 'yukleniyor', 'hata']); fill('sl', 'light', ['bos', 'yukleniyor', 'hata']);
-const STY = [['A', 'A. İnce çizgi'], ['B', 'B. Gri düz'], ['C', 'C. Kendi renginde']];
-for (const [id, mode] of [['id', 'dark'], ['il', 'light']]) document.getElementById(id).innerHTML = STY.map(([s, c]) => phone(mode, listScreen(s), c)).join('');
+const CAP = { today: '1. Today', list: '2. Tap Dinner or Add', gram: '3. Tap a food', gramOpen: '3b. All nutrients', added: '4. Added', scan: '5. Scan', found: '6. Found in Woolworths', manual: '6b. Not found: from the label',
+  past: '7. A past day from the strip', edit: '8. Edit an entry', settings: '9. Settings', empty: 'First launch', loading: 'Loading', syncError: 'Sync failed' };
+const phone = (mode, k) => `<div><div class="phone" data-theme="${mode}" aria-label="${CAP[k]}">${S[k]()}</div><div class="cap">${CAP[k]}</div></div>`;
+const fill = (id, mode, keys) => document.getElementById(id).innerHTML = keys.map(k => phone(mode, k)).join('');
+const LOG = ['today', 'list', 'gram', 'gramOpen', 'added'], NEW = ['scan', 'found', 'manual'], PAST = ['past', 'edit', 'settings'], ST = ['empty', 'loading', 'syncError'];
+fill('ld', 'dark', LOG); fill('ll', 'light', LOG); fill('nd', 'dark', NEW); fill('nl', 'light', NEW); fill('pd', 'dark', PAST); fill('pl', 'light', PAST); fill('sd', 'dark', ST); fill('sl', 'light', ST);
 
 const zoom = document.getElementById('zoom');
 document.addEventListener('click', e => {
