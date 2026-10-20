@@ -17,3 +17,8 @@ not named here follows the base.
   benzer"); passed on D3 Şerit, D4 Katman, D5 Izgara. Read across (hypothesis): one round measuring
   object (ring, plate, dial) as the centre of the screen, standing on the open canvas, no boxes.
   Round 4 (`design/yonler-2.html`) varies that family.
+- 2026-10-20, round 4 (`design/yonler-2.html`): kept V3's meals in the four corners ("köşelerde olma
+  olayını sevdim"); rejected every weekly display tried (bars, small plates, dots, bowls: "hiçbirinde
+  haftalık gösterge sevmedim"), so the main screen carries no week. Wants total kcal visible, and
+  MyNetDiary's three side-by-side macro bars that change with the day ("hangisi daha fazla ise o
+  üstü"), improved, possibly with V8's macro ring. Round 5 (`design/yonler-3.html`).
