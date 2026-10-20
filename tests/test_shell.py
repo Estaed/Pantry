@@ -285,6 +285,13 @@ def check_copies(browser, url, errors, doc):
         stage_gone(page)
         seen["return to Today"] = page.evaluate(COPIES_JS, {"go": ["today", DAY]})
         stage_gone(page)
+        # the gram sheet's Add returns to Today with the sheet open; its rise ended long before (Codex review, 2026-10-21)
+        go(page, "add", "dinner", DAY)
+        stage_gone(page)
+        page.locator('[data-screen="add"] .log-open').first.click()
+        page.wait_for_timeout(1000)
+        seen["return to Today from the gram sheet"] = page.evaluate(COPIES_JS, {"go": ["today", DAY]})
+        stage_gone(page)
         bad = {k: v for k, v in seen.items()
                if not v["nav"] or v["first"].get("total") != 0 or v["last"].get("total") != 0}
         A.check(f"{scheme}: every push, back and return to Today starts on a copy that matches the screen left and ends on "

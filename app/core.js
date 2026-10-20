@@ -409,8 +409,9 @@
   const moves = kind => started && canStage && kind !== 'none' && document.visibilityState === 'visible' && styles() !== null;
   let stage = null;            // { host, anims } while the motion plays
 
-  // A copy that looks like the screen: every field keeps what is typed in it, and every CSS animation running in it
-  // (the day pills' waves) goes on from the screen's time, never from its start (play() sets it).
+  // A copy that looks like the screen: every field keeps what is typed in it, every CSS animation running in it
+  // (the day pills' waves) goes on from the screen's time, never from its start, and one that has ended there stays
+  // ended (play() sets it).
   function snapshot(el) {
     const copy = el.cloneNode(true);
     const from = el.querySelectorAll('input, textarea, select'), to = copy.querySelectorAll('input, textarea, select');
@@ -425,6 +426,8 @@
     shot.el.getAnimations({ subtree: true }).forEach(a => {
       const was = shot.times.find(w => nodes[w.at] === a.effect.target && w.name === a.animationName && w.pseudo === a.effect.pseudoElement);
       if (was) a.currentTime = was.t;
+      // not running on the screen: it ran out there (the gram sheet's rise), so the copy shows its end, not a replay
+      else if (a.effect.getComputedTiming().iterations !== Infinity) a.finish();
     });
   }
 
