@@ -40,7 +40,6 @@
       font: 600 0.75rem/1.2 var(--font-sans); white-space: nowrap;
     }
     .settings-pill svg.i { width: 14px; height: 14px; }
-    .settings-pill.ok { color: var(--success); }
     .settings-pill.bad { color: var(--danger); }
     .settings-ghost {
       margin-left: auto; min-height: 44px; padding: 0 4px; border: 0; background: none; color: var(--ink);
@@ -184,7 +183,7 @@
 
   // ── sync ──────────────────────────────────────────────────────────
   function statusHtml(s, repo) {
-    let pill = ['Synced', 'ok', 'check'];
+    let pill = ['Synced', '', 'check'];   // grey: the app is grey + one orange (design/DESIGN.md, round 7)
     let sub = 'This phone';
     let reason = null;
     if (!s.configured) pill = ['Off', ''];
