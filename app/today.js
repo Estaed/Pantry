@@ -438,6 +438,8 @@
     const changed = !!before && differs(before, snap);
     const from = changed && motion && motion.kind === 'change' ? motion.at(clock() - motion.t0) : before;
     drawn = snap;
+    // another day: the running motion drew the old day, so it stops where it is and none of it lands on the new markup
+    if (motion && before && before.date !== snap.date) { cancelAnimationFrame(motion.raf); motion = null; delete root.dataset.motion; }
     if (html !== lastHtml) {
       const focus = focused();
       root.innerHTML = html;

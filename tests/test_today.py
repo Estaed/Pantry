@@ -1129,6 +1129,22 @@ def check_motion(browser, url, doc, errors):
     check("a return with no change starts no motion: nothing named, no ghost, the numbers still",
           all(s["motion"] is None and s["ghosts"] == 0 and still(s["num"]) and still(s["tot"]) for s in idle), idle[0])
 
+    # another day picked while the change still plays (Codex review, 2026-10-21): that day shows its own chart
+    page.evaluate(UNDO_JS)
+    show(page, "2026-10-19")
+    page.clock.run_for(2000)
+    pick = lambda s, a: {"arcs": a, "bars": s["bars"], "over": s["over"], "num": s["num"]["text"]}  # noqa: E731
+    want = pick(page.evaluate(STATE_JS), page.evaluate(ARCS_JS))
+    show(page)
+    page.clock.run_for(2000)
+    page.evaluate(RETURN_JS, 1000)
+    page.clock.run_for(208)
+    page.click(f'{SCREEN} [data-day="2026-10-19"]')   # in place, as his tap on the strip
+    page.clock.run_for(2000)
+    got = pick(page.evaluate(STATE_JS), page.evaluate(ARCS_JS))
+    check("a day picked 208 ms into the change shows that day's own arcs, bars, tone and number once it settles",
+          got == want, (got, want))
+
     # reduced motion: the chart is drawn at once, the numbers only fade
     page.evaluate(UNDO_JS)
     page.clock.run_for(2000)
