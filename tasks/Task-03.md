@@ -1,5 +1,5 @@
 # Task-03: Meal list and gram sheet — frequent foods, usual grams, one-tap add
-**Status: DONE** — verified 2026-10-21, eye check pending: 1 (list and gram sheet at the largest font on Tarık's phone)
+**Status: DONE** — verified 2026-10-21, eye check pending: 1 (list and gram sheet on Tarık's phone)
 > **Execution:** agent `ultracode`
 > *Why:* logging a frequent food in three taps or fewer is v1's acceptance, and this is where it happens.
 
@@ -51,7 +51,7 @@ It replaces MyNetDiary's search screen, the step he uses most; the + makes a fre
 - [x] `PantryDrawing` gives its own drawing (not the generic pack) for at least 90 % of entries of the full history when it exists (the test prints every food name with its drawing key into the report for review; no new key covers unrelated foods, and no catch-all pattern), and for every food of the fixture.
 - [x] At 360 × 780 with text at 150 % and at 240 px: no horizontal scroll, long names end with an ellipsis on one line, no console errors, dark and light both render.
 - [x] The tests fail when the usual amount is taken from the latest entry instead of the most typed one (shown once, restored).
-- [ ] (eye) On `terra_nt` at 360 dp and the largest font: the list and the gram sheet (closed and with all nutrients) match `design/screens.html` → *2*, *3*, *3b*; the new drawings sit with the existing ones (same weight and colour logic).
+- [ ] (eye) On Tarık's phone at his text size (1.0; changed from the largest font, Tarık 2026-10-21): the list and the gram sheet (closed and with all nutrients) match `design/screens.html` → *2*, *3*, *3b*; the new drawings sit with the existing ones (same weight and colour logic).
 
 ## Out of scope
 - Scan and new products (Task-04); editing past entries (Task-05).

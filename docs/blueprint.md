@@ -18,14 +18,14 @@ Done when (Eko's proposal, 2026-10-20, Tarık did not object):
 ## Not in v1
 Stock (bought − logged) and Hermes' weekly Discord list (v1.1, after the spike below); label photo
 read by a model (maybe v1.3); merge with Calisthenics-App (v1.2); body weight, water, steps;
-trolley or checkout; Woolworths receipts; desktop layout. Full list: `notes.md` → *After v1*.
+trolley or checkout; desktop layout. Full list: `notes.md` → *After v1*.
 
 ## Riskiest assumption
 - **v1:** the phone's camera reads EAN-13 through Chrome's built-in `BarcodeDetector` fast enough
   to beat typing. Untested on Tarık's phone; Task-00 ships a scan page and he tries five real
   packs. If it fails, a vendored ZXing build is the fallback (decided then, not now).
 - **v1.1 (stock):** bought − logged is close enough to trust. Spike before any stock code: 2–3 real
-  weeks of Coles receipts against the log, compared with what is actually in the kitchen.
+  weeks of Coles and Woolworths receipts against the log, compared with what is actually in the kitchen.
 
 ## Stack
 No framework and no build step, the way Calisthenics-App works, so the v1.2 merge is one style;
@@ -62,7 +62,7 @@ or bundler (a build step for one screen); IndexedDB (localStorage holds years of
 Built on the PC, not by the phone (the stores block cross-site calls): Coles product pages carry
 `gtin` and a per 100 g table in `__NEXT_DATA__`; Woolworths `apis/ui/product/detail/{stockcode}`
 returns `Barcode` and per 100 g values (checked 2026-10-20). v1 builds it once from the products
-in Tarık's Coles in-store receipts, from a logged-in browser session, into the data repo. Lookup
+in Tarık's Coles and Woolworths receipts (he shops at both, 2026-10-21), from a logged-in browser session, into the data repo. Lookup
 order on scan: his foods → catalogue → Open Food Facts → typed from the label once.
 
 ## Layout
@@ -112,8 +112,9 @@ order on scan: his foods → catalogue → Open Food Facts → typed from the la
 ## Verification
 - Gate: `python tests/acceptance.py` from the repo root; clean = every check PASS, exit 0. Written
   and first run in Task-00.
-- Eye: Tarık on his phone (or the `terra_nt` Android emulator at 360 px with the largest font
-  scale), against `design/screens.html`; intended breaks go to `design/deviations.md`.
+- Eye: Tarık on his phone at his text size (1.0; larger sizes are not a target, Tarık 2026-10-21), or
+  the `terra_nt` emulator at 360 px, against `design/screens.html`; intended breaks go to
+  `design/deviations.md`.
 
 ## Decisions (2026-10-20, Tarık)
 - v1 is the food log; stock and Discord are v1.1. Rejected: stock in v1 (untested assumption).
@@ -123,3 +124,10 @@ order on scan: his foods → catalogue → Open Food Facts → typed from the la
   Rejected: label photo read by a model (an API key in a public client; maybe v1.3).
 - App repo `Pantry` private with Pages, public when open-sourced; at v1.2 Calisthenics moves in.
 - UI English; design as picked in `design/DESIGN.md` (corners, G3 ring, B1 strip, W3 waves, style C).
+
+## Decisions (2026-10-21, Tarık)
+- The prototype is a starting point, not a contract: a change that makes daily use faster or more
+  comfortable may depart from `design/screens.html`; each departure is recorded in
+  `design/deviations.md`. The rules in `design/DESIGN.md` (grey + one orange, style C) still hold.
+- The target text size is his, 1.0. Rejected: designing for the largest font scale ("2 gereksiz").
+- Woolworths purchases count like Coles (catalogue now, stock in v1.1). Rejected: Coles only.

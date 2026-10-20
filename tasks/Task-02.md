@@ -1,5 +1,5 @@
 # Task-02: Today in full — day strip, meals in the corners, ring, macro strip
-**Status: DONE** — verified 2026-10-21, eye check pending: 1 (Today and a past day at the largest font on Tarık's phone)
+**Status: DONE** — verified 2026-10-21, eye check pending: 1 (Today and a past day on Tarık's phone)
 > **Execution:** agent `ultracode`
 > *Why:* Today is the screen Tarık opens many times a day; it has to read at a glance, as designed.
 
@@ -49,7 +49,7 @@ checks past overage and jumps to a day (he used MyNetDiary's strip exactly for t
 - [x] Today updates within the same frame when an entry is added or removed (subscribe), and when the day turns at midnight Darwin time.
 - [x] With `lastError` set, Today shows the banner and its sentence; cleared, it goes; the first-launch state shows when entries is empty.
 - [x] The tests in `tests/test_today.py` fail when the spill rule is replaced by plain consecutive segments, and when the strip uses UTC dates (shown once in the report, then restored).
-- [ ] (eye) On the `terra_nt` emulator at 360 dp and the largest font, Today for 20 Oct and for 8 Aug matches `design/screens.html` → *1. Today* and *7. A past day*; the long empty-state text does not balloon (Chrome text boosting) next to the rest.
+- [ ] (eye) On Tarık's phone at his text size (1.0; changed from the largest font, Tarık 2026-10-21), Today for 20 Oct and for 8 Aug matches `design/screens.html` → *1. Today* and *7. A past day*; the long empty-state text does not balloon (Chrome text boosting) next to the rest.
 
 ## Out of scope
 - The food list, gram sheet, scan, entry editing and settings screens (Task-03 to Task-06).

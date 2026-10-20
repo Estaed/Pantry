@@ -36,7 +36,8 @@ is actually in the kitchen.
   `GET /api/bff/orders?status=in-store&pageNumber=N&pageSize=20`; a bare `fetch` returned 401
   "missing subscription key" (the site adds a key header), so it needs a logged-in browser session.
   Online order confirmation mails in Gmail (no-reply@coles.com.au) also list every item.
-  Woolworths: Tarık says past orders incl. in-store exist there too (not checked).
+  Woolworths: Tarık shops there too (2026-10-21); past orders incl. in-store exist (route in
+  `reports/2026-10-21-woolworths-research.md`).
 - **MyNetDiary today:** free version on his phone; Tarık created an account on 2026-10-20 (backup,
   web access; free yearly Excel export per MyNetDiary help, untested). No export in the app menu.
   Log entries carry brand, store and amount: "Australian mozzarella cheese shredded by Coles, 150g",
@@ -134,4 +135,4 @@ No stock screen in v1: the weekly Discord list covers stock (Tarık, 2026-10-20)
 - 2026-10-20: adding to the Coles/Woolworths trolley; no official API, browser automation is fragile.
 - 2026-10-20: auto-checkout with a virtual card; saves one tap, adds the riskiest step. Payment stays with Tarık.
 - 2026-10-20: merge with the workout app (v1.2, Tarık); body weight comes with it, not in v1 (Tarık no longer weighs in).
-- 2026-10-20: Woolworths receipts, if needed (all receipts so far are Coles).
+- 2026-10-21: an APK (TWA or Capacitor): not now; the installed PWA already runs as an app. Revisit if the web barcode reader fails his five packs (Tarık).

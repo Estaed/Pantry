@@ -11,6 +11,12 @@ not named here follows the base.
 - **Layout direction: open.** Tarık on v2 (2026-10-20): "blok blok değil, daha harmony içinde",
   "benzer ama biraz daha özgür". Six whole directions in `design/yonler.html` (D1 Akış, D2 Tabak,
   D3 Şerit, D4 Katman, D5 Izgara, D6 Gösterge); he picks parts.
+- **Text size target: 1.0** (base: support 200 % without clipping). Tarık, 2026-10-21: "yazı boyutu
+  1.0 olsun 2 gereksiz". Text stays in rem, so a larger phone setting still scales, but layouts are
+  judged at 1.0 only.
+- **The prototype is a starting point.** A change that makes daily use faster or more comfortable may
+  depart from `design/screens.html` (Tarık, 2026-10-21); it goes in `deviations.md`. The rules above
+  and the base still bind.
 
 ## Taste record (Pantry)
 - 2026-10-20, round 3 (`design/yonler.html`): liked D2 Tabak, D6 Gösterge and D1 Akış ("orijinale

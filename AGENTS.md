@@ -45,8 +45,8 @@ and `notes.md` keeps a one-line link.
 - Personal data (the MyNetDiary history, the live log, receipts, tokens) never enters this repo; it lives in the private `Estaed/Pantry-Data` repo and in `references/` files that `.gitignore` excludes. Test fixtures may hold only the few days `design/screens.html` already shows.
 - The app has no build step and no framework; external code is vendored, never loaded from a CDN at runtime.
 - `tokens.css` and the fonts are copied unchanged from `D:/TarikOS/.brain/skills/tasarim/`; project overrides go in `design/DESIGN.md`.
-- UI is grey + one orange; colour appears only inside food drawings (`design/DESIGN.md`, `design/deviations.md`).
-- Every screen change is checked at 360 px with the largest font scale on the `terra_nt` emulator or Tarık's phone, not only desktop Chromium (`D:/TarikOS/knowledge/concepts/kalistenikte-dar-ekran-emulator-dogrulamasi.md`).
+- UI is grey + one orange; colour appears only inside food drawings (`design/DESIGN.md`, `design/deviations.md`). The prototype may be departed from for daily comfort; each departure goes in `design/deviations.md`.
+- Every screen change is checked at 360 px at Tarık's text size (1.0) on his phone or the `terra_nt` emulator, not only desktop Chromium; larger text sizes are not a target (Tarık, 2026-10-21) (`D:/TarikOS/knowledge/concepts/kalistenikte-dar-ekran-emulator-dogrulamasi.md`).
 - Each release bumps the service worker cache name and serves `index.html` network-first, so the phone gets updates (`D:/TarikOS/knowledge/concepts/pwa-service-worker-onbellek-guncelleme.md`).
 - Paths stay relative: Pages serves the app under `/Pantry/` (`D:/TarikOS/knowledge/concepts/pwa-manifest-ve-kurulum-uyumlulugu.md`).
 - Logged entries keep their nutrient totals from log time; editing a food never changes past days.
