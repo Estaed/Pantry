@@ -26,15 +26,17 @@ Run with `/otopilot` (Workflow). Before it starts, the main loop saves Tarık's 
   `reports/2026-10-21-qol-research.md`, `reports/2026-10-21-woolworths-research.md`, and Tarık's list
   after his first day on the phone:
   - Over budget changes the screen: today the only sign is a word; it should be seen at a glance.
-  - Status colour: green while within budget, red once over (as MyNetDiary does), on the ring, bars
-    and strip. A second colour beside the one orange (Tarık: "bize bir renk daha lazım sanki").
+  - Status colour change: the screen changes colour once over budget (as MyNetDiary does), in the
+    design's own tones, not literal green and red (Tarık, 2026-10-21).
   - Macro order carbs, protein, fat everywhere (carbs in the middle reads oddly).
   - The "59×" use counts beside the gram chips are unclear: drop or explain them.
   - The toast can be swiped away; today he has to wait it out.
   - Swiping the ring left or right moves to the previous or next day.
   - Settings counts every day: MyNetDiary days plus Pantry days ("460 (+10)"), not "0 days".
-  - Adding a food and scanning work the way MyNetDiary does (looked at on his phone).
-  - Motion and feel picks from the comfort report; stay in the meal after Add (open question).
+  - Adding a food the way MyNetDiary does (tick several, amount selected, chips without counts): Task-08.
+    Scanning the MyNetDiary way waits for his five-pack trial (After v1 if the reader holds).
+  - Motion and feel picks from the comfort report. Stay in the meal: multi-select logs several foods
+    from the list; a single food's Save still returns to Today.
   - Coles and Woolworths barcode catalogue from his receipts (main loop reads them in his Opera).
 - After wave 3: a week of real use against the acceptance in Blueprint.
 - v1.1: stock spike (receipts vs log vs kitchen), then stock and Hermes' weekly Discord list.

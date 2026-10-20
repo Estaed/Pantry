@@ -131,6 +131,7 @@ order on scan: his foods → catalogue → Open Food Facts → typed from the la
   `design/deviations.md`. The rules in `design/DESIGN.md` (grey + one orange, style C) still hold.
 - The target text size is his, 1.0. Rejected: designing for the largest font scale ("2 gereksiz").
 - Woolworths purchases count like Coles (catalogue now, stock in v1.1). Rejected: Coles only.
-- Budget status in colour: green within, red over (ring, kcal left, macro bars, strip). Rejected: grey
-  only (over budget went unnoticed on his phone).
+- Budget status as a colour change in the design's own tones, calm within and unmistakable over (ring,
+  kcal left, macro bars, strip). Rejected: grey only (over budget went unnoticed); MyNetDiary's literal
+  green and red (Tarık: "birebir yeşil kırmızı olmasın").
 - Macros read carbs, protein, fat everywhere. Rejected: protein first (carbs in the middle read oddly).

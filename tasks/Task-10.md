@@ -3,7 +3,7 @@
 > *Why:* a scanned product he has bought before should be found without typing its label, and most of what he scans comes from these two stores.
 
 **Lane**
-- OWNS: `tools/build_catalogue.py`, `tests/test_catalogue.py`, `tests/fixtures/catalogue/`
+- OWNS: `tools/catalogue.py`, `tests/test_catalogue.py`, `tests/fixtures/catalogue/`
 - MUST NOT TOUCH: `app/`, `index.html`, `sw.js`, `tools/import_mynetdiary.py`, `tests/acceptance.py`, every other test file
 - GATE: `python tests/acceptance.py` (from repo root; it runs `tests/test_catalogue.py`)
 - DEPENDS ON: none (the raw purchases are captured by the main loop before the wave starts)
@@ -25,9 +25,14 @@ The command turns receipts into purchase lines (product, quantity, weight, price
 weighed items and discounts joined into the line they belong to), finds each line's product (Coles by its
 product id; Woolworths by matching the line text to the captured search results), and builds one catalogue
 item per product with a barcode: name, brand, pack size, store, and per 100 g values converted to the
-document's units (kJ to kcal; values the label leaves out, as "-" or "< 1 g", stay absent, never filled in).
+document's units (kcal from the label's Cal when it gives one, else kJ ÷ 4.184; "1,520kJ" parses; sodium mg
+kept and salt g = sodium × 2.5 ÷ 1000, as New food does; values the label leaves out, as "-" or "< 1 g",
+stay absent, never filled in). A product without energy gets no catalogue item (the app refuses a
+catalogue item without `per100.kcal`): it goes to the skipped list.
 A Woolworths line whose match is not clear is not guessed: it goes into a review list Tarık can answer once,
-and the answer is reused on the next run. It writes the purchase lines to their own file outside the document, for the v1.1 stock spike.
+and the answer is reused on the next run. Write down what "clear" means in the tool's header. Review,
+answers and mapping files hold his purchases, so they live in `.tmp/purchases/`, never in the repo. When an
+answer names a stockcode whose details were not captured, the tool lists the stockcodes still to capture. It writes the purchase lines to their own file outside the document, for the v1.1 stock spike.
 
 ## Why
 Retires the "type the label" step for most products he scans, and gives v1.1 its bought side.
@@ -37,8 +42,9 @@ Retires the "type the label" step for most products he scans, and gives v1.1 its
 - [ ] A Coles receipt with a multi-buy and a weighed item, and a Woolworths receipt with a discount line, become the right purchase lines (quantity, weight, price after discount).
 - [ ] A Woolworths line with one clear search match gets that product; with none or several close ones it goes to the review list and gets no catalogue item; an answer saved in the review file is used on the next run.
 - [ ] A product without a barcode gets no catalogue item; two receipts of the same product give one item; a label value of "-" or "< 1 g" is absent in per100.
-- [ ] `--merge <pantry-data.json>` replaces only `catalogue` and leaves foods, entries, settings and removed byte-for-byte equal; it refuses a file whose `version` it does not know.
-- [ ] Run once on the real captured data in `.tmp/purchases/`: the report gives the counts (receipts, lines, products, items with barcode, review items) and no personal data is written inside the repo.
+- [ ] The merged document passes the app's own check: the test loads it in the app (`Pantry.problem()` stays null).
+- [ ] `--merge <pantry-data.json>` replaces only `catalogue` and leaves (parsed-equal) foods, entries, settings and removed byte-for-byte equal; it refuses a file whose `version` it does not know.
+- [ ] Run once on the real captured data in `.tmp/purchases/`: the report gives the counts (receipts, lines, products, items with barcode, review items, skipped) and the auto-match rate, with 20 sampled line → product pairs for Tarık to judge; no personal data is written inside the repo.
 - [ ] Each test added fails once when the behaviour it protects is broken (shown in the report, restored).
 
 ## Out of scope
