@@ -5,6 +5,8 @@
 - [x] Task-01: Import the 464-day MyNetDiary history into the data document
 
 ## Wave 2
+Run with `/otopilot` (Workflow). The wave report records, per finding, which lens found it, real or false alarm, and who would have caught it without the Workflow; plus time, agents and both quota windows. Baseline: wave 1 report. Decision: `D:/TarikOS/850-Companion 🔮/Kararlar.md`, check 2026-10-27.
+
 - [ ] Task-02: Today in full — day strip with waves, meals in the corners, G3 ring, macro strip, eaten list
 - [ ] Task-03: Meal list and gram sheet — frequent foods, usual grams, one-tap add, more drawings
 - [ ] Task-04: Scan and new product — his foods, store catalogue, Open Food Facts, label form
