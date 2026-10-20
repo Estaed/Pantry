@@ -1,4 +1,5 @@
 # Task-00: Thinnest path — install, log a food, see kcal left, scan a barcode
+**Status: DONE** — verified 2026-10-20, eye check pending: 2
 > **Execution:** agent `ultracode`
 > *Why:* every later feature plugs into this shell, its data and its gate, and the camera scan is v1's riskiest assumption.
 
@@ -30,17 +31,17 @@ built-in `BarcodeDetector` fails on his phone, the fallback is chosen before the
 built.
 
 ## Acceptance
-- [ ] `python tests/acceptance.py` exits 0 from the repo root, printing PASS per check, and exits non-zero on any FAIL.
-- [ ] The gate serves the repo under `/Pantry/`, loads it at 360 × 780 with text at 150 %: no console errors, no horizontal scroll; it proves the zoom works (the title's rendered height at 150 % is at least 1.4× its height at 100 %).
-- [ ] The gate runs with timezone `Australia/Darwin` and the clock at 07:00 local; a food logged then is stored under that local date, not the UTC date.
-- [ ] Logging a starter food at 350 g lowers kcal left by that food's kcal for 350 g (to the kcal); the entry survives a reload; after the test changes that food's `per100.kcal`, kcal left does not change.
-- [ ] After one online load, a reload with the network blocked shows Today with the saved entry, and `document.fonts.check('16px Manrope')` and `document.fonts.check('700 40px Archivo')` are true.
-- [ ] A throwaway feature script listed in `app/registry.js` shows up online and offline with no edit to `index.html`, `app/core.js` or `sw.js`.
-- [ ] No file in `app/` other than `core.js` touches `localStorage`; `core.js` opens with a header comment documenting its API.
-- [ ] The manifest's `start_url`, `scope` and its 192 and 512 icons resolve with 200 under `/Pantry/`.
-- [ ] Every `tests/test_*.py` is run as `python <file>` from the repo root and its exit code is the verdict; a fixture test that exits 1 turns the gate red (shown once in the gate, then not left in the suite).
-- [ ] Scan: with `BarcodeDetector` missing, and with it present but without `ean_13` in `getSupportedFormats()`, the screen says which in plain words; leaving the scan view stops every camera track (`readyState === 'ended'`). Tests inject a fake detector and camera.
-- [ ] `.gitignore` ignores `.tmp/` and the personal files in `references/` (`mynetdiary-history-*.json`, `*.mp4`); `git check-ignore .tmp/x.json` exits 0.
+- [x] `python tests/acceptance.py` exits 0 from the repo root, printing PASS per check, and exits non-zero on any FAIL.
+- [x] The gate serves the repo under `/Pantry/`, loads it at 360 × 780 with text at 150 %: no console errors, no horizontal scroll; it proves the zoom works (the title's rendered height at 150 % is at least 1.4× its height at 100 %).
+- [x] The gate runs with timezone `Australia/Darwin` and the clock at 07:00 local; a food logged then is stored under that local date, not the UTC date.
+- [x] Logging a starter food at 350 g lowers kcal left by that food's kcal for 350 g (to the kcal); the entry survives a reload; after the test changes that food's `per100.kcal`, kcal left does not change.
+- [x] After one online load, a reload with the network blocked shows Today with the saved entry, and `document.fonts.check('16px Manrope')` and `document.fonts.check('700 40px Archivo')` are true.
+- [x] A throwaway feature script listed in `app/registry.js` shows up online and offline with no edit to `index.html`, `app/core.js` or `sw.js`.
+- [x] No file in `app/` other than `core.js` touches `localStorage`; `core.js` opens with a header comment documenting its API.
+- [x] The manifest's `start_url`, `scope` and its 192 and 512 icons resolve with 200 under `/Pantry/`.
+- [x] Every `tests/test_*.py` is run as `python <file>` from the repo root and its exit code is the verdict; a fixture test that exits 1 turns the gate red (shown once in the gate, then not left in the suite).
+- [x] Scan: with `BarcodeDetector` missing, and with it present but without `ean_13` in `getSupportedFormats()`, the screen says which in plain words; leaving the scan view stops every camera track (`readyState === 'ended'`). Tests inject a fake detector and camera.
+- [x] `.gitignore` ignores `.tmp/` and the personal files in `references/` (`mynetdiary-history-*.json`, `*.mp4`); `git check-ignore .tmp/x.json` exits 0.
 - [ ] (eye) On the `terra_nt` emulator at 360 px and the largest font: Today, the starter list and the gram step fit without sideways scrolling and use the tokens, against `design/screens.html` (colours, type, spacing; not the full layout yet).
 - [ ] (eye, after the main loop deploys to Pages) Tarık scans five real packs from his kitchen; each EAN-13 is read correctly within about two seconds. The main loop records the result in `notes.md`.
 

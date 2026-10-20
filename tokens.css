@@ -1,0 +1,181 @@
+/* Tarik Base tokens, v6 (2026-10-05). Generated from DESIGN.md; edit DESIGN.md first, then this.
+   Dark is the default; set data-theme="light" on <html> for light mode.
+   v6: pure neutrals, cards with a 1px --hairline, one inverted anchor box per screen (--anchor,
+   --r-anchor, --shadow-anchor), the primary button neutral (--action / --on-action), signal orange
+   (--primary) only for the answer, the key bar, the active tab and the selection ring.
+   Type: --font-display (Archivo, use with font-stretch: var(--display-stretch)) for titles and the big
+   number; --font-sans for every word; --font-figure for chart values and dates (tabular numerals);
+   --font-mono for code and IDs only.
+   Charts: every series --chart-neutral, only the key value --chart-1; chart-2..5 only when several
+   series must be told apart.
+   Projects copy this file as-is and put overrides (accent) in a separate file loaded after it. */
+
+:root, [data-theme="dark"] {
+  --canvas: #0E0E0E;
+  --surface-1: #191919;
+  --surface-2: #232323;
+  --surface-3: #2E2E2E;
+  --hairline: #2E2E2E;
+  --hairline-strong: #6B6B6B;
+  --ink: #EEEEEE;
+  --ink-muted: #ABABAB;
+  --ink-subtle: #8C8C8C;
+  --action: #EEEEEE;
+  --on-action: #0E0E0E;
+  --action-hover: #FFFFFF;
+  --action-pressed: #D4D4D4;
+  --anchor: #EEEEEE;
+  --on-anchor: #121212;
+  --on-anchor-muted: #5B5B5B;
+  --on-anchor-accent: #C23C00;
+  --primary: #FF5A00;
+  --on-primary: #0E0E0E;
+  --primary-hover: #FF7326;
+  --primary-pressed: #E04F00;
+  --primary-text: #FF6A1A;
+  --primary-display: #FF6A1A;
+  --secondary: #ABABAB;
+  --success: #3DD68C;
+  --warning: #F5B83D;
+  --danger: #F2555A;
+  --scrim: #000000B3;
+  --chart-neutral: #4D4D4D;
+  --chart-1: #FF5A00;
+  --chart-2: #7C8AE1;
+  --chart-3: #00AA95;
+  --chart-4: #C38300;
+  --chart-5: #9A7DE3;
+  --card-border: 1px solid var(--hairline);
+  --shadow-card: none;
+  --shadow-anchor: 7px 9px 0 #3D3D3D;
+  --shadow-3: none;
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --canvas: #F7F7F7;
+  --surface-1: #FFFFFF;
+  --surface-2: #F0F0F0;
+  --surface-3: #E8E8E8;
+  --hairline: #E3E3E3;
+  --hairline-strong: #949494;
+  --ink: #121212;
+  --ink-muted: #5B5B5B;
+  --ink-subtle: #6C6C6C;
+  --action: #121212;
+  --on-action: #FFFFFF;
+  --action-hover: #2A2A2A;
+  --action-pressed: #000000;
+  --anchor: #121212;
+  --on-anchor: #EEEEEE;
+  --on-anchor-muted: #ABABAB;
+  --on-anchor-accent: #FF6A1A;
+  --primary: #D34303;
+  --on-primary: #FFFFFF;
+  --primary-hover: #BC3B02;
+  --primary-pressed: #A33301;
+  --primary-text: #C23C00;
+  --primary-display: #C23C00;
+  --secondary: #5B5B5B;
+  --success: #15803D;
+  --warning: #B45309;
+  --danger: #CC272C;
+  --scrim: #12121266;
+  --chart-neutral: #BEBEBE;
+  --chart-1: #D34303;
+  --chart-2: #4C63D9;
+  --chart-3: #0F8F7F;
+  --chart-4: #B45309;
+  --chart-5: #7C5CD6;
+  --shadow-anchor: 7px 9px 0 #12121259;
+  --shadow-3: 0 8px 24px #1212121F;
+  color-scheme: light;
+}
+
+:root {
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --display-stretch: 118%;
+  --display-weight: 700;
+  --font-sans: "Manrope", system-ui, sans-serif;
+  --font-figure: "Manrope", system-ui, sans-serif; /* with font-variant-numeric: tabular-nums */
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --r-sm: 6px;
+  --r-chip: 8px;
+  --r-md: 10px;
+  --r-card: 12px;
+  --r-button: 12px;
+  --r-anchor: 14px;
+  --r-lg: 16px;
+  --r-xl: 24px;
+  --r-pill: 9999px;
+  --space-xxs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-xxl: 48px;
+  /* motion (DESIGN.md → Motion): durations, easings, distances */
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+  --dur-chart: 600ms;
+  --stagger: 40ms;
+  --ease-enter: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --rise: 8px;
+  --rise-anchor: 12px;
+  --press-anchor: 4px;
+  /* shorthands for transitions */
+  --fast: var(--dur-fast) var(--ease-enter);
+  --base: var(--dur-base) var(--ease-enter);
+  --slow: var(--dur-slow) var(--ease-enter);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* movement becomes a fade of the same length: distances go to zero, durations stay */
+  :root { --rise: 0px; --rise-anchor: 0px; --press-anchor: 0px; }
+}
+
+/* Expression layer (slides, video frames, 16:9 boards; never app screens). data-layer="video" on <html>
+   lifts the dark neutrals one step so grain and vignette read; data-grain lays one fine grain over the
+   whole frame (a mid-grey tile in overlay mode: every surface gets its share, the grain stays on the
+   glass when content moves). The url() is relative to this file: copy ../assets/grain/ with it and fix
+   the path. One noise pixel per device pixel; the grain never moves. Approved look: the v3 results video
+   (2026-10-09), reference composition ./video/sonuclar.html. */
+[data-layer="video"] {
+  --canvas: #151515;
+  --surface-1: #1F1F1F;
+  --surface-2: #2A2A2A;
+  --surface-3: #343434;
+  --hairline: #303030;
+  --hairline-strong: #6E6E6E;
+  --ink-subtle: #8F8F8F;
+  --chart-neutral: #575757;
+  /* display face of the expression layer: Schibsted Grotesk 900 (../assets/fonts/schibsted.css), 2026-10-20 */
+  --font-display: "Schibsted Grotesk", "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --display-stretch: 100%;
+  --display-weight: 900;
+  /* depth of the big number: a hard copy offset down-left, no blur (DESIGN.md -> Type and depth) */
+  --depth-x: -0.035em;
+  --depth-y: 0.03em;
+  --depth-orange: #6A2100;  /* R2, default */
+  --depth-grey: #575757;    /* R3, when other orange is on the frame */
+  --depth-white: #EEEEEE;   /* R1, the lone hero number */
+}
+[data-layer="video"] .depth { --depth-c: var(--depth-orange); text-shadow: var(--depth-x) var(--depth-y) 0 var(--depth-c); }
+[data-layer="video"] .depth.extrude { text-shadow: -0.004em 0.004em 0 var(--depth-c), -0.008em 0.008em 0 var(--depth-c), -0.012em 0.012em 0 var(--depth-c),
+  -0.016em 0.016em 0 var(--depth-c), -0.02em 0.02em 0 var(--depth-c), -0.024em 0.024em 0 var(--depth-c), -0.028em 0.028em 0 var(--depth-c),
+  -0.032em 0.032em 0 var(--depth-c), -0.036em 0.036em 0 var(--depth-c); }
+[data-layer="video"] .depth.grey { --depth-c: var(--depth-grey); }
+[data-layer="video"] .depth.white { --depth-c: var(--depth-white); }
+[data-grain] { --grain-size: 256px; }
+@media (min-resolution: 1.5dppx) { [data-grain] { --grain-size: 170.67px; } }
+@media (min-resolution: 2dppx) { [data-grain] { --grain-size: 128px; } }
+@media (min-resolution: 3dppx) { [data-grain] { --grain-size: 85.33px; } }
+[data-grain]::after {
+  content: ""; position: fixed; inset: 0; z-index: 2147483647; pointer-events: none;
+  background: url(../assets/grain/ortu.png) 0 0 / var(--grain-size) repeat;
+  image-rendering: pixelated; mix-blend-mode: overlay; opacity: 0.55;
+}

@@ -1,7 +1,7 @@
 # Tasks
 
 ## Wave 1
-- [ ] Task-00: Thinnest path — PWA shell, data document, log a food, kcal left, camera scan probe, the gate
+- [x] Task-00: Thinnest path — PWA shell, data document, log a food, kcal left, camera scan probe, the gate
 - [x] Task-01: Import the 464-day MyNetDiary history into the data document
 
 ## Later waves (draft)
