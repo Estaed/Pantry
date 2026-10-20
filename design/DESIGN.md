@@ -28,3 +28,6 @@ not named here follows the base.
   (one row, each macro's width = its share of today's kcal). The week is not dropped: he used
   MyNetDiary's strip to see past overages and to jump to a day by tapping or swiping. Round 6
   (`design/yonler-4.html`) draws day navigation that also shows overage.
+- 2026-10-20, round 6 (`design/yonler-4.html`): picked W3, the date strip with each day's
+  difference to budget ("şimdilik o olsun"). The meal tones in the ring and the macro strip read
+  poorly ("okunabilirliği biraz zor"); round 7 (`design/yonler-5.html`) tries three colour treatments.
