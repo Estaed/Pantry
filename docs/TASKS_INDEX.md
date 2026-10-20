@@ -10,7 +10,7 @@
   meal list and gram sheet (frequent per meal, usual grams, quick add, all nutrients);
   scan and new product (his foods → catalogue → Open Food Facts → label form);
   past day, edit and delete an entry, move to another meal;
-  sync with the private `Pantry-Data` repo (port from Calisthenics-App) and settings.
+  sync with the private `Pantry-Data` repo (port from Calisthenics-App) and settings; the imported document is 943 KB, near the Contents API's inline size limit (check before porting).
 - Wave 3: build the Coles barcode catalogue from his receipts (main loop, logged-in browser);
   deploy the release; a week of real use against the acceptance in Blueprint.
 - v1.1: stock spike (receipts vs log vs kitchen), then stock and Hermes' weekly Discord list.
