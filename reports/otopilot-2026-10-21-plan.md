@@ -31,7 +31,9 @@ bump to `pantry-v3`. No registry lines (no new scripts).
 
 **Task-10's input is ready:** `D:/Projects/Pantry/.tmp/purchases/` (gitignored, personal data; its
 `README.md` says which file is which). Builders read it from that absolute path; nothing from it enters
-the repo.
+the repo. Captured: 42 Woolworths receipts with search and product details; 110 Coles receipts, but only 56 of
+151 Coles product pages (the site's bot check stopped the rest; not bypassed). So Task-10's real run will
+list the Coles product ids still to capture; that is expected, not a failure.
 
 ## Measurement (Kararlar.md 2026-10-20, second wave; decision 2026-10-27)
 Wave 2's case rested partly on four large-text defects at text size 2.0, which Tarık then dropped as a
