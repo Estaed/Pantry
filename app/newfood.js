@@ -17,13 +17,15 @@
   const KJ_PER_KCAL = 4.184;
   const STORE = { coles: 'Coles', woolworths: 'Woolworths', off: 'Open Food Facts' };
   const MEALS = ['breakfast', 'lunch', 'dinner', 'snacks'];
-  // Found (design 6): the six values he checks, in its order; a source's salt and fibre are kept as they came.
-  // [key, label, unit, most per 100 g]
-  const FOUND_FIELDS = [['kcal', 'Energy', 'kcal', 900], ['protein', 'Protein', 'g', 100], ['carbs', 'Carbs', 'g', 100], ['sugars', 'Sugars', 'g', 100],
-    ['fat', 'Fat', 'g', 100], ['satFat', 'Saturated fat', 'g', 100]];
-  // From the label (design 6b): energy, protein, carbs and fat two across; sugars, salt and fibre are optional, one tap
+  // The macros in the order every screen shows them: carbs, protein, fat (Pantry.MACROS). [key, label, unit, most per 100 g]
+  const MACRO_LABEL = { carbs: 'Carbs', protein: 'Protein', fat: 'Fat' };
+  const MACRO_FIELDS = P.MACROS.map(k => [k, MACRO_LABEL[k], 'g', 100]);
+  // Found (design 6): the six values he checks, two across: energy and carbs, protein and fat, then sugars and saturated
+  // fat (design 6 had protein first); a source's salt and fibre are kept as they came.
+  const FOUND_FIELDS = [['kcal', 'Energy', 'kcal', 900], ...MACRO_FIELDS, ['sugars', 'Sugars', 'g', 100], ['satFat', 'Saturated fat', 'g', 100]];
+  // From the label (design 6b): energy, carbs, protein and fat two across; sugars, salt and fibre are optional, one tap
   // away. Energy is typed in kJ or kcal, salt in g or as the mg of sodium an Australian panel prints (salt = sodium × 2.5).
-  const LABEL_FIELDS = [['protein', 'Protein', 'g', 100], ['carbs', 'Carbs', 'g', 100], ['fat', 'Fat', 'g', 100]];
+  const LABEL_FIELDS = MACRO_FIELDS;
   // A unit switched with one tap where the field's unit sits: [value, unit shown, spoken, field label]
   const UNITS = {
     energyUnit: { key: 'energy', list: [['kJ', 'kJ', 'Energy in kJ'], ['kcal', 'kcal', 'Energy in kcal']] },

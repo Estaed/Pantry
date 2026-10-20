@@ -173,8 +173,8 @@ BOXES_JS = """keys => Object.fromEntries(keys.map(k => {
   return [k, [Math.round(r.top), Math.round(r.height)]]; }))"""
 FOUND_ORDER_JS = """() => [...document.querySelectorAll('[data-screen="newfood"] .newfood-src, [data-screen="newfood"] .newfood-picks, [data-screen="newfood"] [data-field]')]
   .map(el => el.dataset.field ? [el.dataset.field, el.querySelector('label').textContent.trim()] : [el.className.split(' ')[0]])"""
-FOUND_ORDER = [["newfood-src"], ["newfood-picks"], ["kcal", "Energy"], ["protein", "Protein"], ["carbs", "Carbs"], ["sugars", "Sugars"],
-               ["fat", "Fat"], ["satFat", "Saturated fat"], ["pack", "Pack size"], ["name", "Name in your foods"]]
+FOUND_ORDER = [["newfood-src"], ["newfood-picks"], ["kcal", "Energy"], ["carbs", "Carbs"], ["protein", "Protein"], ["fat", "Fat"],
+               ["sugars", "Sugars"], ["satFat", "Saturated fat"], ["pack", "Pack size"], ["name", "Name in your foods"]]
 BAR_JS = """() => { const r = document.querySelector('[data-screen="newfood"] .bottom').getBoundingClientRect();
   const m = document.querySelector('[data-screen="newfood"] .newfood-msg'), q = m && m.getBoundingClientRect();
   return { bar: [Math.round(r.top), Math.round(r.height)], msg: q && [Math.round(q.top), Math.round(q.bottom)],
@@ -256,8 +256,8 @@ def catalogue(browser, url, errors):
             "name": "Willow Farm Dip Tzatziki"}
     A.check("Found holds the catalogue's six values, its pack size and the name for his list", ph.fields() == want, ph.fields())
     order = ph.page.evaluate(FOUND_ORDER_JS)
-    A.check('Found keeps design 6\'s order (the product, the six values, the pack size), with "This is my …" under the product '
-            "and the name for his list last", order == FOUND_ORDER, order)
+    A.check('Found keeps design 6\'s order (the product, the six values, the pack size) with the macros as carbs, protein, fat '
+            '(Pantry.MACROS), "This is my …" under the product and the name for his list last', order == FOUND_ORDER, order)
     eyebrow = ph.page.locator('[data-screen="newfood"] .top .eyebrow').inner_text().strip()
     A.check("Found names the barcode in its eyebrow and is titled New food",
             eyebrow == f"Barcode {EAN}" and ph.page.locator('[data-screen="newfood"] h1').inner_text().strip() == "New food", eyebrow)
@@ -364,7 +364,7 @@ def listed_zero(browser, url, errors):
     ph.fill({"kcal": ""})
     ph.save()
     A.check("Found with Energy cleared says so in words and saves nothing", "energy" in ph.error().lower() and ph.doc() == before, ph.error())
-    level(ph, [("kcal", "protein"), ("carbs", "sugars")], "Found at 150 % text with Energy cleared")
+    level(ph, [("kcal", "carbs"), ("protein", "fat"), ("sugars", "satFat")], "Found at 150 % text with Energy cleared")
     ph.fill({"kcal": "106", "fat": "5,8", "sugars": ""})        # energy typed back as shown, fat changed, sugars cleared
     ph.save()
     ph.wait_hash("#/food/")
@@ -412,10 +412,10 @@ def label_form(browser, url, errors):
             and eyebrow == "Not found in any catalogue" and ph.off.asked == [OFF_MISS["url"]], (eyebrow, ph.off.asked))
     shown = ph.page.evaluate("""() => [...document.querySelectorAll('[data-screen="newfood"] [data-field]')]
         .filter(b => b.getClientRects().length).map(b => [b.dataset.field, b.querySelector('label').textContent.trim()])""")
-    A.check("From the label asks what design 6b shows, in its order: name, brand, pack size, energy (kJ or kcal), protein, "
-            "carbs, fat, with 6b's kJ line; sugars, salt and fibre wait behind one button",
+    A.check("From the label asks what design 6b shows: name, brand, pack size, energy (kJ or kcal), then the macros as "
+            "carbs, protein, fat (Pantry.MACROS), with 6b's kJ line; sugars, salt and fibre wait behind one button",
             shown == [["name", "Name"], ["brand", "Brand"], ["pack", "Pack size"], ["energy", "Energy (kJ or kcal)"],
-                      ["protein", "Protein"], ["carbs", "Carbs"], ["fat", "Fat"]]
+                      ["carbs", "Carbs"], ["protein", "Protein"], ["fat", "Fat"]]
             and "kJ is turned into kcal." in ph.text()
             and ph.page.get_by_role("button", name="Add sugars, salt and fibre").is_visible(), shown)
     ph.shot("label-empty")
@@ -424,7 +424,7 @@ def label_form(browser, url, errors):
     ph.fill({"name": "Greek yoghurt"})
     ph.save()
     A.check("saving with no energy says so in words and saves nothing", "energy" in ph.error().lower() and ph.doc() == before, ph.error())
-    level(ph, [("energy", "protein"), ("carbs", "fat")], "From the label at 150 % text with no energy")
+    level(ph, [("energy", "carbs"), ("protein", "fat")], "From the label at 150 % text with no energy")
     ph.fill({"energy": "about 450"})
     ph.save()
     A.check("energy that is not a number is refused in words", "type a number" in ph.error() and ph.doc() == before, ph.error())
@@ -661,16 +661,16 @@ def normal_text(browser, url, errors):
     at = ph.page.evaluate("""() => Object.fromEntries(['energy', 'protein', 'carbs', 'fat'].map(k => {
         const r = document.querySelector(`[data-screen="newfood"] [data-field="${k}"] .newfood-in`).getBoundingClientRect();
         return [k, [Math.round(r.left), Math.round(r.top)]]; }))""")
-    A.check("From the label at 360 px with text at 100 %: energy and protein, then carbs and fat, two across as in 6b",
-            at["energy"][1] == at["protein"][1] < at["carbs"][1] == at["fat"][1]
-            and at["energy"][0] == at["carbs"][0] < at["protein"][0] == at["fat"][0], at)
+    A.check("From the label at 360 px with text at 100 %: energy and carbs, then protein and fat, two across as in 6b",
+            at["energy"][1] == at["carbs"][1] < at["protein"][1] == at["fat"][1]
+            and at["energy"][0] == at["protein"][0] < at["carbs"][0] == at["fat"][0], at)
     A.check('From the label: "Save and choose grams" carries the plus icon of design 6b',
             PLUS in ph.page.get_by_role("button", name="Save and choose grams").inner_html())
     A.fits(ph.page, "From the label, 100 % text")
     ph.shot("label-text100")
     ph.fill({"name": "Greek yoghurt"})
     ph.save()
-    level(ph, [("energy", "protein"), ("carbs", "fat")], "From the label at 100 % text with no energy")
+    level(ph, [("energy", "carbs"), ("protein", "fat")], "From the label at 100 % text with no energy")
     ph.fill({"energy": "452", "pack": "a tub"})
     ph.save()
     A.check("a pack size that is not grams is refused in words", "pack size in grams" in ph.error(), ph.error())

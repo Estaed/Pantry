@@ -64,19 +64,37 @@
     return hit ? hit[0] : 'pack';
   }
 
-  function svg(key, size) {
-    const shapes = DRAW[key] || DRAW.pack;
-    const body = shapes.map(([t, d, c]) => t === 'l'
+  function shapes(key) {
+    return (DRAW[key] || DRAW.pack).map(([t, d, c]) => t === 'l'
       ? `<path d="${d}" fill="none" stroke="${c}" stroke-width="1.75" stroke-linecap="round"/>`
       : `<path d="${d}" fill="${c}"/>`).join('');
+  }
+
+  function svg(key, size) {
+    return `<svg class="drawing" viewBox="0 0 48 48" width="${size}" height="${size}" aria-hidden="true">${shapes(key)}</svg>`;
+  }
+
+  // Several foods in one drawing (a toast after logging a meal): the first two or three on grey discs that overlap,
+  // left to right and then below, each disc ringed in the surface it stands on so the overlap reads. [x, y, disc]
+  const SPOTS = { 2: [[0, 3, 30], [18, 15, 30]], 3: [[0, 2, 27], [21, 2, 27], [10.5, 20, 27]] };
+  function group(foods, size) {
+    const list = [...(foods || [])].slice(0, 3);
+    if (list.length < 2) return svg(kind(list[0]), size);
+    const body = list.map((food, i) => {
+      const [x, y, d] = SPOTS[list.length][i], r = d / 2, art = d * 0.8, inset = (d - art) / 2;
+      return `<circle cx="${x + r}" cy="${y + r}" r="${r - 0.75}" style="fill:var(--surface-2);stroke:var(--surface-3);stroke-width:1.5"/>`
+        + `<svg x="${x + inset}" y="${y + inset}" width="${art}" height="${art}" viewBox="0 0 48 48">${shapes(kind(food))}</svg>`;
+    }).join('');
     return `<svg class="drawing" viewBox="0 0 48 48" width="${size}" height="${size}" aria-hidden="true">${body}</svg>`;
   }
 
   // window.Pantry is frozen, so the drawings are their own global:
   // PantryDrawing(food, size = 32) for a food; PantryDrawing.named('plate', size) for a fixed one;
-  // PantryDrawing.kind(food) the key a food gets; PantryDrawing.keys every key.
+  // PantryDrawing.group(foods, size) for several at once; PantryDrawing.kind(food) the key a food gets;
+  // PantryDrawing.keys every key.
   const draw = (food, size = 32) => svg(kind(food), size);
   draw.named = (key, size = 32) => svg(key, size);
+  draw.group = (foods, size = 32) => group(foods, size);
   draw.kind = kind;
   draw.keys = Object.freeze(Object.keys(DRAW));
   window.PantryDrawing = Object.freeze(draw);
