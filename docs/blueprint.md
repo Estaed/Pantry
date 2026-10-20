@@ -47,11 +47,13 @@ or bundler (a build step for one screen); IndexedDB (localStorage holds years of
 
 ## Data
 - **foods:** id, name, brand, barcode?, per 100 g (kcal, protein, carbs, fat, sugars, sat fat,
-  salt, fibre, the rest when known), servings (label → grams), source (`mynetdiary`, `coles`,
+  salt, fibre, the rest when known; absent for foods logged only by servings), servings
+  (label → grams or kcal), source (`mynetdiary`, `coles`,
   `woolworths`, `off`, `label`).
-- **entries:** id, date, meal (breakfast, lunch, dinner, snacks), foodId, amount as typed, grams,
+- **entries:** id, date (Darwin local), meal (breakfast, lunch, dinner, snacks), foodId, amount as typed, grams,
   and the nutrient totals at log time, so editing a food never rewrites history.
-- **settings:** targets (2,200 kcal; protein 20 %, carbs 45 %, fat 35 %; salt 5.8 g), sync config.
+- **settings:** targets (2,200 kcal; protein 20 %, carbs 45 %, fat 35 %; salt 5.8 g). The sync
+  token stays on the phone under its own key, never in the synced document.
 - Frequent foods per meal and their usual grams are derived from entries, not stored.
 - One JSON document, `pantry-data.json`, in the private repo `Estaed/Pantry-Data`; the phone keeps
   a copy in localStorage and works offline.
