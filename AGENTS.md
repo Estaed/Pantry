@@ -37,12 +37,12 @@ and `notes.md` keeps a one-line link.
 - **Read `docs/blueprint.md` before** planning a task, changing a stage, the screen or a number,
   and whenever code seems to contradict a decision.
 - **What:** Tarık's food log PWA replacing MyNetDiary (v1); stock from Coles receipts is v1.1.
-- **Code:** `index.html` (the app), `sw.js`, `manifest.json`, `tokens.css`, `fonts/`; `tools/` (PC Python: import, catalogue); `tests/acceptance.py`.
+- **Code:** `index.html` (shell), `app/` (one script per feature, `registry.js`), `sw.js`, `manifest.json`, `tokens.css`, `fonts/`; `tools/` (PC Python: import, catalogue); `tests/acceptance.py`.
 - **Commands:** serve `python -m http.server 8000` at the root; test `python tests/acceptance.py`.
 - **Gate:** `python tests/acceptance.py` at the root; clean = every check PASS, exit 0.
 
 ## Constraints
-- Personal data (MyNetDiary history, entries, receipts, tokens) never enters this repo; it lives in the private `Estaed/Pantry-Data` repo and `references/` files that `.gitignore` excludes.
+- Personal data (the MyNetDiary history, the live log, receipts, tokens) never enters this repo; it lives in the private `Estaed/Pantry-Data` repo and in `references/` files that `.gitignore` excludes. Test fixtures may hold only the few days `design/screens.html` already shows.
 - The app has no build step and no framework; external code is vendored, never loaded from a CDN at runtime.
 - `tokens.css` and the fonts are copied unchanged from `D:/TarikOS/.brain/skills/tasarim/`; project overrides go in `design/DESIGN.md`.
 - UI is grey + one orange; colour appears only inside food drawings (`design/DESIGN.md`, `design/deviations.md`).

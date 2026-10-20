@@ -28,7 +28,8 @@ trolley or checkout; Woolworths receipts; desktop layout. Full list: `notes.md` 
   weeks of Coles receipts against the log, compared with what is actually in the kitchen.
 
 ## Stack
-No framework and no build step, the way Calisthenics-App works, so the v1.2 merge is one style.
+No framework and no build step, the way Calisthenics-App works, so the v1.2 merge is one style;
+unlike its single file, features live in their own scripts (Layout).
 
 | Piece | Version | Why |
 |---|---|---|
@@ -63,12 +64,15 @@ in Tarık's Coles in-store receipts, from a logged-in browser session, into the 
 order on scan: his foods → catalogue → Open Food Facts → typed from the label once.
 
 ## Layout
-- `index.html`: the app (screens, state, sync, scanner); `tokens.css`, `fonts/`, `sw.js`,
-  `manifest.json`, icons at the root, served by GitHub Pages from `main`.
+- `index.html`: a thin shell; `app/core.js` (data, state, routing), one `app/<feature>.js` per
+  feature (today, log, scan, history, sync, settings), listed once each in the append-only
+  `app/registry.js`, so features are built in parallel without editing each other. `tokens.css`,
+  `fonts/`, `sw.js`, `manifest.json`, icons at the root, served by GitHub Pages from `main`.
 - `tools/`: PC-side Python: `import_mynetdiary.py` (history JSON → `pantry-data.json`),
   `catalogue.py` (store product data → catalogue). Personal data never enters this repo.
-- `tests/`: `acceptance.py` (Playwright, mocked GitHub API, 360 px viewport), fixtures from a small
-  slice of real days with names kept.
+- `tests/`: `acceptance.py` (Playwright, mocked GitHub API, 360 px viewport, served under
+  `/Pantry/`) also runs every `tests/test_*.py`; fixtures are a few real days already shown in
+  `design/screens.html`.
 - `design/`: source of truth (`screens.html`, `DESIGN.md`, `deviations.md`); `references/`: inputs.
 
 ## Verification
