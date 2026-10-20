@@ -71,3 +71,13 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
   background: var(--surface-2); border-radius: var(--r-card); font: 500 0.875rem/1.45 var(--font-sans);
 }
 .banner svg.i { width: 20px; height: 20px; margin-top: 1px; color: var(--danger); }
+
+/* toast: one line above the bottom bar, outside the screen so it survives navigation (Pantry.toast) */
+#toast { position: fixed; left: 20px; right: 20px; bottom: calc(84px + env(safe-area-inset-bottom)); z-index: 20; pointer-events: none; }
+.toast {
+  display: flex; align-items: center; gap: 12px; padding: 10px 16px; pointer-events: auto;
+  background: var(--surface-3); border: 1px solid var(--hairline-strong); border-radius: var(--r-md);
+  box-shadow: var(--shadow-3); font: 500 0.875rem/1.4 var(--font-sans);
+}
+.toast > span { flex: 1; min-width: 0; }
+.toast-act { flex: none; min-height: 44px; padding: 0 4px; background: none; border: 0; font-weight: 700; }

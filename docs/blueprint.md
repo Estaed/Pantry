@@ -77,6 +77,38 @@ order on scan: his foods → catalogue → Open Food Facts → typed from the la
   `design/screens.html`.
 - `design/`: source of truth (`screens.html`, `DESIGN.md`, `deviations.md`); `references/`: inputs.
 
+## Screens and seams (wave 2 builds against these)
+- Routes (`Pantry.go(name, ...args)`): `today [date]` Today or a past day (`app/today.js`);
+  `add meal [date]` the meal's food list and `food id meal [date]` the gram sheet (`app/log.js`);
+  `scan meal [date]` scan and new product (`app/scan.js`); `entry id` edit, move, delete
+  (`app/entry.js`); `newfood code meal [date]` Found or From the label (`app/newfood.js`); `settings` targets,
+  sync, data (`app/settings.js`, `app/sync.js`). A missing `date` is today; a missing `meal` is
+  `Pantry.mealNow()`; callers pass both when they know them. Saving on a screen opened for a day
+  returns with `Pantry.go('today', date)`, never `back()`.
+- Shared helpers in `app/core.js` (header): `mealNow`, `usualAmounts` (the one usual-amount rule),
+  `toast` (outside the screen, survives navigation), `changes`/`markClean(upTo)`, `subscribe`'s
+  `prev`, `setSyncState` announcing `'sync'`. Feature classes carry the feature's prefix (`today-`,
+  `log-`, `scan-`, `newfood-`, `entry-`, `settings-`); shared ones live in `app/base.css`.
+- Sync pushes no sooner than 10 s after the last change, so an Undo inside a 4 s toast never meets
+  a pushed tombstone; Undo removes its own `removed` line and restores the entry at the same index.
+- Deleting an entry or a food removes it and appends `{ id, at }` (ISO time) to `doc.removed`
+  (created when absent), so sync never brings it back. Editing an entry's grams scales its own
+  totals by new ÷ old grams; it never recomputes them from the food.
+- `doc.catalogue`: `[{ barcode, name, brand?, size?, store: "coles"|"woolworths", per100 }]`,
+  written by the PC catalogue tool through the data repo, read by scan. Absent until wave 3.
+- `window.PantryDrawing(food, size)` (`app/drawings.js`) draws a food; `PantryDrawing.named(key)`.
+- A feature's tests live in its own `tests/test_<feature>.py`, reuse the helpers in
+  `tests/acceptance.py` (import it, never edit it) and run in the gate. Tests reach their screen by
+  route (`location.hash` or `Pantry.go`), not through another feature's DOM; only Today's tests drive
+  Today. They may build synthetic entries in code to exercise a rule. Read `window.PantryDrawing` at
+  render time (it loads after the features). A new script needs one
+  line in `app/registry.js`, which the orchestrator appends at integration. A redrawn screen keeps
+  the gate hooks listed at the top of `tests/acceptance.py`, or the task names the hook change and
+  the orchestrator moves the old-look assertion at integration.
+- Sync reads `pantry-data.json` above 1 MB only with the raw media type (GitHub Contents API, checked
+  2026-10-20); the imported document is 1,067 KB (1,092,625 bytes) since totals are kept unrounded.
+- The orchestrator appends registry lines and bumps the service worker cache name at integration.
+
 ## Verification
 - Gate: `python tests/acceptance.py` from the repo root; clean = every check PASS, exit 0. Written
   and first run in Task-00.

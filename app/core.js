@@ -12,17 +12,26 @@
                                    checked, saved, marked dirty and announced; returns the new document. Throws and
                                    saves nothing when the shape is wrong, storage is full or Pantry.problem() is set.
                                    opts.dirty = false for a document that came from the data repo (sync pull, import).
-     Pantry.subscribe(fn)          fn(doc, why) after every change ('change', 'storage' from another tab, 'day' when
-                                   the calendar day turns); returns an unsubscribe function.
+     Pantry.subscribe(fn)          fn(doc, why, prev) after every change ('change', 'storage' from another tab, 'day'
+                                   when the calendar day turns, 'sync' when the sync state changes); prev is the
+                                   document before a 'change'. Returns an unsubscribe function.
      Pantry.dirty()                true while there are changes the sync feature has not pushed.
-     Pantry.markClean()            the sync feature calls it after a successful push.
-     Pantry.syncState()            the 'pantry.sync' object (a copy).
-     Pantry.setSyncState(patch)    merges patch into 'pantry.sync' and saves it.
+     Pantry.changes()              a counter that grows with every dirty change; read it when a push starts.
+     Pantry.markClean(upTo)        the sync feature calls it after a successful push with the counter it read when the
+                                   push started; changes made during the push keep the document dirty.
+     Pantry.syncState()            the 'pantry.sync' object (a copy). sync.js keeps `lastError` (a sentence or null)
+                                   and `lastSync` (ISO time) there; Today shows the banner from `lastError`.
+     Pantry.setSyncState(patch)    merges patch into 'pantry.sync', saves it and announces 'sync'.
      Pantry.problem()              null, or a plain sentence saying why the stored document cannot be used.
      Pantry.starter                the starter foods as [{ food, usual }]: usual = grams to offer before any entry.
 
    Days, numbers, text
      Pantry.today()                'YYYY-MM-DD' of the phone's local calendar day (Darwin for Tarik), never UTC.
+     Pantry.mealNow()              the meal the clock suggests: before 11 breakfast, before 16 lunch, before 21 dinner,
+                                   else snacks. The one rule for every screen.
+     Pantry.usualAmounts(foodId, meal)
+                                   [{ amount, grams, count }] the amounts he typed for that food, most often first:
+                                   at that meal in the 90 days before today, else at any meal, else the starter's usual.
      Pantry.dayLabel(date)         'Tuesday, 20 October' for a 'YYYY-MM-DD'.
      Pantry.totals(food, grams)    nutrient totals of grams of a food with per100; an unknown nutrient stays absent.
      Pantry.sum(entries)           the entries' totals added up, per nutrient present in any of them.
@@ -37,7 +46,12 @@
      Pantry.go(name, ...args)      opens a screen and adds a history entry, so the phone's back gesture returns.
      Pantry.back()                 one screen back; Today when there is nothing to go back to.
      Pantry.home()                 back to Today, dropping the screens opened since.
-     Pantry.css(text)              adds a feature's styles to the page.
+     Pantry.css(text)              adds a feature's styles to the page. Prefix a feature's classes with its name
+                                   (today-, log-, scan-, newfood-, entry-, settings-); shared ones live in base.css.
+     Pantry.toast(text, opts)      a toast above the bottom bar that survives screen changes; opts.action (button text),
+                                   opts.onAction, opts.ms (default 4000). A new toast replaces the shown one.
+     Routes take positional args; an undefined or null arg is an empty segment and arrives as undefined.
+     An unknown route opens Today with no args.
 
    Features
      app/registry.js lists every feature script, one line each. Core loads them in that order once the page is
@@ -108,6 +122,17 @@
       if (e.grams !== null && !isNum(e.grams)) throw new Error(`entry ${e.id}: grams ${e.grams}`);
       if (!isObj(e.totals) || !isNum(e.totals.kcal)) throw new Error(`entry ${e.id}: totals.kcal`);
     }
+    if (doc.removed !== undefined) {
+      if (!Array.isArray(doc.removed)) throw new Error('removed is not a list');
+      for (const r of doc.removed) if (!isObj(r) || typeof r.id !== 'string' || !r.id || typeof r.at !== 'string') throw new Error('a removed line without id or at');
+    }
+    if (doc.catalogue !== undefined) {
+      if (!Array.isArray(doc.catalogue)) throw new Error('catalogue is not a list');
+      for (const c of doc.catalogue) {
+        if (!isObj(c) || typeof c.barcode !== 'string' || typeof c.name !== 'string' || !['coles', 'woolworths'].includes(c.store)) throw new Error('a catalogue item without barcode, name or store');
+        if (!isObj(c.per100) || !isNum(c.per100.kcal)) throw new Error(`catalogue ${c.barcode}: per100 without kcal`);
+      }
+    }
     return doc;
   }
 
@@ -166,10 +191,10 @@
   function writeSync(next) { localStorage.setItem(SYNC_KEY, JSON.stringify(next)); return next; }
 
   const subscribers = new Set();
-  function announce(why) {
+  function announce(why, prev) {
     applyTheme();
     for (const fn of [...subscribers]) {
-      try { fn(doc, why); } catch (e) { console.error('Pantry: a subscriber failed', e); }
+      try { fn(doc, why, prev); } catch (e) { console.error('Pantry: a subscriber failed', e); }
     }
     if (current && current.def.update) {
       try { current.def.update(doc); } catch (e) { console.error('Pantry: screen update failed', e); }
@@ -182,11 +207,12 @@
     const returned = fn(draft);
     const next = check(returned === undefined ? draft : returned);
     write(next);
+    const prev = doc;
     doc = freeze(next);
     if (opts.dirty !== false) {
-      try { writeSync({ ...readSync(), dirty: true }); } catch (e) { console.error('Pantry: could not mark the change for sync', e); }
+      try { const st = readSync(); writeSync({ ...st, dirty: true, changes: (st.changes || 0) + 1 }); } catch (e) { console.error('Pantry: could not mark the change for sync', e); }
     }
-    announce('change');
+    announce('change', prev);
     return doc;
   }
 
@@ -208,6 +234,30 @@
   function dayLabel(date) {
     const [y, m, d] = date.split('-').map(Number);
     return `${DAYS[new Date(y, m - 1, d).getDay()]}, ${d} ${MONTHS[m - 1]}`;
+  }
+
+  const mealNow = () => { const h = new Date().getHours(); return h < 11 ? 'breakfast' : h < 16 ? 'lunch' : h < 21 ? 'dinner' : 'snacks'; };
+
+  function usualAmounts(foodId, meal) {
+    const t = today(), [y, m, d] = t.split('-').map(Number);
+    const since = new Date(y, m - 1, d - 90), from = `${since.getFullYear()}-${pad(since.getMonth() + 1)}-${pad(since.getDate())}`;
+    const rank = list => {
+      const by = new Map();
+      for (const e of list) {
+        const x = by.get(e.amount) || { amount: e.amount, grams: e.grams, count: 0, last: '' };
+        x.count += 1;
+        if (e.date >= x.last) x.last = e.date;
+        by.set(e.amount, x);
+      }
+      return [...by.values()].sort((a, b) => b.count - a.count || (a.last < b.last ? 1 : -1)).map(({ amount, grams, count }) => ({ amount, grams, count }));
+    };
+    const mine = doc.entries.filter(e => e.foodId === foodId && e.date <= t);
+    const atMeal = rank(mine.filter(e => e.meal === meal && e.date >= from));
+    if (atMeal.length) return atMeal;
+    const any = rank(mine);
+    if (any.length) return any;
+    const s = STARTER.find(x => x.food.id === foodId);
+    return s ? [{ amount: `${s.usual} g`, grams: s.usual, count: 0 }] : [];
   }
 
   // toPrecision(12) drops binary noise first, so 378.35 rounds to 378.4, not 378.3.
@@ -244,8 +294,10 @@
   let shownDay = today();
 
   function parse() {
-    const parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean).map(decodeURIComponent);
-    return { name: parts[0] || 'today', args: parts.slice(1) };
+    const parts = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
+    const name = parts[0] || 'today';
+    if (!views[name]) return { name: 'today', args: [] };
+    return { name, args: parts.slice(1).map(a => (a === '' ? undefined : a)) };
   }
 
   function show() {
@@ -271,7 +323,8 @@
 
   const depth = () => (history.state && history.state.depth) || 0;
   function go(name, ...args) {
-    history.pushState({ depth: depth() + 1 }, '', '#/' + [name, ...args].map(encodeURIComponent).join('/'));
+    while (args.length && (args[args.length - 1] === undefined || args[args.length - 1] === null)) args.pop();
+    history.pushState({ depth: depth() + 1 }, '', '#/' + [name, ...args].map(a => (a === undefined || a === null ? '' : encodeURIComponent(a))).join('/'));
     show();
   }
   function toToday() { history.replaceState({ depth: 0 }, '', '#/'); show(); }
@@ -285,6 +338,25 @@
   function checkDay() { if (started && today() !== shownDay) { shownDay = today(); announce('day'); } }
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkDay(); });
   setInterval(checkDay, 60000);
+
+  let toastTimer = 0;
+  function toast(text, opts = {}) {
+    let host = document.getElementById('toast');
+    if (!host) {
+      host = document.createElement('div');
+      host.id = 'toast';
+      host.setAttribute('role', 'status');
+      host.setAttribute('aria-live', 'polite');
+      document.body.appendChild(host);
+    }
+    clearTimeout(toastTimer);
+    host.innerHTML = `<div class="toast"><span>${esc(text)}</span>${opts.action ? `<button type="button" class="toast-act">${esc(opts.action)}</button>` : ''}</div>`;
+    const hide = () => { clearTimeout(toastTimer); host.innerHTML = ''; };
+    const btn = host.querySelector('.toast-act');
+    if (btn) btn.addEventListener('click', () => { hide(); if (opts.onAction) opts.onAction(); });
+    toastTimer = setTimeout(hide, opts.ms || 4000);
+    return hide;
+  }
 
   function css(text) {
     const style = document.createElement('style');
@@ -310,14 +382,15 @@
     change,
     subscribe(fn) { subscribers.add(fn); return () => subscribers.delete(fn); },
     dirty: () => readSync().dirty === true,
-    markClean() { writeSync({ ...readSync(), dirty: false }); },
+    changes: () => readSync().changes || 0,
+    markClean(upTo) { const st = readSync(); if (upTo === undefined || (st.changes || 0) === upTo) writeSync({ ...st, dirty: false }); },
     syncState: () => readSync(),
-    setSyncState(patch) { return writeSync({ ...readSync(), ...patch }); },
+    setSyncState(patch) { const st = writeSync({ ...readSync(), ...patch }); announce('sync'); return st; },
     problem: () => problem,
     starter: freeze(structuredClone(STARTER)),
-    today, dayLabel, totals, sum, fmt, esc, icon,
+    today, dayLabel, mealNow, usualAmounts, totals, sum, fmt, esc, icon,
     view(name, def) { views[name] = def; },
-    go, back, home, css,
+    go, back, home, css, toast,
   });
 
   document.addEventListener('DOMContentLoaded', () => {

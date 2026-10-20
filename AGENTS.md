@@ -50,4 +50,4 @@ and `notes.md` keeps a one-line link.
 - Each release bumps the service worker cache name and serves `index.html` network-first, so the phone gets updates (`D:/TarikOS/knowledge/concepts/pwa-service-worker-onbellek-guncelleme.md`).
 - Paths stay relative: Pages serves the app under `/Pantry/` (`D:/TarikOS/knowledge/concepts/pwa-manifest-ve-kurulum-uyumlulugu.md`).
 - Logged entries keep their nutrient totals from log time; editing a food never changes past days.
-- Mockup and fixture data come from real sources; a missing value stays missing, never filled in.
+- Mockup and fixture data come from real sources; a missing value stays missing, never filled in. Tests may build synthetic entries in code to exercise a rule; committed fixtures stay real.
