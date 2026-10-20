@@ -5,7 +5,8 @@
    entry's own totals by new ÷ old; they are never recomputed from the food, so an imported MyNetDiary entry
    keeps MyNetDiary's values. An amount with no single number to scale ("a bowl") stays as logged and only the
    meal can change. Moving changes only the meal: id, date, amount and totals stay. Save writes only what he
-   changed, so a change made elsewhere while the screen is open is kept. Delete removes
+   changed, so a change made elsewhere while the screen is open is kept, and says it in a toast ("Saved, 200 g") with
+   the food's drawing and Undo, which puts the stored entry back exactly as it was. Delete removes
    the entry, appends { id, at } to doc.removed and offers Undo in a toast, which puts the same entry back at
    the same index and drops that line. Save and Delete return with Pantry.go('today', date). */
 (() => {
@@ -224,7 +225,7 @@
 
     form.addEventListener('submit', ev => {
       ev.preventDefault();
-      let to = null, amount = null;   // the new amount and its text, only when he changed the amount
+      let to = null, amount = null, said = null;   // the new amount, its text and the toast's words, when he changed it
       if (!fixed) {
         const r = read();
         if (r.error) { fail(r.error); input.focus(); return; }
@@ -233,16 +234,19 @@
           const chip = chips.find(c => c.value === r.value);
           to = target(r.value);
           amount = chip ? chip.amount : `${r.value} ${m.unit}`;
+          said = chip ? chipLabel(chip, m) : `${P.fmt(r.value, m.digits)} ${m.unit}`;
         }
       }
       const moved = meal !== entry.meal;
       if (to !== null || moved) {
         shown.busy = true;
+        let before = null;   // the stored entry as it was, for Undo
         try {
           // Only what he changed is written: a meal or an amount changed elsewhere since the screen opened stays.
           P.change(d => {
             const e = d.entries.find(x => x.id === entry.id);
             if (!e) throw new Error('This entry is not in your log any more, so it was not saved.');
+            before = structuredClone(e);
             if (to !== null) {
               const now = measure(e);   // the stored entry's own amount, in case sync changed it meanwhile
               if (now.unit !== m.unit || !(isNum(now.base) && now.base > 0)) throw new Error('This entry changed on another device, so it was not saved. Open it again.');
@@ -253,6 +257,9 @@
             if (moved) e.meal = meal;
           });
         } catch (x) { if (shown) shown.busy = false; fail(x.message); return; }
+        // Raised before the return, so it lives through that screen change and not the next (Pantry.toast screens).
+        const words = [said, moved ? `moved to ${MEAL[meal].toLowerCase()}` : null].filter(Boolean).join(', ');
+        P.toast(`Saved, ${words}`, { action: 'Undo', drawing: art(food), onAction: () => unsave(before) });
       }
       P.go('today', entry.date);
     });
@@ -270,15 +277,32 @@
           d.removed.push({ id: entry.id, at });
         });
       } catch (x) { if (shown) shown.busy = false; fail(x.message); return; }
+      P.haptic('delete');
+      P.toast(`Deleted ${food ? food.name : 'the entry'}`, { action: 'Undo', drawing: art(food), onAction: () => undo(removed, index, at) });
       P.go('today', entry.date);
-      P.toast(`Deleted ${food ? food.name : 'the entry'}`, { action: 'Undo', onAction: () => undo(removed, index, at) });
     });
 
     refresh();
   }
 
+  // The food's drawing for a toast, read at the time (drawings.js loads after the features).
+  const art = food => (window.PantryDrawing ? window.PantryDrawing(food, 32) : '');
+
+  // Undo a save: the entry exactly as it was stored before it, in its place.
+  function unsave(before) {
+    P.haptic('undo');
+    try {
+      P.change(d => {
+        const i = d.entries.findIndex(x => x.id === before.id);
+        if (i < 0) throw new Error('This entry is not in your log any more, so it could not be put back.');
+        d.entries[i] = structuredClone(before);
+      });
+    } catch (x) { P.toast(x.message); }
+  }
+
   // Undo a delete: the same entry back at the same index, and its own removed line gone.
   function undo(entry, index, at) {
+    P.haptic('undo');
     try {
       P.change(d => {
         if (Array.isArray(d.removed)) {

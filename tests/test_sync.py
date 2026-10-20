@@ -1,4 +1,5 @@
-"""Checks for Task-06: sync with the private data repo (app/sync.js) and the Settings screen (app/settings.js).
+"""Checks for Task-06: sync with the private data repo (app/sync.js) and the Settings screen (app/settings.js), with
+Task-07's days-logged count ("M (+P)") and the split read and typed carbs, protein, fat.
 
 Run from the repo root: python tests/test_sync.py   (exit 0 = no FAIL; prints PASS, FAIL or SKIP per check)
 
@@ -15,6 +16,7 @@ last change, so this file takes a few minutes.
 """
 import base64
 import copy
+import datetime
 import hashlib
 import json
 import os
@@ -378,9 +380,11 @@ def check_slice(browser, url, errors, remote):
     last = page.locator('[data-test="sync-last"]').inner_text().strip()
     A.check("Settings says Synced, just now", pill == "Synced" and last == "Just now", (pill, last))
     history = page.locator('[data-test="history"]').inner_text()
+    days = page.locator('[data-test="history-days"]').inner_text().strip()
     foods = page.locator('[data-test="foods"]').inner_text()
-    A.check("Settings shows the MyNetDiary history range and days, and the foods",
-            "8 Aug 2026 to 20 Oct 2026" in history and "3 days" in history and foods.strip().endswith("11"), (history, foods))
+    A.check("Settings shows the days logged (3 MyNetDiary days; the phone's own entries are on 20 Oct, a MyNetDiary day) "
+            "with their range, and the foods",
+            "8 Aug 2026 to 20 Oct 2026" in history and days == "3" and foods.strip().endswith("11"), (history, foods))
     A.fits(page, "Settings, synced, 150 % text")
 
     # an edit made while a push is in flight survives
@@ -478,8 +482,9 @@ def check_full(browser, url, errors):
     raw = [r for r in mock.requests if r["method"] == "GET" and "raw" in r["accept"]]
     A.check("full history: the document above 1 MB was read through the raw media type", size > LIMIT and raw, (size, len(raw)))
     history = page.locator('[data-test="history"]').inner_text()
-    A.check("full history: Settings shows 14 Jul 2025 to 20 Oct 2026, 464 days",
-            "14 Jul 2025 to 20 Oct 2026" in history and "464 days" in history, history)
+    days = page.locator('[data-test="history-days"]').inner_text().strip()
+    A.check('full history: Settings shows 14 Jul 2025 to 20 Oct 2026 and reads exactly "464" days logged',
+            "14 Jul 2025 to 20 Oct 2026" in history and days == "464", (history, days))
     ctx.close()
 
 
@@ -630,8 +635,9 @@ def check_targets(browser, url, errors, remote):
     rows = [t.strip() for t in page.locator('[data-part="targets"] .settings-v').all_inner_texts()]
     targets = doc(page)["settings"]["targets"]
     want = {"kcal": 2000, "proteinPct": 25, "carbsPct": 40, "fatPct": 35, "salt": 6.5}
-    A.check("Settings saves the targets typed (2,000 kcal; 25 / 40 / 35 %; 6,5 g read as 6.5)",
-            targets == want and rows == ["2,000 kcal", "25 / 40 / 35%", "6.5 g"], (targets, rows))
+    A.check("Settings saves the targets typed (2,000 kcal; protein 25, carbs 40, fat 35 %, shown carbs first: "
+            "40 / 25 / 35 %; 6,5 g read as 6.5)",
+            targets == want and rows == ["2,000 kcal", "40 / 25 / 35%", "6.5 g"], (targets, rows))
     puts = len(mock.puts)
     page.goto(url + "#/")
     page.wait_for_selector('[data-screen="today"] [data-test="kcal-left"]')
@@ -649,6 +655,79 @@ def check_targets(browser, url, errors, remote):
             len(mock.puts) == puts and doc(page)["settings"]["targets"] == want, (len(mock.puts) - puts, doc(page)["settings"]))
     ok = pushed(page, mock, puts + 1, 30)
     A.check("the new targets are synced", ok and mock.doc()["settings"]["targets"] == want, mock.doc()["settings"])
+    ctx.close()
+
+
+def days_doc(imported, own):
+    """Synthetic: one MyNetDiary-shaped entry (id <date>-<n>, as the import names them) per imported day, one
+    Pantry-shaped entry (id <date>-p<x>) per own day."""
+    entries = [{"id": f"{d}-101", "date": d, "meal": "lunch", "foodId": POTATO, "amount": "100 g", "grams": 100,
+                "totals": {"kcal": 59}} for d in imported]
+    entries += [{"id": f"{d}-ptest{i}", "date": d, "meal": "dinner", "foodId": POTATO, "amount": "100 g", "grams": 100,
+                 "totals": {"kcal": 59}} for i, d in enumerate(own)]
+    return {"version": 1, "foods": [], "entries": entries, "settings": {"targets": dict(A.TARGETS)}}
+
+
+def check_days(browser, url, errors, remote):
+    """Task-07: the history row counts every logged day, "M (+P)": M MyNetDiary days, P days logged only in Pantry."""
+    ctx, page = phone(browser, errors, "days", MockGitHub(), text=1.0)
+    A.open_today(page, url)
+    open_settings(page, url)
+    start = datetime.date(2025, 7, 14)
+    full = [(start + datetime.timedelta(days=i)).isoformat() for i in range(464)]
+    cases = [("an empty log", [], [], "0", ["None on this phone yet"]),
+             ("a 464-day import", full, [], "464", ["MyNetDiary", "14 Jul 2025 to 20 Oct 2026"]),
+             ("three days logged only in Pantry", [], ["2026-10-18", "2026-10-19", "2026-10-21"], "0 (+3)",
+              ["MyNetDiary (+ Pantry only)", "18 Oct 2026 to 21 Oct 2026"]),
+             ("the import plus two Pantry-only days and one more Pantry entry on 20 Oct (a MyNetDiary day)", full,
+              ["2026-10-21", "2026-10-22", "2026-10-20"], "464 (+2)", ["MyNetDiary (+ Pantry only)", "14 Jul 2025 to 22 Oct 2026"])]
+    for label, imported, own, count, subs in cases:
+        page.evaluate("d => { Pantry.change(() => d, { dirty: false }); }", days_doc(imported, own))
+        got = page.locator('[data-test="history-days"]').inner_text().strip()
+        lines = page.locator('[data-test="history"] .settings-sub').evaluate_all("els => els.map(e => e.textContent.trim())")
+        A.check(f'Settings, {label}: the days logged read exactly "{count}" ({", ".join(subs)})', got == count and lines == subs,
+                (got, lines))
+    beside = """() => { const n = document.querySelector('[data-test="history"] .settings-t').getBoundingClientRect(),
+        v = document.querySelector('[data-test="history-days"]').getBoundingClientRect(); return v.left >= n.right - 0.5 && v.top < n.bottom; }"""
+    wide = page.evaluate(beside)
+    A.fits(page, "Settings with 464 (+2) days logged, 360 px, text 1.0")
+    page.set_viewport_size({"width": 240, "height": 520})
+    narrow = page.evaluate(beside)
+    A.fits(page, "Settings with 464 (+2) days logged, 240 px")
+    A.check("the count stays beside 'Days logged' at 360 px and at 240 px; the lines under the name wrap instead", wide and narrow,
+            (wide, narrow))
+    ctx.close()
+
+
+def check_macro_order(browser, url, errors, remote):
+    """Task-07: the split is read and typed carbs, protein, fat; the stored targets keep their shape."""
+    ctx, page = phone(browser, errors, "macro-order", MockGitHub(), text=1.0)
+    A.open_today(page, url)
+    wave2 = {"kcal": 2200, "proteinPct": 20, "carbsPct": 45, "fatPct": 35, "salt": 5.8}
+    page.evaluate("t => { Pantry.change(d => { d.settings = { targets: t }; }, { dirty: false }); }", wave2)
+    open_settings(page, url)
+    row = page.locator('[data-kind="macro"]')
+    shown = (row.locator(".settings-sub").inner_text().strip(), row.locator(".settings-v").inner_text().strip())
+    row.click()
+    form = page.locator('[data-form="macro"]')
+    pairs = form.locator(".settings-pair").evaluate_all("els => els.map(e => [e.querySelector('label').textContent, e.querySelector('input').value])")
+    help_line = form.locator("[data-help]").inner_text().strip()
+    A.check("a document saved by wave 2 (protein 20, carbs 45, fat 35) shows its split carbs, protein, fat: the row "
+            "reads 45 / 20 / 35 %, the editor's fields and its grams line follow that order",
+            shown == ("Carbs, protein, fat", "45 / 20 / 35%") and pairs == [["Carbs", "45"], ["Protein", "20"], ["Fat", "35"]]
+            and help_line == "At 2,200 kcal: 248 g carbs, 110 g protein, 86 g fat.", (shown, pairs, help_line))
+    form.get_by_role("button", name="Save", exact=True).click()
+    t = doc(page)["settings"]["targets"]
+    A.check("saving it unchanged keeps settings.targets deep-equal and in the same shape (key order)",
+            t == wave2 and list(t) == list(wave2), t)
+    row.click()
+    page.get_by_label("Carbs").fill("50")
+    page.get_by_label("Protein").fill("30")
+    page.get_by_label("Fat").fill("20")
+    form.get_by_role("button", name="Save", exact=True).click()
+    t = doc(page)["settings"]["targets"]
+    A.check("typed carbs 50, protein 30, fat 20 are stored under carbsPct, proteinPct, fatPct",
+            (t["carbsPct"], t["proteinPct"], t["fatPct"]) == (50, 30, 20) and list(t) == list(wave2), t)
     ctx.close()
 
 
@@ -712,7 +791,8 @@ def main():
             for name, fn, args in (("merge rules", check_merge_rules, (remote,)), ("slice sync", check_slice, (remote,)),
                                    ("large file", check_large, (remote,)), ("missing file", check_missing_file, (remote,)),
                                    ("refused token", check_refused, (remote,)),
-                                   ("targets", check_targets, (remote,)), ("screen", check_screen, (remote,)),
+                                   ("targets", check_targets, (remote,)), ("days logged", check_days, (remote,)),
+                                   ("macro order", check_macro_order, (remote,)), ("screen", check_screen, (remote,)),
                                    ("full history", check_full, ())):
                 A.guarded(name, fn, browser, url, errors, *args)
             browser.close()

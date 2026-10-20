@@ -1,4 +1,5 @@
-"""Checks for Task-05: edit, move and delete an entry (app/entry.js, route '#/entry/<id>').
+"""Checks for Task-05: edit, move and delete an entry (app/entry.js, route '#/entry/<id>'), and Task-07: Save answers
+with a toast and Undo.
 
 Run from the repo root: python tests/test_entry.py   (exit 0 = no FAIL). Reuses the gate's server and phone from
 tests/acceptance.py (360 x 780, text at 150 %, Darwin, clock fixed at 2026-10-20 07:00). The document is the
@@ -292,6 +293,57 @@ def check_delete(browser, url, errors, doc):
     ctx.close()
 
 
+def toast_text(page):
+    words = page.locator("#toast .toast > span:not(.toast-art)")
+    return words.inner_text().strip() if words.count() == 1 else None
+
+
+def check_saved(browser, url, errors, doc):
+    """Task-07: Save answers with one toast "Saved, <amount>", the food's drawing and Undo; the toast lives through the
+    return to the day and not the next screen change."""
+    ctx, page = start(browser, url, errors, "entry-saved", doc)
+    before = A.stored(page)
+    open_entry(page, DINNER)
+    page.get_by_label("Grams").fill("1500")
+    save(page)
+    toast = page.locator("#toast .toast")
+    A.check('Save shows one toast "Saved, 1,500 g" with Undo and the food\'s drawing, on the day it returned to',
+            toast.count() == 1 and toast_text(page) == "Saved, 1,500 g" and toast.get_by_role("button", name="Undo").count() == 1
+            and toast.locator(".toast-art svg.drawing").count() == 1 and page.locator('[data-screen="today"]').count() == 1,
+            toast.all_inner_texts())
+    saved = find(A.stored(page), DINNER)
+    toast.get_by_role("button", name="Undo").click()
+    back = A.stored(page)
+    A.check("Undo makes the entry deep-equal to before the save, in its place, and the document what it was",
+            saved["grams"] == 1500 and find(back, DINNER) == find(before, DINNER) and index(back, DINNER) == index(before, DINNER)
+            and back == before and toast.count() == 0, (saved, find(back, DINNER)))
+
+    open_entry(page, DINNER)
+    page.locator('[data-screen="entry"]').get_by_role("button", name="Move to lunch").click()
+    page.get_by_label("Grams").fill("500")
+    save(page)
+    both = toast_text(page)
+    open_entry(page, DINNER)
+    page.locator('[data-screen="entry"]').get_by_role("button", name="Move to dinner").click()
+    save(page)
+    moved = toast_text(page)
+    A.check('a move says so ("Saved, moved to dinner"); an amount and a move both ("Saved, 500 g, moved to lunch")',
+            both == "Saved, 500 g, moved to lunch" and moved == "Saved, moved to dinner", (both, moved))
+    open_entry(page, LUNCH)
+    A.check("the Save toast does not survive the second screen change after it", toast.count() == 0, toast.all_inner_texts())
+    save(page)
+    A.check("Save with nothing changed shows no toast (there is nothing to undo)", toast.count() == 0, toast.all_inner_texts())
+
+    open_entry(page, SNACK)
+    page.locator('[data-screen="entry"]').get_by_role("button", name="Delete").click()
+    page.wait_for_selector('[data-screen="today"]')
+    drawn = toast.locator(".toast-art svg.drawing").count()
+    open_entry(page, LUNCH)
+    A.check("the Delete toast carries the food's drawing and does not survive the second screen change either",
+            drawn == 1 and toast.count() == 0, (drawn, toast.all_inner_texts()))
+    ctx.close()
+
+
 def check_invalid(browser, url, errors, doc):
     ctx, page = start(browser, url, errors, "entry-invalid", doc)
     open_entry(page, DINNER)
@@ -419,7 +471,7 @@ def check_layout(browser, url, errors, doc):
 
 
 SCENARIOS = [("entry screen scenario", check_show), ("scaling scenario", check_scale), ("move scenario", check_move),
-             ("delete scenario", check_delete), ("invalid amount scenario", check_invalid),
+             ("delete scenario", check_delete), ("saved toast scenario", check_saved), ("invalid amount scenario", check_invalid),
              ("amount forms scenario", check_amount_forms), ("changed elsewhere scenario", check_elsewhere),
              ("layout scenario", check_layout)]
 

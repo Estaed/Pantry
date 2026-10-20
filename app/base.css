@@ -15,6 +15,11 @@ button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
 .screen { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
+/* screen motion (app/core.js): copies of the screen left and the screen shown move over the real one, which is
+   already in place under them; the stage takes no taps and sits under the toast */
+#stage { position: fixed; inset: 0; z-index: 15; overflow: hidden; contain: strict; pointer-events: none; background: var(--canvas); }
+.stage-layer { position: absolute; inset: 0; }
+.stage-top { background: var(--canvas); }
 
 /* top bar: eyebrow over the Archivo title */
 .top { padding: 18px 20px 0; display: flex; align-items: center; gap: 8px; }

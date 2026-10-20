@@ -1,9 +1,10 @@
-/* Settings ('#/settings'): the targets (daily kcal, the macro split, salt) edited in place; sync with the private
-   data repo (its state, the last sync, the GitHub token pasted once and shown masked); the data on this phone (the
-   MyNetDiary history's range and days, the foods). Drawn after design/screens.html → 9. Settings, without the
-   theme row (the theme follows the phone in v1). The sync itself is app/sync.js (window.PantrySync); this screen
-   shows its state and hands it the token, which never enters the document.
-   Test hooks: data-test="sync-pill", "sync-last", "sync-reason", "token-mask", "history", "foods". */
+/* Settings ('#/settings'): the targets (daily kcal, the macro split read and typed carbs, protein, fat, salt)
+   edited in place; sync with the private data repo (its state, the last sync, the GitHub token pasted once and shown
+   masked); the data on this phone (every day logged, "460 (+10)": MyNetDiary days plus days logged only in Pantry,
+   and the foods). Drawn after design/screens.html → 9. Settings, without the theme row (the theme follows the phone
+   in v1). The sync itself is app/sync.js (window.PantrySync); this screen shows its state and hands it the token,
+   which never enters the document.
+   Test hooks: data-test="sync-pill", "sync-last", "sync-reason", "token-mask", "history", "history-days", "foods". */
 (() => {
   'use strict';
 
@@ -12,6 +13,10 @@
   const IMPORTED = /^(\d{4}-\d{2}-\d{2})-\d+$/;          // tools/import_mynetdiary.py names entries <date>-<entryNo>
   const TOKEN = /^(github_pat_|ghp_)[A-Za-z0-9_]+$/;
   const TARGETS = ['kcal', 'macro', 'salt'];
+  // The macro split in the order every screen shows it (Pantry.MACROS): [key in settings.targets, label, kcal per gram].
+  // Only the order shown and typed in follows it; the stored targets keep their shape.
+  const SHARE = { carbs: ['carbsPct', 'Carbs', 4], protein: ['proteinPct', 'Protein', 4], fat: ['fatPct', 'Fat', 9] };
+  const SHARES = P.MACROS.map(m => SHARE[m]);
   const isNum = v => typeof v === 'number' && Number.isFinite(v);
 
   P.css(`
@@ -34,6 +39,7 @@
     .settings-mask { font-family: var(--font-figure); }
     .settings-v { margin-left: auto; font: 700 0.9375rem/1.3 var(--font-figure); text-align: right; white-space: nowrap; }
     .settings-v.light { font-weight: 600; }
+    .settings-days { flex-wrap: nowrap; }   /* the count stays beside its name; the lines under the name wrap instead */
     .settings-pill {
       margin-left: auto; display: inline-flex; align-items: center; gap: 5px; min-height: 24px; padding: 2px 9px;
       border: 1px solid currentColor; border-radius: var(--r-pill); color: var(--ink-muted);
@@ -103,7 +109,8 @@
   function targetsHtml(t) {
     const rows = [
       ['kcal', 'Daily calories', '', isNum(t.kcal) ? `${P.fmt(t.kcal)} kcal` : '–'],
-      ['macro', 'Macro split', 'Protein, carbs, fat', `${fmt1(t.proteinPct)} / ${fmt1(t.carbsPct)} / ${fmt1(t.fatPct)}%`],
+      ['macro', 'Macro split', SHARES.map(([, label], i) => (i ? label.toLowerCase() : label)).join(', '),
+        `${SHARES.map(([key]) => fmt1(t[key])).join(' / ')}%`],
       ['salt', 'Salt', '', isNum(t.salt) ? `${P.fmt(t.salt, 2)} g` : '–'],
     ];
     return `<ul class="settings-list">${rows.map(([kind, name, sub, value]) => `<li>
@@ -125,15 +132,15 @@
     if (kind === 'kcal') return formHtml(kind, input('kcal', t.kcal, 'numeric', 'Daily calories', 'kcal'), 'Today counts down from this.');
     if (kind === 'salt') return formHtml(kind, input('salt', t.salt, 'decimal', 'Salt', 'g a day'), 'The salt limit for a day.');
     const pair = (name, label) => `<div class="settings-pair"><label for="settings-in-${name}">${label}</label>${input(name, t[name], 'decimal', '', '%')}</div>`;
-    return formHtml(kind, pair('proteinPct', 'Protein') + pair('carbsPct', 'Carbs') + pair('fatPct', 'Fat'),
-      macroLine(t.kcal, t.proteinPct, t.carbsPct, t.fatPct));
+    return formHtml(kind, SHARES.map(([key, label]) => pair(key, label)).join(''), macroLine(t.kcal, SHARES.map(([key]) => t[key])));
   }
 
-  function macroLine(kcal, p, c, f) {
-    if (![p, c, f].every(isNum)) return 'Shares of the day’s calories; together they make 100 %.';
-    const sum = p + c + f;
+  // shares: the three percentages in SHARES order.
+  function macroLine(kcal, shares) {
+    if (!shares.every(isNum)) return 'Shares of the day’s calories; together they make 100 %.';
+    const sum = shares.reduce((a, b) => a + b, 0);
     if (Math.abs(sum - 100) > 0.05) return `Together ${P.fmt(sum, 1)} %; they have to make 100 %.`;
-    return `At ${P.fmt(kcal)} kcal: ${P.fmt(kcal * p / 400)} g protein, ${P.fmt(kcal * c / 400)} g carbs, ${P.fmt(kcal * f / 900)} g fat.`;
+    return `At ${P.fmt(kcal)} kcal: ${SHARES.map(([, label, perGram], i) => `${P.fmt(kcal * shares[i] / 100 / perGram)} g ${label.toLowerCase()}`).join(', ')}.`;
   }
 
   // A typed number: thousands commas dropped from whole numbers, a decimal comma read as a point.
@@ -227,20 +234,26 @@
   }
 
   // ── data ──────────────────────────────────────────────────────────
+  // Every logged day: M from MyNetDiary (a day with an imported entry, even when Pantry logged more on it) plus P
+  // logged only in Pantry, written "M (+P)" (Tarık: "460 (+10)"), or "M" while P is 0.
   function dataHtml(doc) {
-    const days = new Set();
+    const days = new Map();   // date -> true when MyNetDiary logged that day
     for (const e of doc.entries) {
       const m = IMPORTED.exec(e.id);
-      if (m && m[1] === e.date) days.add(e.date);
+      days.set(e.date, days.get(e.date) === true || Boolean(m && m[1] === e.date));
     }
-    const sorted = [...days].sort();
-    const range = sorted.length ? `${dateLabel(sorted[0])} to ${dateLabel(sorted[sorted.length - 1])}` : 'None on this phone yet';
+    const sorted = [...days.keys()].sort();
+    const imported = [...days.values()].filter(Boolean).length, own = sorted.length - imported;
+    const count = own ? `${P.fmt(imported)} (+${P.fmt(own)})` : P.fmt(imported);
+    // Under the name, the count's key ("MyNetDiary (+ Pantry only)" for "464 (+2)") and the range of days.
+    const subs = sorted.length ? [own ? 'MyNetDiary (+ Pantry only)' : 'MyNetDiary', `${dateLabel(sorted[0])} to ${dateLabel(sorted[sorted.length - 1])}`]
+      : ['None on this phone yet'];
     const groups = [['from MyNetDiary', ['mynetdiary']], ['scanned', ['coles', 'woolworths', 'off']], ['from labels', ['label']]]
       .map(([label, sources]) => [doc.foods.filter(f => sources.includes(f.source)).length, label]).filter(([n]) => n > 0);
     const foodsSub = !groups.length ? 'None yet' : groups.length === 1 ? `All ${groups[0][1]}` : groups.map(([n, l]) => `${P.fmt(n)} ${l}`).join(', ');
     return `<ul class="settings-list">
-      <li class="settings-row" data-test="history"><span class="settings-t">MyNetDiary history<span class="settings-sub">${range}</span></span>
-        <span class="settings-v">${P.fmt(sorted.length)} ${sorted.length === 1 ? 'day' : 'days'}</span></li>
+      <li class="settings-row settings-days" data-test="history"><span class="settings-t">Days logged${subs.map(s => `<span class="settings-sub">${s}</span>`).join('')}</span>
+        <span class="settings-v" data-test="history-days">${count}</span></li>
       <li class="settings-row" data-test="foods"><span class="settings-t">Your foods<span class="settings-sub">${foodsSub}</span></span>
         <span class="settings-v">${P.fmt(doc.foods.length)}</span></li></ul>`;
   }
@@ -305,9 +318,8 @@
   function onInput(e) {
     const form = e.target.closest && e.target.closest('[data-form="macro"]');
     if (!form) return;
-    const [p, c, f] = ['proteinPct', 'carbsPct', 'fatPct'].map(n => num(value(n), true));
     const help = form.querySelector('[data-help]');
-    help.textContent = macroLine(P.doc().settings.targets.kcal, p, c, f);
+    help.textContent = macroLine(P.doc().settings.targets.kcal, SHARES.map(([key]) => num(value(key), true)));
     help.hidden = false;
     form.querySelector('[data-err]').hidden = true;
   }

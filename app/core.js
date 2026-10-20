@@ -56,6 +56,11 @@
      Pantry.MACROS                 ['carbs', 'protein', 'fat']: the order every screen shows the macros in (Tarık).
      Routes take positional args; an undefined or null arg is an empty segment and arrives as undefined.
      An unknown route opens Today with no args.
+     Moving between screens: a push slides the new screen in from the right, a back reverses it, Pantry.go('today')
+     crossfades; a back the browser already animated (popstate hasUAVisualTransition) runs none, and a popstate that
+     leaves the address as it is changes nothing. The new screen is rendered at once; the motion plays over it.
+     A back opens the screen where it was scrolled to; every other screen change opens at the top. A finger tap
+     within 350 ms (event time) of the tap that changed the screen does nothing; Pantry.go and popstate always act.
 
    Features
      app/registry.js lists every feature script, one line each. Core loads them in that order once the page is
@@ -296,6 +301,8 @@
   let current = null;   // { name, def, hash }
   let started = false;
   let shownDay = today();
+  let shownDepth = 0;   // history depth of the shown screen's entry: a popstate to a lower one is a back
+  try { history.scrollRestoration = 'manual'; } catch (e) { /* the router puts the scroll back itself */ }
 
   function parse() {
     const parts = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
@@ -304,40 +311,211 @@
     return { name, args: parts.slice(1).map(a => (a === '' ? undefined : a)) };
   }
 
-  function show() {
+  // kind: 'push' (a screen opens), 'back', 'home' (Pantry.go('today'), or a jump within the same depth) or 'none'
+  // (the first screen, or a back the browser has already animated). scroll: where the new screen opens.
+  function show(kind = 'none', scroll = 0) {
     const app = document.getElementById('app');
     const { name, args } = parse();
     const def = views[name] || views.today;
+    armGuard();
+    const was = app.firstElementChild;
+    const before = current && was && moves(kind) ? { ...snapshot(was), y: window.scrollY } : null;
     if (current && current.def.leave) {
       try { current.def.leave(); } catch (e) { console.error('Pantry: leaving a screen failed', e); }
     }
     if (current) screenChanged();
     current = { name: views[name] ? name : 'today', def, hash: location.hash };
     shownDay = today();
+    shownDepth = depth();
     const root = document.createElement('section');
     root.className = 'screen';
     root.dataset.screen = current.name;
     app.replaceChildren(root);
     window.scrollTo(0, 0);
-    if (!def) { root.innerHTML = '<p class="note">No screen is installed.</p>'; return; }
-    try { def.render(root, ...args); } catch (e) {
-      console.error('Pantry: screen failed', e);
-      root.innerHTML = `<div class="banner" role="alert">${icon('alert')}<div><b>This screen failed to open.</b> ${esc(e.message)}</div></div>`;
+    if (!def) root.innerHTML = '<p class="note">No screen is installed.</p>';
+    else {
+      try { def.render(root, ...args); } catch (e) {
+        console.error('Pantry: screen failed', e);
+        root.innerHTML = `<div class="banner" role="alert">${icon('alert')}<div><b>This screen failed to open.</b> ${esc(e.message)}</div></div>`;
+      }
     }
+    if (scroll > 0) window.scrollTo(0, scroll);
+    if (!before) { endStage(); return; }
+    // The screen has changed already; motion that fails only leaves it without motion.
+    try { play(kind, before, { ...snapshot(root), y: window.scrollY }); } catch (e) { endStage(); console.warn('Pantry: screen motion failed', e); }
   }
 
   const depth = () => (history.state && history.state.depth) || 0;
   function go(name, ...args) {
     while (args.length && (args[args.length - 1] === undefined || args[args.length - 1] === null)) args.pop();
+    // The screen being left keeps its scroll in its own history entry, so a back puts him where he was.
+    try { history.replaceState({ ...(history.state || {}), scroll: window.scrollY }, ''); } catch (e) { /* only the scroll is lost */ }
     history.pushState({ depth: depth() + 1 }, '', '#/' + [name, ...args].map(a => (a === undefined || a === null ? '' : encodeURIComponent(a))).join('/'));
-    show();
+    show(name === 'today' ? 'home' : 'push');
   }
-  function toToday() { history.replaceState({ depth: 0 }, '', '#/'); show(); }
+  function toToday() { history.replaceState({ depth: 0 }, '', '#/'); show('back'); }
   function back() { if (depth() > 0) history.back(); else toToday(); }
   function home() { if (depth() > 0) history.go(-depth()); else toToday(); }
-  const onNavigate = () => { if (started && (!current || location.hash !== current.hash)) show(); };
+  // A popstate that leaves the address as it is (the gram sheet's own entry, a day switched in place) is no screen
+  // change: no motion, no guard, no scroll.
+  const onNavigate = e => {
+    if (!started || (current && location.hash === current.hash)) return;
+    const d = depth();
+    const kind = e && e.hasUAVisualTransition ? 'none' : d < shownDepth ? 'back' : d > shownDepth ? 'push' : 'home';
+    show(kind, (history.state && history.state.scroll) || 0);
+  };
   window.addEventListener('popstate', onNavigate);
   window.addEventListener('hashchange', onNavigate);
+
+  // ── the tap guard ──
+  // A second tap within GUARD ms of the tap that changed the screen does nothing: two quick taps on Delete end on
+  // Today, never on Today's Add under the same finger. Only finger taps are held, by each event's own time; a mouse,
+  // the keyboard, Pantry.go and popstate never are, so tests and the back gesture keep working.
+  const GUARD = 350;
+  let tapAt = null;            // event time of the last tap that has not led to a screen change yet
+  let guardFrom = -Infinity;   // event time of the tap that started the last screen change
+  const isTap = e => e.isTrusted && (e.pointerType === 'touch' || e.pointerType === 'pen'
+    || Boolean(e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents));
+  function guard(e) {
+    if (!isTap(e)) return;
+    const since = e.timeStamp - guardFrom;
+    if (since >= 0 && since < GUARD) {
+      e.preventDefault();             // on mousedown, this also keeps a field under the finger from taking focus
+      e.stopImmediatePropagation();
+      return;
+    }
+    if (e.type === 'click') tapAt = e.timeStamp;
+  }
+  window.addEventListener('mousedown', guard, true);
+  window.addEventListener('click', guard, true);
+  // A screen change arms the guard when it happens while an event is handled after a tap: in the tap's own click or
+  // submit, or in the popstate its history.back() caused. One made from code (a timer, a test) leaves it as it is.
+  function armGuard() {
+    const ev = window.event;
+    if (tapAt !== null && ev && ev.isTrusted) guardFrom = tapAt;
+    tapAt = null;
+  }
+
+  // ── screen motion ──
+  // Tarik Base v6 → Motion: a push slides the new screen 24 px in from the right while it fades in (slow, ease-enter)
+  // and the old one fades out (fast, ease-exit); a back reverses it (the old one leaves 24 px to the right, base,
+  // ease-exit); a return to Today crossfades (base). Reduced motion keeps the fades and drops the slide.
+  // The real screen is in place and working at once: the motion plays on a stage over it, two inert copies (the
+  // screen left and the screen shown) in closed shadow roots that take no taps, so nothing a test or a finger reads
+  // or touches ever moves. A touch, or the next screen change, ends it early.
+  const SLIDE = 24;
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const canStage = typeof document.documentElement.attachShadow === 'function' && 'adoptedStyleSheets' in Document.prototype;
+  const moves = kind => started && canStage && kind !== 'none' && document.visibilityState === 'visible' && styles() !== null;
+  let stage = null;            // { host, anims } while the motion plays
+
+  // A copy that looks like the screen: every field keeps what is typed in it, and every CSS animation running in it
+  // (the day pills' waves) goes on from the screen's time, never from its start (play() sets it).
+  function snapshot(el) {
+    const copy = el.cloneNode(true);
+    const from = el.querySelectorAll('input, textarea, select'), to = copy.querySelectorAll('input, textarea, select');
+    from.forEach((f, i) => { if (f.type === 'checkbox' || f.type === 'radio') to[i].checked = f.checked; else to[i].value = f.value; });
+    const nodes = [el, ...el.querySelectorAll('*')];
+    const times = el.getAnimations({ subtree: true }).filter(a => a.animationName && a.currentTime !== null)
+      .map(a => ({ at: nodes.indexOf(a.effect.target), name: a.animationName, pseudo: a.effect.pseudoElement, t: a.currentTime }));
+    return { el: copy, times };
+  }
+  function keepTime(shot) {
+    const nodes = [shot.el, ...shot.el.querySelectorAll('*')];
+    shot.el.getAnimations({ subtree: true }).forEach(a => {
+      const was = shot.times.find(w => nodes[w.at] === a.effect.target && w.name === a.animationName && w.pseudo === a.effect.pseudoElement);
+      if (was) a.currentTime = was.t;
+    });
+  }
+
+  // The copies get the page's styles as their files write them, never as the CSSOM writes them back: Chrome returns
+  // a `font:` shorthand that holds var() with every font longhand empty when another font longhand follows it (the
+  // title's font-stretch), so a copied title lost its Archivo and moved everything under it. A <style>'s text is
+  // read from it; a stylesheet <link>'s is fetched once, from the cache. Until each one is in, screens change without
+  // motion, never with a copy that differs from the screen.
+  const copies = new WeakMap();   // a page stylesheet → its copy, or the fetch still bringing its text
+  let place = null;               // the copies' own rule: each lies at the top of its layer
+  function copyOf(sheet) {
+    const have = copies.get(sheet);
+    if (have instanceof CSSStyleSheet) return have;
+    if (sheet.ownerNode instanceof HTMLStyleElement) return made(sheet, sheet.ownerNode.textContent);
+    if (!have && sheet.href) {
+      copies.set(sheet, fetch(sheet.href).then(r => (r.ok ? r.text() : Promise.reject(new Error(`${r.status} ${sheet.href}`))))
+        .then(text => made(sheet, text)).catch(() => copies.delete(sheet)));   // a failed fetch is tried again next time
+    }
+    return null;
+  }
+  function made(sheet, text) {
+    const copy = new CSSStyleSheet({ baseURL: sheet.href || document.baseURI });
+    copy.replaceSync(text);
+    // The page has the fonts already; a shadow root ignores @font-face.
+    for (let i = copy.cssRules.length - 1; i >= 0; i--) if (copy.cssRules[i] instanceof CSSFontFaceRule) copy.deleteRule(i);
+    copies.set(sheet, copy);
+    return copy;
+  }
+  function styles() {
+    const sheets = [...document.styleSheets].map(copyOf);
+    if (sheets.includes(null)) return null;
+    if (!place) {
+      place = new CSSStyleSheet();
+      place.replaceSync(':host > .screen { position: absolute; left: 0; right: 0; margin: 0; }');
+    }
+    return [...sheets, place];
+  }
+  if (canStage) styles();   // fetch the sheets' text now, so the first screen change already moves
+
+  function play(kind, before, after) {
+    endStage();
+    const sheets = styles();
+    if (!sheets) return;
+    const css = getComputedStyle(document.documentElement);
+    const ms = name => parseFloat(css.getPropertyValue(`--dur-${name}`)) || 0;
+    const ease = name => css.getPropertyValue(`--ease-${name}`).trim() || 'ease';
+    // Reduced motion: every slide becomes a fade of the same length.
+    const still = reducedMotion.matches;
+    const fade = (from, to, dx0 = 0, dx1 = 0) => (still || dx0 === dx1 ? [{ opacity: from }, { opacity: to }]
+      : [{ opacity: from, translate: `${dx0}px 0` }, { opacity: to, translate: `${dx1}px 0` }]);
+    const plan = kind === 'push' ? [fade(1, 0), 'fast', 'exit', fade(0, 1, SLIDE, 0), 'slow', 'enter']
+      : kind === 'back' ? [fade(1, 0, 0, SLIDE), 'base', 'exit', fade(0, 1), 'base', 'enter']
+        : [fade(1, 0), 'base', 'exit', fade(0, 1), 'base', 'enter'];
+    const host = document.createElement('div');
+    host.id = 'stage';
+    host.dataset.nav = kind;
+    host.setAttribute('aria-hidden', 'true');
+    host.inert = true;
+    // The screen that moves lies on top and covers the other: the new one on a push or a return to Today, the one
+    // leaving on a back.
+    const top = kind === 'back' ? 0 : 1;
+    const anims = [before, after].map((shot, i) => {
+      const layer = document.createElement('div');
+      layer.className = i === top ? 'stage-layer stage-top' : 'stage-layer';
+      layer.dataset.layer = i ? 'new' : 'old';
+      const shadow = layer.attachShadow({ mode: 'closed' });
+      shadow.adoptedStyleSheets = sheets;
+      shot.el.style.top = `${-shot.y}px`;
+      shadow.appendChild(shot.el);
+      if (i === top) host.appendChild(layer); else host.prepend(layer);
+      const [frames, dur, curve] = plan.slice(i * 3, i * 3 + 3);
+      const anim = layer.animate(frames, { duration: ms(dur), easing: ease(curve), fill: 'both' });
+      anim.finished.catch(() => { /* cancelled: a touch or the next screen change ended it early */ });
+      return anim;
+    });
+    document.body.appendChild(host);
+    keepTime(before);
+    keepTime(after);
+    stage = { host, anims };
+    Promise.all(anims.map(a => a.finished)).then(() => { if (stage && stage.host === host) endStage(); }, () => {});
+  }
+
+  function endStage() {
+    if (!stage) return;
+    const { host, anims } = stage;
+    stage = null;
+    anims.forEach(a => a.cancel());
+    host.remove();
+  }
+  // He touches the screen while it moves: show him the real one at once.
+  window.addEventListener('pointerdown', () => { if (stage) endStage(); }, true);
 
   // A phone keeps the app open across midnight: when the day turns, the shown screen hears about it.
   function checkDay() { if (started && today() !== shownDay) { shownDay = today(); announce('day'); } }
