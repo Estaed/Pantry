@@ -533,8 +533,8 @@
       P.go('today', b.dataset.day === P.today() ? undefined : b.dataset.day);
     } else if (b.dataset.meal) P.go('add', b.dataset.meal, date);
     else if (b.dataset.entry) P.go('entry', b.dataset.entry);
-    else if (b.dataset.act === 'add') P.go('add', b.dataset.for, date);
-    else if (b.dataset.act === 'scan') P.go('scan', b.dataset.for, date);
+    else if (b.dataset.act === 'add') P.go('add', P.mealNow(), date);
+    else if (b.dataset.act === 'scan') P.go('scan', P.mealNow(), date);
     else if (b.dataset.act === 'settings' || b.dataset.act === 'import') P.go('settings');
   }
 
@@ -562,6 +562,11 @@
   }
 
   window.addEventListener('resize', () => { if (root && root.isConnected) layout(); });
+  // A phone keeps Today open from breakfast to lunch: coming back, the bottom button names the meal the clock suggests now.
+  document.addEventListener('visibilitychange', () => {
+    const btn = root && root.isConnected && root.querySelector('[data-act="add"]');
+    if (document.visibilityState === 'visible' && btn && btn.dataset.for !== P.mealNow()) draw();
+  });
   if (document.fonts) document.fonts.addEventListener('loadingdone', () => { if (root && root.isConnected) layout(); });
   P.view('today', {
     render,

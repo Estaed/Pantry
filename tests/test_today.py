@@ -444,6 +444,18 @@ def check_midnight(page):
     page.evaluate("document.dispatchEvent(new Event('visibilitychange'))")
 
 
+def check_meal_clock(page):
+    show(page)
+    page.clock.set_fixed_time(datetime.datetime(2026, 10, 20, 12, 0, 0, tzinfo=A.DARWIN))
+    page.evaluate("document.dispatchEvent(new Event('visibilitychange'))")
+    label = text(page, '[data-act="add"]')
+    went = [tap_goes(page, '[data-act="add"]', None), tap_goes(page, '[data-act="scan"]', None)]
+    page.clock.set_fixed_time(A.NOW)
+    page.evaluate("document.dispatchEvent(new Event('visibilitychange'))")
+    check("Today left open from 07:00 to 12:00: the bottom button says 'Add to lunch' and Add and Scan open lunch",
+          label == "Add to lunch" and went == ["#/add/lunch/2026-10-20", "#/scan/lunch/2026-10-20"], (label, went))
+
+
 def check_banner(page):
     show(page)
     sentence = "Sync failed. Saved on this phone; it will try again. The GitHub token may have expired: Settings, Sync."
@@ -596,7 +608,7 @@ def main():
                                    ("strip", check_strip, (page, url)), ("waves", check_waves, (page,)),
                                    ("routes", check_routes, (page,)), ("live", check_live, (page,)),
                                    ("banner", check_banner, (page,)), ("dates", check_dates, (page,)),
-                                   ("midnight", check_midnight, (page,)), ("text and theme", check_text_and_theme, (page, url))):
+                                   ("midnight", check_midnight, (page,)), ("meal follows the clock", check_meal_clock, (page,)), ("text and theme", check_text_and_theme, (page, url))):
                 A.guarded(f"Today {name} checks", fn, *args)
             ctx.close()
             A.guarded("Today fit checks", check_fit, browser, url, doc, errors)
