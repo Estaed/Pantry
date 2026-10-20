@@ -1,5 +1,5 @@
 # Task-00: Thinnest path — install, log a food, see kcal left, scan a barcode
-**Status: DONE** — verified 2026-10-20, eye check pending: 2
+**Status: DONE** — verified 2026-10-20, eye check pending: 1 (scan five packs; layout checked on `terra_nt` and confirmed on Tarık's phone 2026-10-20)
 > **Execution:** agent `ultracode`
 > *Why:* every later feature plugs into this shell, its data and its gate, and the camera scan is v1's riskiest assumption.
 
@@ -42,7 +42,7 @@ built.
 - [x] Every `tests/test_*.py` is run as `python <file>` from the repo root and its exit code is the verdict; a fixture test that exits 1 turns the gate red (shown once in the gate, then not left in the suite).
 - [x] Scan: with `BarcodeDetector` missing, and with it present but without `ean_13` in `getSupportedFormats()`, the screen says which in plain words; leaving the scan view stops every camera track (`readyState === 'ended'`). Tests inject a fake detector and camera.
 - [x] `.gitignore` ignores `.tmp/` and the personal files in `references/` (`mynetdiary-history-*.json`, `*.mp4`); `git check-ignore .tmp/x.json` exits 0.
-- [ ] (eye) On the `terra_nt` emulator at 360 px and the largest font: Today, the starter list and the gram step fit without sideways scrolling and use the tokens, against `design/screens.html` (colours, type, spacing; not the full layout yet).
+- [x] (eye) On the `terra_nt` emulator at 360 px and the largest font: Today, the starter list and the gram step fit without sideways scrolling and use the tokens, against `design/screens.html` (colours, type, spacing; not the full layout yet).
 - [ ] (eye, after the main loop deploys to Pages) Tarık scans five real packs from his kitchen; each EAN-13 is read correctly within about two seconds. The main loop records the result in `notes.md`.
 
 ## Out of scope

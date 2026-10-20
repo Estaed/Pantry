@@ -6,3 +6,4 @@ self.PANTRY_FEATURES = [];
 PANTRY_FEATURES.push('app/today.js');
 PANTRY_FEATURES.push('app/log.js');
 PANTRY_FEATURES.push('app/scan.js');
+PANTRY_FEATURES.push('app/drawings.js');
