@@ -694,7 +694,7 @@
     const list = S.query.trim() ? [] : doc.entries.filter(e => e.date === day && e.meal === S.meal);
     if (!list.length) { box.hidden = true; box.replaceChildren(); S.ydayKey = ''; return; }
     const meal = mealWord(S.meal);
-    const key = list.map(e => e.id).join(' ');
+    const key = list.map(e => `${e.id} ${e.foodId} ${e.totals.kcal}`).join(' ');   // a sync keeps the id and changes the rest
     if (key !== S.ydayKey) {
       S.ydayKey = key;
       const byId = new Map(doc.foods.map(f => [f.id, f]));

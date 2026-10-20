@@ -815,6 +815,13 @@ def check_yesterday(browser, errors):
           "the meal and both foods on the screen, not only in its name",
           again.count() == 1 and "2 foods: Washed White Potato, Chicken Grilled" in label and label.endswith("738 kcal")
           and seen == ["Same as yesterday's dinner", "738 kcal: Washed White Potato, Chicken Grilled", "738"], (label, seen))
+    # yesterday's potato edited elsewhere while the list is open (a sync keeps the entry's id; Codex review, 2026-10-21)
+    set_kcal = "k => Pantry.change(d => { d.entries.find(e => e.id === 'y1').totals.kcal = k; })"
+    page.evaluate(set_kcal, 542.2)
+    edited = page.locator(".log-again .k").inner_text()
+    page.evaluate(set_kcal, 442.2)
+    CHECK("an edit to yesterday's dinner while the list is open shows in the row at once (838 kcal), as its tap would copy it",
+          edited == "838" and page.locator(".log-again .k").inner_text() == "738", edited)
     ids = {e["id"] for e in stored(page)["entries"]}
     page.evaluate("() => { const b = document.querySelector('[data-act=\"again\"]'); b.click(); b.click(); }")
     wait_toast(page, "2 foods from yesterday added to dinner on 8 Aug")
