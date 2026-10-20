@@ -63,19 +63,28 @@ values, no cooked conversion is needed, and raw grams subtract straight from pac
 - Stock per product = bought (receipts) − eaten (log, converted to the pack unit).
 - Weekly Discord image from Hermes: items with days left, react to correct ("ran out" / "still have").
 
-## Open questions (Tarık, 2026-10-20)
-- **Eating out:** how is a restaurant meal logged, and kept out of kitchen stock?
-- **Calorie math:** answered: raw weight + oil as its own line (above). Per-100 g values come
-  from his MyNetDiary foods if exportable, else barcode / label photo.
-- **MyNetDiary history (2026-10-20):** help pages promise only a free yearly "consolidated"
-  Excel (food-level detail unknown) and paid PDF/XLS reports; nothing tested. Next: Tarık signs in
-  at mynetdiary.com in Opera, Eko looks at the web diary and its network calls (like Coles). What
-  matters is his food list (name, per-100 g, last grams), not daily totals.
-- **Stack, Eko's recommendation:** single-file PWA like Calisthenics-App (index.html + sw.js,
-  localStorage, GitHub sync, GitHub Pages); Android only. Camera barcode via Chrome Android's
-  built-in `BarcodeDetector` (HTTPS, `ean_13`), no library. Installs to the home screen, opens
-  offline, open-sourcing is just a public repo, and the v1.2 merge is one codebase style. Native
-  (Kotlin/Flutter) rejected: an APK to build and sideload, nothing v1 needs. Awaiting Tarık.
+## Decided (Tarık, 2026-10-20)
+- **Stack:** single-file PWA like Calisthenics-App (index.html + sw.js, localStorage, GitHub
+  sync, GitHub Pages); Android only, "hafif". Camera barcode via Chrome Android's built-in
+  `BarcodeDetector` (HTTPS, `ean_13`), no library (not yet tried on his phone). Open-sourcing is
+  just a public repo. Native (Kotlin/Flutter) rejected: an APK to build and sideload.
+- **Calorie math:** raw weight + oil as its own line (above).
+- **Eating out:** left out of v1, or logged loosely by ingredients. History shows he has logged
+  restaurant meals as one item ("Whopper junior by Burger King", "2X Chicken Royale and 2X Medium
+  Chips"), so such foods simply never touch kitchen stock.
+
+## MyNetDiary history (pulled 2026-10-20)
+`references/mynetdiary-history-2026-10-20.json` (gitignored, personal data): every day from
+2025-07-14 to 2026-10-20, **464 days, 0 gaps, 2,722 entries, 115 distinct foods**. Each entry:
+meal, food name and brand, amount as typed ("185 g", "4 eggs", "2 scoops"), grams, kcal, ~24
+nutrients (protein, fat, carbs, fiber, sodium…) and the food's serving list. 137 entries have no
+grams (ml drinks, restaurant "servings") but still carry kcal. Pulled from the signed-in web app's
+`GET /muiGetMeals.do?date=YYYY-MM-DD` (free account, one call per day, ~2 s each, in Opera).
+So v1 starts with his real food list, per-meal frequent lists and last grams; nothing to type in.
+Top staples: butter 5 g (316×), Coles tuna 185 g (225×), chicken breast raw 350 g, Coles basmati
+100 g, iceberg blend 300 g, tzatziki 125 g.
+
+## Open questions
 - Where it runs: Coles session lives in Tarık's Opera on the PC; can Hermes (Azure) fetch receipts?
 
 ## Screens
