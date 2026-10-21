@@ -409,9 +409,9 @@
   const moves = kind => started && canStage && kind !== 'none' && document.visibilityState === 'visible' && styles() !== null;
   let stage = null;            // { host, anims } while the motion plays
 
-  // A copy that looks like the screen: every field keeps what is typed in it, every CSS animation running in it
-  // (the day pills' waves) goes on from the screen's time, never from its start, and one that has ended there stays
-  // ended (play() sets it).
+  // A copy that looks like the screen: every field keeps what is typed in it, every scroller its scroll (Today's day
+  // strip), every CSS animation running in it (the day pills' waves) goes on from the screen's time, never from its
+  // start, and one that has ended there stays ended (play() sets the scrolls and the times once the copy is in place).
   function snapshot(el) {
     const copy = el.cloneNode(true);
     const from = el.querySelectorAll('input, textarea, select'), to = copy.querySelectorAll('input, textarea, select');
@@ -419,10 +419,12 @@
     const nodes = [el, ...el.querySelectorAll('*')];
     const times = el.getAnimations({ subtree: true }).filter(a => a.animationName && a.currentTime !== null)
       .map(a => ({ at: nodes.indexOf(a.effect.target), name: a.animationName, pseudo: a.effect.pseudoElement, t: a.currentTime }));
-    return { el: copy, times };
+    const scrolls = nodes.map((n, at) => ({ at, left: n.scrollLeft, top: n.scrollTop })).filter(s => s.left || s.top);
+    return { el: copy, times, scrolls };
   }
   function keepTime(shot) {
     const nodes = [shot.el, ...shot.el.querySelectorAll('*')];
+    shot.scrolls.forEach(s => { nodes[s.at].scrollLeft = s.left; nodes[s.at].scrollTop = s.top; });
     shot.el.getAnimations({ subtree: true }).forEach(a => {
       const was = shot.times.find(w => nodes[w.at] === a.effect.target && w.name === a.animationName && w.pseudo === a.effect.pseudoElement);
       if (was) a.currentTime = was.t;

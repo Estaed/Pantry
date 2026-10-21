@@ -195,9 +195,12 @@ def go_online(ctx, site):
 
 FIT_JS = """() => {
   const w = document.documentElement.clientWidth;
+  // what a sideways scroller (Today's day strip) holds out of view is scrolled, not past the edge; the scroller is checked
+  const scrolled = el => { for (let a = el.parentElement; a && a.id !== 'app'; a = a.parentElement) {
+    const o = getComputedStyle(a).overflowX; if (o === 'auto' || o === 'scroll') return true; } return false; };
   const bad = [...document.querySelectorAll('#app *')].filter(el => {
     const r = el.getBoundingClientRect();
-    return r.width > 0 && r.height > 0 && (r.right > w + 0.5 || r.left < -0.5);
+    return r.width > 0 && r.height > 0 && (r.right > w + 0.5 || r.left < -0.5) && !scrolled(el);
   }).map(el => el.tagName.toLowerCase() + (typeof el.className === 'string' && el.className ? '.' + el.className.trim().split(/\\s+/).join('.') : '')
     + ' ' + Math.round(el.getBoundingClientRect().left) + '..' + Math.round(el.getBoundingClientRect().right));
   return { width: w, scroll: document.documentElement.scrollWidth - w, bad: bad.slice(0, 6) };

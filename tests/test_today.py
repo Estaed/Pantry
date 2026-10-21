@@ -87,13 +87,16 @@ CENTER_JS = """() => {
               parseFloat(getComputedStyle(el).fontSize)]; }) };
 }"""
 
-STRIP_JS = """() => [...document.querySelectorAll('[data-screen="today"] .today-days > .today-day')].map(d => {
+# The days the strip shows: the ones inside its view (it scrolls through about three months).
+STRIP_JS = """() => { const nav = document.querySelector('[data-screen="today"] .today-days'), v = nav.getBoundingClientRect();
+  return [...nav.querySelectorAll('.today-day')].filter(d => { const r = d.getBoundingClientRect();
+    return r.left >= v.left - 1 && r.right <= v.right + 1; }).map(d => {
   const liq = d.querySelector('.today-liq');
   return { day: d.dataset.day, name: d.querySelector('span').textContent, num: d.querySelector('b').textContent,
            label: d.querySelector('em').textContent, over: d.classList.contains('today-ov'), on: d.classList.contains('today-on'),
            fill: liq ? liq.getBoundingClientRect().height / d.clientHeight : 0,
            wordsFit: [...d.querySelectorAll('span, b, em')].every(w => w.getBoundingClientRect().width <= d.clientWidth) };
-})"""
+}); }"""
 
 # Each macro percentage is readable: inside its bar when it fits, else on the label line under the bar.
 MACRO_JS = """() => {
@@ -214,6 +217,23 @@ def tap_goes(page, selector, back_to):
     went = page.evaluate("location.hash")
     show(page, back_to)
     return went
+
+
+def strip_still(page, ms=4000):
+    """Waits until the strip's scroll has stopped: a flick or a smooth scroll runs on the browser's own clock."""
+    last, same = None, 0
+    for _ in range(ms // 50):
+        x = page.evaluate("() => document.querySelector('[data-screen=\"today\"] .today-days').scrollLeft")
+        same = same + 1 if x == last else 0
+        if same >= 4:
+            return True
+        last = x
+        page.wait_for_timeout(50)
+    return False
+
+
+def short_day(day):
+    return f"{int(day[8:])} {datetime.date.fromisoformat(day).strftime('%b')}"
 
 
 def swipe(page, x0, x1, y):
@@ -369,24 +389,38 @@ def check_strip(page, url):
           text(page, "h1") == "5 Aug" and page.evaluate("location.hash") == "#/today/2026-08-08", (text(page, "h1"), page.evaluate("location.hash")))
     page.evaluate("Pantry.go('today', '2026-08-05')")
     page.wait_for_selector(f"{SCREEN} .today-frame")
-    check("the opened day's strip ends at it", strip_days(page)[-1] == "2026-08-05" and text(page, "h1") == "5 Aug", strip_days(page))
+    strip_still(page)
+    check("the opened day's strip shows it", "2026-08-05" in strip_days(page) and text(page, "h1") == "5 Aug", strip_days(page))
 
     show(page, "2026-08-08")
+    strip_still(page)
     box = page.locator(f"{SCREEN} .today-days").bounding_box()
     y = box["y"] + box["height"] / 2
     hash_before = page.evaluate("location.hash")
+    before = strip_days(page)
     swipe(page, box["x"] + 60, box["x"] + box["width"] - 30, y)
+    strip_still(page)
     earlier = strip_days(page)
     swipe(page, box["x"] + box["width"] - 30, box["x"] + 60, y)
-    back = strip_days(page)
-    swipe(page, box["x"] + box["width"] - 30, box["x"] + 60, y)
+    strip_still(page)
     later = strip_days(page)
-    check("a swipe right shows the week before (26 Jul to 1 Aug), a swipe left the week after, the shown day stays 8 Aug",
-          earlier[0] == "2026-07-26" and earlier[-1] == "2026-08-01" and back[-1] == "2026-08-08" and later[-1] == "2026-08-15"
-          and text(page, "h1") == "8 Aug" and page.evaluate("location.hash") == hash_before, (earlier, back, later))
+    check("the strip scrolls under the finger, day by day: a swipe right shows earlier days, a swipe left later ones, "
+          "seven whole days in view when it stops, the shown day stays 8 Aug",
+          "2026-08-08" in before and earlier[-1] < before[-1] and later[-1] > earlier[-1] and len(earlier) == len(later) == 7
+          and text(page, "h1") == "8 Aug" and page.evaluate("location.hash") == hash_before, (before, earlier, later))
     show(page, "2026-10-19")
+    strip_still(page)
     swipe(page, box["x"] + box["width"] - 30, box["x"] + 60, y)
+    strip_still(page)
     check("the strip never runs past today: a swipe left from 19 Oct stops at 20 Oct", strip_days(page)[-1] == "2026-10-20", strip_days(page))
+    first_js = "() => document.querySelector('[data-screen=\"today\"] .today-days .today-day').dataset.day"
+    first = page.evaluate(first_js)
+    page.evaluate("() => { document.querySelector('[data-screen=\"today\"] .today-days').scrollLeft = 0; }")
+    strip_still(page)
+    seen = strip_days(page)
+    page.wait_for_timeout(300)
+    check("scrolled to its start the strip takes about three months more days, and the days in view stay in view",
+          page.evaluate(first_js) < first and strip_days(page) == seen and seen[0] < "2026-07-25", (first, page.evaluate(first_js), seen))
     page.wait_for_timeout(450)                 # a tap right after a swipe is the swipe's own touch ending, so it is ignored
     page.locator(f'{SCREEN} .today-day[data-day="2026-10-20"]').click()
     check("tapping today in the strip shows Today in place, which follows the clock (state.day null, no date)",
@@ -397,7 +431,7 @@ def check_strip(page, url):
 def check_waves(page):
     show(page)
     waves = page.evaluate(WAVES_JS)
-    filled = sum(1 for d in page.evaluate(STRIP_JS) if d["fill"] > 0)
+    filled = page.locator(f"{SCREEN} .today-liq").count()   # every filled day in the strip, in view or scrolled
     check("with reduced motion off, every filled day's wave runs a CSS animation",
           waves and len(waves) == filled and all(n != "none" and s == "running" for n, s in waves), waves)
     page.emulate_media(reduced_motion="reduce")
@@ -841,6 +875,7 @@ def check_in_place(page):
     action = page.locator(f'{SCREEN} [data-act="today"]')
     offered = action.count() == 1 and action.inner_text().strip() == "Today"
     action.click()
+    strip_still(page)
     strip = strip_days(page)
     check("a past day offers Today, which switches to today in place: Today's numbers, the strip ends at 20 Oct, the address stays",
           offered and text(page, "h1") == "Today" and text(page, '[data-test="kcal-left"]') == "896" and strip[-1] == "2026-10-20"
@@ -894,29 +929,35 @@ def check_tap_after_swipe(browser, url, doc, errors):
     check("a left swipe on Today's ring (no day after it, nothing redrawn), then at once a finger tap on 16 Oct: 16 Oct",
           still_today and until(page, BACK_TO_JS, "16 Oct"), text(page, "h1"))
     show(page)
-    strip_swipe(page, 160)
-    # the week is drawn at once and glides in (200 ms); the tap comes as soon as it is in place
-    shifted = until(page, "() => !!document.querySelector('[data-screen=\"today\"] .today-days > .today-day[data-day=\"2026-10-10\"]')"
-                          " && !document.querySelector('[data-screen=\"today\"] .today-days').style.transform")
-    touch_tap(page, '.today-day[data-day="2026-10-10"]')
-    check("a swipe on the strip to the week before, then at once a finger tap on 10 Oct: 10 Oct",
-          shifted and until(page, BACK_TO_JS, "10 Oct"), text(page, "h1"))
+    strip_still(page)
+    # a drag held still before the finger lifts: headless Chromium never ends the fling a quick lift starts and takes
+    # the next tap to stop it (the browser's own, checked on the phone, not here)
+    box = page.locator(f"{SCREEN} .today-days").bounding_box()
+    sx, sy = box["x"] + box["width"] / 2 - 80, box["y"] + box["height"] / 2
+    cdp = page.context.new_cdp_session(page)
+    cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": sx, "y": sy}]})
+    for i in range(1, 11):
+        cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": sx + 16 * i, "y": sy}]})
+        page.wait_for_timeout(16)
+    page.wait_for_timeout(200)
+    cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+    cdp.detach()
+    moved = strip_still(page)
+    day = strip_days(page)[0]
+    touch_tap(page, f'.today-day[data-day="{day}"]')
+    check("a swipe on the strip to earlier days, then a finger tap on the first day in view: that day",
+          moved and day < "2026-10-14" and until(page, BACK_TO_JS, short_day(day)), (day, text(page, "h1")))
     ctx.close()
 
 
-# The ring's frame offset, and the strip's: its offset, the neighbour weeks riding with it, its clip
+# The ring's frame offset
 OFFSET_JS = """() => { const f = document.querySelector('[data-screen="today"] .today-frame');
   const m = f.style.transform.match(/translateX\\((-?[\\d.]+)px\\)/); return m ? Number(m[1]) : 0; }"""
-STRIP_AT_JS = """() => { const nav = document.querySelector('[data-screen="today"] .today-days');
-  const m = nav.style.transform.match(/translateX\\((-?[\\d.]+)px\\)/);
-  return { offset: m ? Number(m[1]) : 0, peeks: nav.querySelectorAll('.today-peek').length,
-           clip: getComputedStyle(nav.parentElement).overflowX }; }"""
-
 
 def check_moving_edges(browser, url, doc, errors):
     """At 360 px and text 1.0, whatever Today moves sideways stays inside the screen: the ring held mid-drag either way,
-    the ring coming in after a swipe, the strip held mid-drag and gliding in after a week swipe (inside its clip). Page
-    clock paused: the frames are read where they start, farthest out."""
+    the ring coming in after a swipe, the strip held mid-drag (it scrolls inside itself). Page clock paused: the frames
+    are read where they start, farthest out."""
     ctx = browser.new_context(**A.PHONE)
     ctx.clock.install(time=A.NOW)
     page = ctx.new_page()
@@ -945,28 +986,20 @@ def check_moving_edges(browser, url, doc, errors):
         check(f"the ring coming in after a swipe to {day} starts off to the side, inside the screen: no horizontal scroll",
               text(page, "h1") == day and abs(start) > 15 and fit["scroll"] <= 0 and not fit["bad"], (text(page, "h1"), start, fit))
     sx, sy = centre_of(page, ".today-days")
+    at = "() => document.querySelector('[data-screen=\"today\"] .today-days').scrollLeft"
+    start = page.evaluate(at)
     cdp = page.context.new_cdp_session(page)
     cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": sx, "y": sy}]})
     for i in range(1, 11):
         cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": sx + 10 * i, "y": sy}]})
-    held, fit = page.evaluate(STRIP_AT_JS), page.evaluate(A.FIT_JS)
-    cdp.send("Input.dispatchTouchEvent", {"type": "touchCancel", "touchPoints": []})
+        page.wait_for_timeout(20)
+    page.wait_for_timeout(100)
+    held, fit = start - page.evaluate(at), page.evaluate(A.FIT_JS)
+    cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
     cdp.detach()
-    page.clock.run_for(1000)
-    back = page.evaluate(STRIP_AT_JS)
-    check("the strip held 100 px into a drag follows the finger with the weeks before and after at its sides, "
-          "inside its clip: no horizontal scroll; let go short, it glides back",
-          held["offset"] >= 90 and held["peeks"] == 2 and held["clip"] == "hidden" and fit["scroll"] <= 0
-          and back["offset"] == 0 and back["peeks"] == 0, (held, back, fit))
-    for dx, week in ((160, "the week before"), (-160, "the week after")):
-        strip_swipe(page, dx)
-        first, fit = page.evaluate(STRIP_AT_JS), page.evaluate(A.FIT_JS)
-        page.clock.run_for(1000)
-        last = page.evaluate(STRIP_AT_JS)
-        check(f"after a swipe to {week} that week glides in from where the finger left it, inside the strip's clip: "
-              "no horizontal scroll, and nothing of the glide left once it ends",
-              abs(first["offset"]) >= 8 and first["peeks"] == 2 and fit["scroll"] <= 0
-              and last == {"offset": 0, "peeks": 0, "clip": "hidden"}, (first, last, fit))
+    strip_still(page)
+    check("the strip held 100 px into a drag to the right follows the finger (earlier days come in) and the page does not "
+          "scroll sideways: nothing past the edge", 60 <= held <= 110 and fit["scroll"] <= 0 and not fit["bad"], (held, fit))
     ctx.close()
 
 

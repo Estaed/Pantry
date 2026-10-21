@@ -31,7 +31,8 @@
 - **Today's Add is a floating + at the bottom right** (base: a full-width primary button in the thumb zone), Scan
   beside it, as in MyNetDiary (Tarık, 2026-10-21: "mynetdiarydeki gibi sağda +"). A 56 px ink square with the
   floating shadow; its name stays "Add food to <meal>".
-- **The day strip follows the finger** with the weeks before and after at its sides, and glides on a week when
-  let go past 40 px (Tarık, 2026-10-21: the strip had no "akıcılık").
+- **The day strip scrolls freely, day by day** (the prototype shows one fixed week): the browser's own sideways
+  scroll with a snap on each day, about three months loaded and more as he reaches the start (Tarık, 2026-10-21:
+  "mynetdiarydeki gibi ... gün gün akıcı bir şekilde kaydırmak istiyorum").
 - **Screen motion** follows Tarik Base v6 → Motion (push in from the right, back reverses, Today crossfades);
   the prototype is static.

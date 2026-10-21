@@ -78,22 +78,18 @@
     .today-t1 { background: var(--today-c1); color: var(--canvas); }
     .today-t3 { background: var(--today-c3); color: var(--ink); }
 
-    .today-strip { overflow: hidden; }
-    .today-days { --today-side: 14px; position: relative; display: flex; gap: 5px; padding: 12px var(--today-side) 0; touch-action: pan-y; }
-    /* while a finger drags the strip, the weeks before and after ride at its sides */
-    .today-peek { position: absolute; top: 12px; bottom: 0; width: 100%; box-sizing: border-box; display: flex; gap: 5px; padding: 0 var(--today-side); }
-    .today-peek-l { right: 100%; }
-    .today-peek-r { left: 100%; }
-    /* a new week's days slide in by the strip's side margin at most, so none passes the screen's edge */
-    .today-days.today-from-r > .today-day, .today-days.today-from-l > .today-day { animation: today-in var(--dur-base) var(--ease-enter); }
-    .today-days.today-from-r { --today-dx: var(--today-side); }
-    .today-days.today-from-l { --today-dx: calc(-1 * var(--today-side)); }
-    @media (prefers-reduced-motion: reduce) { .today-days.today-from-r, .today-days.today-from-l { --today-dx: 0px; } }
-    @keyframes today-in { from { opacity: 0; transform: translateX(var(--today-dx)); } }
+    /* the browser's own sideways scroll: it follows the finger, a flick runs on and stops on a day; seven days to a
+       screen (100cqi is the strip's width inside its side margins) */
+    .today-days {
+      --today-side: 14px; --today-gap: 5px; display: flex; gap: var(--today-gap); padding: 12px var(--today-side) 0;
+      overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-padding-inline: var(--today-side);
+      scrollbar-width: none; container-type: inline-size;
+    }
+    .today-days::-webkit-scrollbar { display: none; }
     .today-day {
       --today-fill: color-mix(in oklab, var(--ink) 13%, transparent);
       /* tall enough, and the words low enough, that the dashed budget line stays above them at any text size */
-      flex: 1 1 0; min-width: 0; min-height: 4.625rem; padding: 6px 0 7px; position: relative; overflow: hidden;
+      flex: 0 0 calc((100cqi - 6 * var(--today-gap)) / 7); scroll-snap-align: start; min-height: 4.625rem; padding: 6px 0 7px; position: relative; overflow: hidden;
       display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
       border-radius: 14px; background: var(--surface-1); border: 1px solid var(--hairline);
       font: 600 calc(0.6875rem * var(--today-fit, 1))/1.25 var(--font-sans); color: var(--ink-muted);
@@ -119,7 +115,7 @@
     @keyframes today-wave { to { -webkit-mask-position: -40px 0; mask-position: -40px 0; } }
     @media (prefers-reduced-motion: reduce) { .today-wave { animation: none; } }
     .today-bud { position: absolute; left: 0; right: 0; z-index: 1; border-top: 1px dashed var(--ink-subtle); }
-    @media (max-width: 330px) { .today-days { --today-side: 8px; gap: 3px; } }
+    @media (max-width: 330px) { .today-days { --today-side: 8px; --today-gap: 3px; } }
 
     /* pan-y: a vertical drag on the ring scrolls the page, a sideways one is the day swipe */
     .today-frame { position: relative; margin: 8px 20px 0; height: calc(12.25rem + 50px); touch-action: pan-y; }
@@ -328,7 +324,7 @@
   }
 
   function strip(days, kcalOn, now, date, budget) {
-    return `<div class="today-strip"><nav class="today-days${slide ? ' ' + slide : ''}" aria-label="Days">${dayCells(days, kcalOn, now, date, budget)}</nav></div>`;
+    return `<nav class="today-days" aria-label="Days">${dayCells(days, kcalOn, now, date, budget)}</nav>`;
   }
 
   function dayCells(days, kcalOn, now, date, budget) {
@@ -358,9 +354,7 @@
   let root = null;
   let pinned = null;       // the date shown when it is not today; null follows the clock
   let routeDay = null;     // the date the route names (null: today), which the history entry under ours shows
-  let stripEnd = null;     // the last day in the strip
-  let drawnToday = null;
-  let slide = '';
+  let stripFrom = null;    // the first day in the strip; it runs to lastEnd()
   let swallow = false;     // a swipe just ended: the click it ends with is not a tap (the next press clears it)
   let touch = null;
   let watcher = null;
@@ -373,11 +367,13 @@
 
   function draw(via) {
     const doc = P.doc(), now = P.today(), date = shownDate(), isToday = date === now;
-    if (drawnToday !== now) { drawnToday = now; stripEnd = null; }
-    if (!stripEnd) stripEnd = date;
+    // the strip begins at least a week before the shown day
+    if (!stripFrom) stripFrom = addDays(lastEnd(), -STRIP_DAYS + 1);
+    if (stripFrom > addDays(date, -6)) stripFrom = addDays(date, -27);
     const budget = doc.settings.targets.kcal;
     const foods = new Map(doc.foods.map(f => [f.id, f]));
-    const days = Array.from({ length: 7 }, (_, i) => addDays(stripEnd, i - 6));
+    const days = [];
+    for (let d = stripFrom, last = lastEnd(); d <= last; d = addDays(d, 1)) days.push(d);
     const kcalOn = new Map(days.map(d => [d, 0]));
     const entries = [];
     for (const e of doc.entries) {
@@ -447,14 +443,23 @@
     if (motion && before && before.date !== snap.date) { cancelAnimationFrame(motion.raf); motion = null; delete root.dataset.motion; }
     if (html !== lastHtml) {
       const focus = focused();
+      const old = root.querySelector('.today-days');
+      const fromEnd = old ? old.scrollWidth - old.scrollLeft : null;   // days only ever join at the start
       root.innerHTML = html;
       lastHtml = html;
+      const nav = root.querySelector('.today-days');
+      if (nav) {
+        nav.scrollLeft = fromEnd === null ? nav.scrollWidth : nav.scrollWidth - fromEnd;
+        nav.addEventListener('scrollend', moreDays, { passive: true });
+      }
       // only where a sideways touch is a gesture, so a scroll elsewhere never waits for this page
-      root.querySelectorAll('.today-days, .today-frame').forEach(z => z.addEventListener('touchmove', onTouchMove, { passive: false }));
+      root.querySelectorAll('.today-frame').forEach(z => z.addEventListener('touchmove', onTouchMove, { passive: false }));
       waves();
       layout();
       watch();
       if (focus) { const el = root.querySelector(focus); if (el) el.focus({ preventScroll: true }); }
+      // another day shown brings it into view; any other redraw leaves the strip where his finger left it
+      if (fromEnd === null || !before || before.date !== snap.date) inView(fromEnd !== null);
     }
     if (via !== undefined) play(entrance(via));
     else if (changed) play(change(from, snap));
@@ -907,33 +912,13 @@
     }
   }
 
-  // The strip moves only when the day is not in it: a week at a time, or straight to a day further away.
-  function reveal(day) {
-    if (day >= addDays(stripEnd, -6) && day <= stripEnd) return;
-    const now = P.today(), last = day > now ? day : now;
-    let end;
-    if (day > stripEnd) {
-      end = addDays(stripEnd, 7);
-      if (day > end) end = day;
-      if (end > last) end = last;
-      slide = 'today-from-r';
-    } else {
-      end = addDays(stripEnd, -7);
-      if (day < addDays(end, -6)) end = day;
-      slide = 'today-from-l';
-    }
-    stripEnd = end;
-  }
-
   // dir: 0 a fade (a tap, the Today action, Back), 1 the next day from the right, -1 the day before from the left.
   function switchTo(day, dir, fromHistory) {
     const next = day === P.today() ? null : day;
     if ((next || P.today()) === shownDate()) return;
     if (!fromHistory) remember(next);
     pinned = next;
-    reveal(day);
     draw(dir);
-    slide = '';
   }
 
   window.addEventListener('popstate', () => {
@@ -953,17 +938,6 @@
     switchTo(want || P.today(), 0, true);
   });
 
-  // A week on, drawn in place (the strip's glide moves it in); false when the strip cannot move.
-  function shift(days) {
-    const last = lastEnd();
-    let end = addDays(stripEnd, days);
-    if (end > last) end = last;
-    if (end === stripEnd) return false;
-    stripEnd = end;
-    draw();
-    return true;
-  }
-
   function onClick(e) {
     const b = e.target.closest('button');
     if (!b || !root || !root.contains(b)) return;
@@ -982,7 +956,7 @@
   function onDown(e) {
     if (!e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) return;
     swallow = false;
-    const zone = e.target.closest('.today-days') ? 'strip' : e.target.closest('.today-frame') ? 'ring' : null;
+    const zone = e.target.closest('.today-frame') ? 'ring' : null;
     touch = zone ? { zone, x: e.clientX, y: e.clientY, id: e.pointerId, t: e.timeStamp, side: false, pull: 0 } : null;
   }
 
@@ -994,8 +968,7 @@
   // The ring follows a drag that leans sideways past 10 px, eased to at most travel() (24 px, 20 at the 20 px margin),
   // 8 px toward a day that does not exist yet.
   function onMove(e) {
-    if (!touch || e.pointerId !== touch.id) return;
-    if (touch.zone === 'strip') { dragStrip(e); return; }
+    if (!touch || e.pointerId !== touch.id || touch.zone !== 'ring') return;
     const dx = e.clientX - touch.x;
     const frame = root.querySelector('.today-frame');
     if (!frame) return;
@@ -1016,16 +989,6 @@
     const { zone, side, pull } = touch, dx = e.clientX - touch.x, dy = e.clientY - touch.y, dt = Math.max(1, e.timeStamp - touch.t);
     touch = null;
     const sideways = Math.abs(dx) > 1.5 * Math.abs(dy);
-    if (zone === 'strip') {
-      if (!side) return;
-      swallow = true;
-      const flick = sideways && (Math.abs(dx) >= 40 || (Math.abs(dx) >= 20 && Math.abs(dx) / dt >= 0.5));
-      const go = flick && (dx > 0 || stripEnd < lastEnd());
-      // going on, the next week is drawn at once (its days take taps while it glides in), from where the finger left it
-      const week = stripWeek(), from = go && shift(dx < 0 ? 7 : -7) ? pull - Math.sign(dx) * week : pull;
-      glide(from);
-      return;
-    }
     const swipe = sideways && (Math.abs(dx) >= 40 || (Math.abs(dx) >= 20 && Math.abs(dx) / dt >= 0.5));
     if (side || swipe) swallow = true;
     const date = shownDate();
@@ -1035,64 +998,31 @@
   }
 
   function onCancel() {
-    if (touch && touch.side) { if (touch.zone === 'strip') glide(touch.pull); else settle(touch.pull); }
+    if (touch && touch.side) settle(touch.pull);
     touch = null;
   }
 
-  // ── the strip follows the finger ──
-  // A drag that leans sideways past 10 px carries the week with it, the weeks before and after riding at its sides
-  // (made for the drag, inert). Let go past 40 px, or flicked, and that week is drawn and glides in from where the
-  // finger left it; otherwise the week glides back. Toward a week after today it gives 8 px at most.
+  // ── the strip ──
+  // About three months of days to begin with; scrolled near its start it takes three more, once the scroll has stopped
+  // (taking them mid-flick would stop the flick). A day after today shows only while it is the shown day.
+  const STRIP_DAYS = 91;
   const lastEnd = () => { const d = shownDate(), now = P.today(); return d > now ? d : now; };
-  const stripWeek = () => { const nav = root.querySelector('.today-days'); return nav ? nav.clientWidth : 0; };
 
-  function dragStrip(e) {
-    const nav = root.querySelector('.today-days');
-    if (!nav) return;
-    const dx = e.clientX - touch.x;
-    if (!touch.side) {
-      if (Math.abs(dx) <= 10 || !leansSideways(touch, e.clientX, e.clientY)) return;
-      touch.side = true;
-      finish();
-      peek(nav);
-    }
-    const w = nav.clientWidth, more = stripEnd < lastEnd();
-    touch.pull = dx < 0 && !more ? 8 * Math.tanh(dx / 96) : Math.max(-w, Math.min(w, dx));
-    nav.style.transform = `translateX(${f2(touch.pull)}px)`;
+  function moreDays(e) {
+    const nav = e.currentTarget;
+    if (!root || !nav.isConnected || nav.scrollLeft > 2 * nav.clientWidth) return;
+    stripFrom = addDays(stripFrom, -STRIP_DAYS);
+    draw();
   }
 
-  function peek(nav) {
-    if (nav.querySelector('.today-peek')) return;
-    const doc = P.doc(), now = P.today(), budget = doc.settings.targets.kcal;
-    // the week after ends where a shift would end it, never after the last day the strip may show
-    const ahead = addDays(stripEnd, 7), ends = [addDays(stripEnd, -7), ahead > lastEnd() ? lastEnd() : ahead];
-    const weeks = ends.map(end => Array.from({ length: 7 }, (_, i) => addDays(end, i - 6)));
-    const kcalOn = new Map(weeks.flat().map(d => [d, 0]));
-    for (const e of doc.entries) if (kcalOn.has(e.date)) kcalOn.set(e.date, kcalOn.get(e.date) + e.totals.kcal);
-    weeks.forEach((days, i) => {
-      const box = document.createElement('div');
-      box.className = `today-peek today-peek-${i ? 'r' : 'l'}`;
-      box.setAttribute('aria-hidden', 'true');
-      box.inert = true;
-      box.innerHTML = dayCells(days, kcalOn, now, shownDate(), budget);
-      nav.append(box);
-    });
-  }
-
-  // The strip from an offset back to its place (base, ease-standard), its neighbours riding along, then gone.
-  function glide(from) {
-    const T = tokens(), nav = root.querySelector('.today-days');
-    if (nav && from) peek(nav);
-    play({
-      kind: 'glide', end: reduced() || !from ? 0 : T.base,
-      apply(t) {
-        const n = root.querySelector('.today-days');
-        if (!n) return;
-        if (t >= T.base) { n.style.removeProperty('transform'); n.querySelectorAll('.today-peek').forEach(p => p.remove()); return; }
-        n.style.transform = `translateX(${f2(from * (1 - T.standard(clamp(t / T.base))))}px)`;
-      },
-      clear() { const n = root.querySelector('.today-days'); if (n) n.style.removeProperty('transform'); },
-    });
+  // The shown day inside the strip's view: at its right end when it was out of sight; `glide`: a scroll the eye can
+  // follow (base Motion), else at once.
+  function inView(glide) {
+    const nav = root.querySelector('.today-days'), on = nav && nav.querySelector('.today-on');
+    if (!on) return;
+    const side = parseFloat(getComputedStyle(nav).paddingLeft), a = on.offsetLeft - side, b = on.offsetLeft + on.offsetWidth + side;
+    if (a >= nav.scrollLeft - 1 && b <= nav.scrollLeft + nav.clientWidth + 1) return;
+    nav.scrollTo({ left: b - nav.clientWidth, behavior: glide && !reduced() ? 'smooth' : 'instant' });
   }
 
   // A move made while the touch leans sideways is consumed. Left to Chrome on a pan-y area, a quick sideways swipe made
@@ -1115,7 +1045,7 @@
     routeDay = isDate(date) && date !== P.today() ? date : null;
     const st = history.state;
     pinned = ours(st) ? (isDate(st.day) && st.day !== P.today() ? st.day : null) : routeDay;
-    stripEnd = null;
+    stripFrom = null;
     el.addEventListener('click', onClick);
     el.addEventListener('pointerdown', onDown);
     el.addEventListener('pointermove', onMove);
