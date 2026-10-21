@@ -5,20 +5,49 @@
    Top to bottom: the date with Settings (a past day adds a Today action); the day strip, seven days ending at the shown
    day, each a tank filled to its kcal on a scale of max(2,750, 1.25 x budget) with a slow wave on top, the dashed budget
    line and the difference to budget (a swipe moves it a week, the shown day stays); the ring with the four meals in the
-   corners; the macro strip in Pantry.MACROS order, carbs, protein, fat (each macro's width is its share of carbs x 4 +
-   protein x 4 + fat x 9); what was eaten; Add to <meal> and Scan.
+   corners (each corner's badge carries the meal's letter); the macro strip in Pantry.MACROS order, carbs, protein, fat
+   (each macro's width is its share of carbs x 4 + protein x 4 + fat x 9); what was eaten, one page per meal; the
+   floating + and Scan.
 
-   Ring (G3): a meal's arc is its kcal / budget x 360 degrees. It starts in its own quarter (breakfast at 9 o'clock,
-   lunch at 12, dinner at 3, snacks at 6) or where the meal before it ended, whichever is later, and runs on. Under
-   budget a tail that would pass 9 o'clock again is pulled back into free space; over budget the ring is full and the
-   tail stops at 9 o'clock. Each arc's path holds its exact angles; the gap between neighbours is the dash pattern.
+   Ring (Blueprint, Decisions 2026-10-21): one whole track. A logged meal's arc is its kcal / budget x 360 degrees; the
+   arcs sit end to end in meal order from 12 o'clock, clockwise, so logging lunch after dinner moves dinner's arc on.
+   The rest of the ring stays one unbroken track: it reads as what is left, and a meal not logged yet has no slot. Over
+   budget the ring is full: the arcs stop at 12 o'clock, a meal that would start past it draws none, and a closed track
+   in the over tint lies under them. The excess then runs on from 12 o'clock as a second lap over the first, as in
+   MyNetDiary (Tarik, 2026-10-21: "bar dolduktan sonra ... ilerlesin 2. katman gibi"): excess / budget x 360 degrees,
+   a whole lap at most. Over, the first lap's arcs take light tints of the over tone and the second lap the strong
+   one, which deepens with the excess ("ne kadar ilerlersem fazladan o kadar kırmızılaşsın"): 75 % of `danger` just
+   over, the full red from HOT (25 %) over. 25 % is a takeaway on a normal day (about 550 kcal on 2,200); a slip of a
+   snack (19 Oct: 92 over, 4 %) stays the lighter red. Each arc's path holds its exact angles; the gap between neighbours is the dash
+   pattern. The arcs carry no letters (a small arc cannot hold one): the corner badges do. The arcs alternate dark and
+   light grey in the order they are drawn (round 8, G3), so two arcs side by side never share a tone when a meal between
+   them is not logged (breakfast and dinner alone: dark, then light); each corner badge takes its meal's arc tone, and a
+   meal with no arc the light one.
 
    Budget status (Blueprint, Decisions 2026-10-21): within budget the screen keeps its calm greys with the orange answer.
-   Once the kcal eaten, rounded as shown, passes the budget, the ring, its swatches, the kcal-left number (then "kcal
-   over") and the day's tank in the strip take the over tone: the base's chart-5 violet, the only base hue that is
-   neither the orange accent (the warm status tokens sit within 0.05-0.08 OKLab of it) nor MyNetDiary's green or red.
-   Each macro bar turns on its own when its grams, rounded as shown, pass its target; a day with nothing logged stays
-   neutral. The tones are the custom properties below, built from tokens.css only.
+   Once the kcal eaten, rounded as shown, passes the budget, the ring, its badges, the kcal-left number (then "kcal
+   over") and the day's tank in the strip take the over tone: the base `danger` red, which Tarik picked on the real
+   19 Oct screen over violet, raspberry and blue. A day with nothing logged stays neutral. The tones are the custom
+   properties below, built from tokens.css only.
+
+   Macro strip: the three bars share one grey (chart-neutral) with gaps between them. A bar turns to the over tone on
+   its own when its grams, rounded as shown, pass its target grams (shares always add up to 100 %, so one is nearly
+   always past its target share). Under each bar, its deviation mark (.today-dev): a target tick at the centre of a
+   short scale and a bar from it, right when the macro's share of the kcal is above its target share, left when below,
+   one half of the scale for 20 points (farther is drawn as 20), and over the tick the distance in points (.today-devn:
+   "+4", "−9"; none on target), so a small miss reads at a glance too; a day with nothing logged draws the tick alone.
+
+   What he ate (.today-eaten): a tab per meal (its name and kcal) over one page per meal in a sideways scroller that
+   snaps one meal at a time, so the strip, the ring swipe, the toast and the phone's edge-back gesture are left alone.
+   Today lists newest first, a past day in the order logged. An empty meal's page says so and offers "Add to <meal>".
+   A row opens `entry <id>`; its trash button, then the Delete that takes the kcal's place (the trash turns into Keep),
+   takes it out through Pantry.removeEntry (Undo in its toast); a finger's second tap within HOLD ms of that Delete
+   does nothing, so a double tap never opens the row that slid up under it. The page it opens on: back from logging,
+   the meal just logged to; else the page he was last on for that day (back from Edit entry, after a delete, any
+   redraw); else on Today the clock's meal (Pantry.mealNow(), what he most likely opens Today to log, and what the +
+   then adds to), on another day the first meal with entries. Today brought back to the screen (the phone woken, the
+   app switched to) once the clock's meal has moved on since that page was chosen opens on the clock's meal again.
+   The + and Scan add to the meal page shown.
 
    Days in place: a tap on a day in the strip, a swipe on the ring (left: the next day, right: the one before; nothing
    after today) or the Today action switches the shown day without a new screen. The strip stays where it is; it moves a
@@ -28,17 +57,17 @@
 
    Motion (base Motion, tokens.css): coming back to a day whose drawn values changed (a log, an edit, an Undo), the arcs
    that changed move from their old ends, the bars and the day's tank move to their new values, the corner kcal and the
-   eaten total swap, each bar's percentage and grams swap after their bar, and the kcal-left number swaps last; the over
-   tone lands with it. What changed is found by
-   comparing the values drawn last, so a redraw for another reason never replays it. Numbers never count up. Reduced
-   motion: the chart is drawn at once and the numbers only crossfade. A day switch fades the content in; a ring swipe
-   brings it from the side it was pushed to. Every frame is computed from performance.now() in requestAnimationFrame,
-   so the page clock drives it; data-motion on the screen names the motion while one runs.
+   eaten total swap, each bar's percentage, grams and deviation points swap after their bar, and the kcal-left number
+   swaps last; the over tone lands with it. What changed is found by comparing the values drawn last, so a redraw for
+   another reason never replays it. Numbers never count up. Reduced motion: the chart is drawn at once and the numbers
+   only crossfade. A day switch fades the content in; a ring swipe brings it from the side it was pushed to. Every frame
+   is computed from performance.now() in requestAnimationFrame, so the page clock drives it; data-motion on the screen
+   names the motion while one runs.
 
    layout() places the ring between the corners so no meal name or kcal touches the ring's box and no drawing touches
    the ring, and keeps the centre's words inside the ring, at any text size and width. Gate hooks: data-test="kcal-left"; .top .eyebrow; eaten rows .fr with
-   .name/.sub; one .banner; the buttons "Add food" (the floating +, accessible name "Add food to <meal>" or "Add food to this day") and
-   "Scan a barcode".
+   .name/.sub (the sub keeps "<Meal>, <amount>"); one .banner; the buttons "Add food" (the floating +, accessible name
+   "Add food to <meal>") and "Scan a barcode". An empty meal page's button is "Add to <meal>", never one of those.
 
    First launch differs from design/screens.html (First launch) only to keep those hooks: the gate opens an empty log,
    reads "2,200" from kcal-left and taps "Add food" and "Scan a barcode" there, so the sentence starts with
@@ -50,9 +79,9 @@
   const MEALS = ['breakfast', 'lunch', 'dinner', 'snacks'];
   const NAME = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner', snacks: 'Snacks' };
   const CORNER = ['today-tl', 'today-tr', 'today-br', 'today-bl'];
-  const QUARTER = [-90, 0, 90, 180];                 // degrees clockwise from 12 o'clock
-  const FULL = 270;                                   // back at 9 o'clock: the ring is full
+  const TURN = 360;                                   // degrees clockwise from 12 o'clock: back at the top, the ring is full
   const SIZE = 196, MID = 98, RADIUS = 87, OUTER = 94, GAP = 2.5;   // ring geometry in its viewBox (px at 100 % text)
+  const DEV_SPAN = 20;                                // points of share a half of the deviation mark's scale stands for
   const DAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const MONTH = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const MACRO = { carbs: ['Carbs', 4, 45], protein: ['Protein', 4, 20], fat: ['Fat', 9, 35] };   // name, kcal per g, target % unset
@@ -61,15 +90,27 @@
   // one period of the design's wave (M0 3 Q5 0 10 3 T20 3, closed below), tiled along the top of each day's fill
   const WAVE = 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 20 7%27 preserveAspectRatio=%27none%27%3E%3Cpath d=%27M0 3Q5 0 10 3T20 3V7H0Z%27/%3E%3C/svg%3E")';
   const GEAR = '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
+  // Lucide trash-2: the row's way to take an entry out (Pantry's core set has no trash icon)
+  const TRASH = '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2M10 11v6M14 11v6"/></svg>';
 
   P.css(`
     [data-screen="today"] {
       --today-g1: var(--ink); --today-g3: color-mix(in oklab, var(--ink) 40%, var(--canvas));
-      /* over budget: the base palette's chart-5 violet, a full step and a half step as G3 has them in grey */
-      --today-over: var(--chart-5);
-      --today-o1: var(--today-over); --today-o3: color-mix(in oklab, var(--today-over) 50%, var(--canvas));
-      --today-c1: var(--today-g1); --today-c3: var(--today-g3); --today-cn: var(--primary-display); }
-    .today-frame.today-over, .today-bar.today-bo { --today-c1: var(--today-o1); --today-c3: var(--today-o3); --today-cn: var(--today-over); }
+      /* over budget: the base danger red (Tarik's pick, 2026-10-21) */
+      --today-over: var(--danger);
+      --today-c1: var(--today-g1); --today-c3: var(--today-g3); --today-cn: var(--primary-display);
+      /* the floating Scan at the base's level 3, as the + floats: dark a step up with a strong hairline, light white
+         with the level's shadow (tokens.css --shadow-3, none in dark). The theme's color-scheme picks, so a screen copy
+         in a shadow root (app/core.js motion) picks the same; a browser without light-dark() keeps the dark step */
+      --today-l3: var(--surface-3); --today-l3-line: var(--hairline-strong); }
+    @supports (color: light-dark(white, black)) {
+      [data-screen="today"] { --today-l3: light-dark(var(--surface-1), var(--surface-3)); --today-l3-line: light-dark(var(--hairline), var(--hairline-strong)); }
+    }
+    /* over: the first lap and its badges in light tints (a badge's letter in ink on both), so the second lap reads on top */
+    .today-frame.today-over {
+      --today-c1: color-mix(in oklab, var(--today-over) 55%, var(--canvas)); --today-c3: color-mix(in oklab, var(--today-over) 32%, var(--canvas));
+      --today-cn: var(--today-over); }
+    .today-frame.today-over .today-t1 { color: var(--ink); }
     .today-top > div { flex: 1; }
     .today-now {
       flex: none; min-width: 44px; min-height: 44px; padding: 8px 6px; border: 0; border-radius: var(--r-md);
@@ -121,14 +162,11 @@
     .today-frame { position: relative; margin: 8px 20px 0; height: calc(12.25rem + 50px); touch-action: pan-y; }
     .today-ring { position: absolute; left: 50%; top: 25px; width: min(12.25rem, 100%); aspect-ratio: 1; transform: translateX(-50%); }
     .today-ring > svg { display: block; width: 100%; height: 100%; overflow: visible; }
-    .today-track, .today-seg { fill: none; stroke-width: 14px; stroke-linecap: butt; }
+    .today-track, .today-seg, .today-lap { fill: none; stroke-width: 14px; stroke-linecap: butt; }
     .today-track { stroke: var(--surface-3); }
     .today-track.today-full { stroke: color-mix(in oklab, var(--today-over) 28%, var(--canvas)); }
     .today-s1 { stroke: var(--today-c1); }
     .today-s3 { stroke: var(--today-c3); }
-    .today-ini { position: absolute; transform: translate(-50%, -50%); font: 800 0.6875rem/1 var(--font-sans); pointer-events: none; }
-    .today-i1 { color: var(--canvas); }
-    .today-i3 { color: var(--ink); }
     .today-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; }
     /* sized to the ring by layout(): --today-nfit shrinks the number alone, --today-cfit all three lines */
     .today-num, .today-gnum { font-size: calc(2.75rem * var(--today-nfit, 1) * var(--today-cfit, 1)); line-height: 1; letter-spacing: -0.034em; color: var(--today-cn); }
@@ -160,13 +198,25 @@
     .today-mh { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0 12px; margin-bottom: 8px; }
     .today-fig { font: 600 0.75rem/1.3 var(--font-figure); color: var(--ink-subtle); }
     .today-bars { display: flex; gap: 4px; }
-    /* no padding on the bar itself, so its width is exactly its share; a percentage too wide for its bar moves under it */
+    /* no padding on the bar itself, so its width is exactly its share; a percentage too wide for its bar moves under it.
+       One grey for the three, the over tone for a macro past its target grams */
     .today-bar {
       position: relative; flex: 1 1 0; min-width: 0; min-height: 30px; border-radius: 8px; display: flex; align-items: center;
       font: 700 0.8125rem/1.2 var(--font-figure); white-space: nowrap; overflow: hidden;
+      background: var(--chart-neutral); color: var(--ink);
     }
+    .today-bar.today-bo { background: var(--today-over); color: var(--canvas); }
     .today-pct, .today-gpct { padding: 0 8px; }
     .today-bar.today-none { background: var(--surface-3); }
+    /* the deviation mark: a short scale, the target tick at its centre, a bar from it toward the side the share leans,
+       the points over the tick (above the scale, so the bar never runs into them); as wide as its label up to 3rem, so
+       it never widens or moves a label. translate (not transform) centres the points, so a swap's transform adds to it */
+    .today-dev { position: relative; display: block; width: 100%; max-width: 3rem; height: 12px; margin-top: calc(0.6875rem * 1.25 + 6px); }
+    .today-dev::before { content: ''; position: absolute; left: 0; right: 0; top: 5px; height: 2px; border-radius: 1px; background: var(--surface-3); }
+    .today-devtick { position: absolute; left: calc(50% - 1px); top: 0; width: 2px; height: 12px; border-radius: 1px; background: var(--ink-subtle); }
+    .today-devbar { position: absolute; top: 3px; height: 6px; border-radius: 3px; background: var(--ink); }
+    .today-devn, .today-gdn { position: absolute; left: 50%; translate: -50% 0; font: 700 0.6875rem/1.25 var(--font-figure); font-style: normal; color: var(--ink-muted); white-space: nowrap; }
+    .today-devn { bottom: calc(100% + 2px); }
     /* a hidden percentage keeps its box inside its bar or label, so nothing hidden reaches past the screen's edge */
     .today-bar.today-out .today-pct { position: absolute; left: 0; max-width: 100%; visibility: hidden; }
     .today-lpct { position: absolute; left: 0; top: 0; max-width: 100%; visibility: hidden; color: var(--ink); font-family: var(--font-figure); font-weight: 700; }
@@ -186,7 +236,39 @@
     .today-labs.today-free > div { flex: 1 1 0; width: auto; min-width: 0; overflow-wrap: anywhere; }
 
     .today-eaten { margin-top: 16px; }
-    .today-eaten .rows { margin: 0; }
+    /* a tab per meal: its name over its kcal; the shown one in the base's current-tab orange, no sliding indicator */
+    .today-tabs { display: flex; border-bottom: 1px solid var(--hairline); }
+    .today-tab {
+      position: relative; flex: 1 1 0; min-width: 0; min-height: 48px; padding: 6px 2px 7px; border: 0; background: none;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--ink-muted);
+    }
+    .today-tab > span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 600 0.8125rem/1.3 var(--font-sans); }
+    .today-tab > b { min-height: 1.3em; font: 600 0.75rem/1.3 var(--font-figure); color: var(--ink-subtle); white-space: nowrap; }
+    .today-tab[aria-selected="true"] { color: var(--primary-text); }
+    .today-tab[aria-selected="true"] > b { color: var(--ink); }
+    .today-tab[aria-selected="true"]::after { content: ''; position: absolute; left: 10px; right: 10px; bottom: -1px; height: 2px; border-radius: 1px; background: var(--primary); }
+    /* the pages: the browser's own sideways scroll, one meal per snap, edge to edge; as tall as the longest meal, so a
+       swipe never changes the page's height under his thumb */
+    .today-pages {
+      display: flex; align-items: flex-start; margin: 0 -20px; overflow-x: auto; overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory; scrollbar-width: none;
+    }
+    .today-pages::-webkit-scrollbar { display: none; }
+    .today-pg { flex: 0 0 100%; min-width: 0; padding: 0 20px; scroll-snap-align: start; scroll-snap-stop: always; }
+    .today-pg .rows { margin: 0; }
+    .today-li { display: flex; align-items: center; gap: 4px; }
+    .today-li > .fr { flex: 1 1 auto; width: auto; min-width: 0; }
+    .today-del { width: 44px; height: 48px; margin-right: -10px; color: var(--ink-subtle); }
+    .today-del svg.i { width: 20px; height: 20px; }
+    .today-arm > .fr .k { display: none; }
+    .today-arm .today-del { color: var(--ink); }
+    .today-yes {
+      flex: none; min-height: 40px; padding: 0 14px; border: 0; border-radius: var(--r-button); background: transparent;
+      color: var(--danger); box-shadow: inset 0 0 0 1px var(--danger); font: 700 0.875rem/1.2 var(--font-sans);
+    }
+    .today-none { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 12px 0 4px; }
+    .today-none .note { margin: 0; }
+    .btn.today-addto { width: auto; min-height: 44px; padding: 8px 16px 8px 12px; }
     .today-food { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; flex: none; background: var(--surface-2); }
     .today-food svg { width: 32px; height: 32px; }
 
@@ -202,6 +284,7 @@
     .today-fab > * { pointer-events: auto; }
     .today-fab .btn { flex: none; width: 56px; height: 56px; min-height: 0; padding: 0; margin: 0; box-shadow: var(--shadow-3); }
     .today-fab .btn svg.i { width: 26px; height: 26px; }
+    .today-fab .today-scan { width: 48px; height: 48px; background: var(--today-l3); border: 1px solid var(--today-l3-line); box-shadow: var(--shadow-3); }
   `);
 
   // ── days: the phone's local calendar, never UTC ──
@@ -216,28 +299,16 @@
   const drawing = (food, size) => (window.PantryDrawing ? window.PantryDrawing(food || { name: '' }, size) : '');
 
   // ── the ring ──
-  // [start, end] in degrees per meal: null when nothing was eaten, or when over budget the meal starts past a full turn.
-  function arcs(kcals, budget, over) {
-    let end = -Infinity;
-    const spans = kcals.map((k, i) => {
-      if (!(k > 0)) return null;
-      const s = Math.max(QUARTER[i], end), e = s + k / budget * 360;
-      end = e;
-      return [s, e];
+  // [start, end] in degrees per meal, end to end from 12 o'clock in meal order: null when nothing was eaten, or when the
+  // meals before it already filled the ring (over budget); the arc that fills it stops at a full turn.
+  function arcs(kcals, budget) {
+    let end = 0;
+    return kcals.map(k => {
+      if (!(k > 0) || end >= TURN) return null;
+      const s = end;
+      end = Math.min(TURN, s + k / budget * TURN);
+      return [s, end];
     });
-    let limit = FULL;
-    for (let i = spans.length - 1; i >= 0; i -= 1) {
-      const sp = spans[i];
-      if (!sp) continue;
-      if (over) {
-        if (sp[0] >= FULL) spans[i] = null; else sp[1] = Math.min(sp[1], FULL);
-      } else if (sp[1] > limit) {
-        const back = sp[1] - limit;
-        sp[0] -= back; sp[1] -= back;
-      }
-      if (spans[i]) limit = sp[0];
-    }
-    return spans;
   }
 
   const f2 = v => v.toFixed(2);
@@ -249,40 +320,59 @@
     return `M${f2(x0)} ${f2(y0)}${a1 - a0 > 180 ? to((a0 + a1) / 2) : ''}${to(a1)}`;
   }
 
-  // The track and the meals' arcs as SVG, and the initials over them; the motion draws its frames with it too.
-  function ringParts(spans, over) {
-    const gap = RADIUS * GAP * Math.PI / 180;
-    let paths = over ? `<path class="today-track today-full" d="${arc(-90, FULL)}"/>`
-      : QUARTER.map(q => `<path class="today-track" d="${arc(q + 3, q + 87)}"/>`).join('');
-    let initials = '';
-    spans.forEach((sp, i) => {
-      if (!sp || !(sp[1] > sp[0])) return;
-      const [s, e] = sp, len = RADIUS * (e - s) * Math.PI / 180;
-      const shown = len - 2 * gap > 2 ? len - 2 * gap : Math.min(len, 2);
-      paths += `<path class="today-seg ${i % 2 ? 'today-s3' : 'today-s1'}" data-meal="${MEALS[i]}" d="${arc(s, e)}"`
-        + ` stroke-dasharray="0 ${f2((len - shown) / 2)} ${f2(shown)} ${f2(len + 1)}"/>`;
-      if (e - s > 14) {
-        const [x, y] = pt((s + e) / 2);
-        initials += `<span class="today-ini ${i % 2 ? 'today-i3' : 'today-i1'}" style="left:${f2(x / SIZE * 100)}%;top:${f2(y / SIZE * 100)}%"`
-          + ` aria-hidden="true">${NAME[MEALS[i]][0]}</span>`;
-      }
-    });
-    return { paths, initials };
+  // Each meal's tone, dark (1) or light (3): the arcs alternate in the order they are drawn from 12 o'clock, so two
+  // neighbours never share one; a meal with no arc is light. Its corner badge takes the same tone.
+  function tonesOf(spans) {
+    let n = 0;
+    return spans.map(sp => (sp && sp[1] > sp[0] ? (n++ % 2 ? 3 : 1) : 3));
   }
 
-  function ring(spans, eaten, budget, over) {
-    const { paths, initials } = ringParts(spans, over);
+  // The second lap over budget: { deg, heat }, its length from 12 o'clock (a whole lap at most) and its share of
+  // `danger` in % (75 just over, 100 from HOT over); null within budget.
+  const HOT = 0.25;
+  function lapOf(eaten, budget) {
+    if (!(eaten > budget)) return null;
+    const excess = (eaten - budget) / budget;
+    return { deg: Math.min(TURN, excess * TURN), heat: 75 + 25 * Math.min(1, excess / HOT) };
+  }
+
+  // The track and the meals' arcs as SVG; the motion draws its frames with it too. Within budget the track is the one
+  // stretch from the last arc's end back to 12 o'clock (the whole ring when nothing is logged); over budget it is the
+  // closed ring in the over tint under the arcs, and the second lap lies on them. Every piece but a whole ring leaves
+  // half a gap at each of its ends.
+  // `tone` is tonesOf() of the drawing the arcs are going to (a motion's frame has arcs too short to count yet).
+  function ringParts(spans, over, tone, lap) {
+    const gap = RADIUS * GAP * Math.PI / 180;
+    const dash = (s, e) => {
+      const len = RADIUS * (e - s) * Math.PI / 180, shown = len - 2 * gap > 2 ? len - 2 * gap : Math.min(len, 2);
+      return ` stroke-dasharray="0 ${f2((len - shown) / 2)} ${f2(shown)} ${f2(len + 1)}"`;
+    };
+    const last = Math.max(0, ...spans.map(sp => (sp ? sp[1] : 0)));
+    let paths = over || last <= 0.05 ? `<path class="today-track${over ? ' today-full' : ''}" d="${arc(0, TURN)}"/>`
+      : TURN - last > 0.05 ? `<path class="today-track" d="${arc(last, TURN)}"${dash(last, TURN)}/>` : '';
+    spans.forEach((sp, i) => {
+      if (!sp || !(sp[1] > sp[0])) return;
+      paths += `<path class="today-seg today-s${tone[i]}" data-meal="${MEALS[i]}" d="${arc(sp[0], sp[1])}"${dash(sp[0], sp[1])}/>`;
+    });
+    if (over && lap && lap.deg >= 0.05) {
+      paths += `<path class="today-lap" data-heat="${lap.heat.toFixed(1)}" style="stroke: color-mix(in oklab, var(--danger) ${lap.heat.toFixed(1)}%, var(--canvas))"`
+        + ` d="${arc(0, lap.deg)}"${dash(0, lap.deg)}/>`;
+    }
+    return paths;
+  }
+
+  function ring(spans, eaten, budget, over, tone, lap) {
     const left = budget - eaten;
-    return `<div class="today-ring"><svg viewBox="0 0 ${SIZE} ${SIZE}" role="img" aria-label="${P.fmt(eaten)} of ${P.fmt(budget)} kcal">${paths}</svg>${initials}
+    return `<div class="today-ring"><svg viewBox="0 0 ${SIZE} ${SIZE}" role="img" aria-label="${P.fmt(eaten)} of ${P.fmt(budget)} kcal">${ringParts(spans, over, tone, lap)}</svg>
       <div class="today-center"><span class="today-num disp" data-test="kcal-left">${P.fmt(Math.abs(left))}</span>
         <span class="today-lbl">${left < 0 ? 'kcal over' : 'kcal left'}</span>
         <span class="today-tot">${tot(eaten, budget)}</span></div></div>`;
   }
   const tot = (eaten, budget) => `<b>${P.fmt(eaten)}</b> / ${P.fmt(budget)}`;
 
-  function corner(i, list, kcal, foods) {
+  function corner(i, list, kcal, foods, tone) {
     const meal = MEALS[i], right = i === 1 || i === 2;
-    const sw = `<i class="today-sw ${i % 2 ? 'today-t3' : 'today-t1'}" aria-hidden="true">${NAME[meal][0]}</i>`;
+    const sw = `<i class="today-sw today-t${tone}" aria-hidden="true">${NAME[meal][0]}</i>`;
     const label = `<span class="today-cn">${right ? '' : sw}<span>${NAME[meal]}</span>${right ? sw : ''}</span>`;
     const open = `<button class="today-corner ${CORNER[i]}" type="button" data-meal="${meal}"`;
     if (!list.length) return `${open} aria-label="Add to ${meal}">${label}<span class="today-addm" aria-hidden="true">${P.icon('plus')}</span></button>`;
@@ -294,8 +384,20 @@
       + `<span class="today-fs" aria-hidden="true">${art}</span></button>`;
   }
 
+  // The deviation mark's bar for a share `d` points from its target (null: nothing logged, no bar), as its inline style.
+  const devStyle = d => {
+    const x = d === null ? 0 : Math.max(-50, Math.min(50, d / DEV_SPAN * 50));
+    return `left:${f2(50 + Math.min(0, x))}%;width:${f2(Math.abs(x))}%`;
+  };
+  // The points the mark shows over its tick, rounded as its words say them: "+4", "−9", "" on target, null unlogged.
+  const devText = d => {
+    if (d === null) return null;
+    const off = Math.round(d);
+    return off ? `${off > 0 ? '+' : '−'}${Math.abs(off)}` : '';
+  };
+
   // The macro strip, and what the motion compares: each bar's flex-grow, which bars are over their target, the grams
-  // eaten and the percentage each shows.
+  // eaten, the percentage each shows, each share's distance from its target share and the points its mark shows.
   function macros(entries, targets, budget) {
     const sum = P.sum(entries);
     const pcts = MACROS.map(([k, , , unset]) => targets[`${k}Pct`] ?? unset);
@@ -306,21 +408,28 @@
     const grow = total ? kcal.map(k => k / total * 100) : pcts;
     const gram = MACROS.map(([k]) => (sum[k] === undefined ? (entries.length ? '–' : '0') : P.fmt(sum[k])));
     const pct = grow.map(g => (total ? Math.round(g) : null));
+    const dev = grow.map((g, i) => (total ? g - pcts[i] : null));
+    const dn = dev.map(devText);
     const bars = MACROS.map((_, i) => {
       if (!total) return `<span class="today-bar today-none" style="flex-grow:${grow[i]}"></span>`;
-      return `<span class="today-bar ${i % 2 ? 'today-t3' : 'today-t1'}${over[i] ? ' today-bo' : ''}" style="flex-grow:${grow[i]}">`
+      return `<span class="today-bar${over[i] ? ' today-bo' : ''}" style="flex-grow:${grow[i]}">`
         + `<span class="today-pct">${pct[i]}%</span></span>`;
     }).join('');
     const labels = MACROS.map(([, name], i) => {
       const under = total ? `<span class="today-lpct"> <span class="today-lpn">${pct[i]}%</span></span>` : '';
-      return `<div><span class="today-lab">${name}${under}</span>`
+      const off = dev[i] === null ? null : Math.round(dev[i]);
+      const said = off === null ? ' aria-hidden="true"'
+        : ` role="img" aria-label="${name}: ${off ? `${Math.abs(off)} points ${off > 0 ? 'over' : 'under'} its` : 'on its'} ${pcts[i]}% target"`;
+      const points = dn[i] === null ? '' : `<i class="today-devn">${dn[i]}</i>`;
+      return `<div><span class="today-dev"${said}>${points}<i class="today-devtick"></i><i class="today-devbar" style="${devStyle(dev[i])}"></i></span>`
+        + `<span class="today-lab">${name}${under}</span>`
         + `<span class="today-g"><span>${gram[i]} /</span> <span>${P.fmt(goal[i])} g</span></span></div>`;
     }).join('');
     const names = MACROS.map(([, name]) => name.toLowerCase());
     const html = `<section class="today-mac" aria-label="Calories from ${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}">
       <div class="today-mh"><h2 class="eyebrow">Calories from</h2><span class="today-fig">target ${pcts.join(' / ')}%</span></div>
       <div class="today-bars">${bars}</div><div class="today-labs">${labels}</div></section>`;
-    return { html, grow, over, gram, pct };
+    return { html, grow, over, gram, pct, dev, dn };
   }
 
   function strip(days, kcalOn, now, date, budget) {
@@ -362,8 +471,34 @@
   let drawn = null;        // the values drawn last, kept across visits: what the motion compares against
   let popping = false;     // our history entry is being popped (a switch back to the day under it)
   let queued;              // a day switched to while it was popping: its entry is pushed once the pop lands
+  let page = 0;            // the meal page on screen, as an index into MEALS
+  const pages = new Map(); // date -> { meal, clock }: the page he was last on for that day, and the clock's meal as it was chosen
+  let seen = null;         // { date, ids } of the entries drawn last, kept across visits: what a return has added
+  let fresh = false;       // the first drawing since the screen opened: a log that brought him back picks the page
+  let armed = null;        // the entry whose Delete is offered (the first of the two taps that take it out)
+  let aiming = null;       // the page a tab tap is scrolling to: the pages it passes on the way are not shown
+  let deletedAt = -Infinity;   // event time of the last Delete tapped on a meal page
+  const HOLD = 350;        // ms a finger's tap on the meal pages does nothing after a Delete (app/core.js GUARD's 350)
 
   const shownDate = () => pinned || P.today();
+
+  // The meal page to show (header: the page it opens on), as { meal, clock }: the clock's meal is the one when the page
+  // was chosen, kept with a kept page, so a redraw at 11:01 leaves breakfast where he left it.
+  function pickPage(date, isToday, perMeal, entries, clock) {
+    if (fresh && seen && seen.date === date) {
+      const added = entries.filter(e => !seen.ids.has(e.id));
+      if (added.length) return { meal: added[added.length - 1].meal, clock };
+    }
+    const kept = pages.get(date);
+    if (kept) return kept;
+    if (isToday) return { meal: clock, clock };
+    const i = perMeal.findIndex(list => list.length);
+    return { meal: MEALS[i < 0 ? 0 : i], clock };
+  }
+
+  // The floating + and Scan, both for the meal page shown (first launch: the clock's meal).
+  const fab = (meal, first) => `<div class="bottom today-fab"><button class="ibtn today-scan" type="button" data-act="scan" data-for="${meal}" aria-label="Scan a barcode">${P.icon('scan')}</button>`
+    + `<button class="btn${first ? ' sec' : ''}" type="button" data-act="add" data-for="${meal}" aria-label="Add food to ${meal}">${P.icon('plus')}</button></div>`;
 
   function draw(via) {
     const doc = P.doc(), now = P.today(), date = shownDate(), isToday = date === now;
@@ -384,22 +519,20 @@
     const banner = problem ? `<div class="banner" role="alert">${P.icon('alert')}<div>${P.esc(problem)}</div></div>`
       : typeof syncError === 'string' && syncError.trim() ? syncBanner(syncError.trim()) : '';
     const first = !problem && doc.entries.length === 0;
-    const meal = P.mealNow();
-    const add = isToday ? `Add to ${meal}` : 'Add to this day';
+    const clock = P.mealNow();
     const year = date.slice(0, 4) === now.slice(0, 4) ? '' : ` ${date.slice(0, 4)}`;
 
     const head = `<header class="top today-top"><div><p class="eyebrow">${P.dayLabel(date)}${year}</p>`
       + `<h1 class="title">${isToday ? 'Today' : short(date)}</h1></div>`
       + (isToday ? '' : '<button class="today-now" type="button" data-act="today">Today</button>')
       + `<button class="ibtn" type="button" data-act="settings" aria-label="Settings">${GEAR}</button></header>`;
-    const bottom = `<div class="bottom today-fab"><button class="ibtn box" type="button" data-act="scan" data-for="${meal}" aria-label="Scan a barcode">${P.icon('scan')}</button>`
-      + `<button class="btn${first ? ' sec' : ''}" type="button" data-act="add" data-for="${meal}" aria-label="${add.replace('Add', 'Add food')}">${P.icon('plus')}</button></div>`;
 
     if (first) {
+      fresh = false;
       put(`${head}${banner}<section class="today-empty">${window.PantryDrawing ? window.PantryDrawing.named('plate', 132) : ''}
         <h2>An empty plate.</h2>
         <p><b data-test="kcal-left">${P.fmt(budget)}</b> kcal left today. Bring your MyNetDiary history in once, or scan your first product. Your frequent foods grow from here.</p>
-        <button class="btn" type="button" data-act="import">Import MyNetDiary history</button></section>${bottom}`, { date, first: true }, via);
+        <button class="btn" type="button" data-act="import">Import MyNetDiary history</button></section>${fab(clock, true)}`, { date, first: true }, via);
       return;
     }
 
@@ -407,29 +540,115 @@
     const mealKcal = perMeal.map(list => list.reduce((a, e) => a + e.totals.kcal, 0));
     const eaten = Math.round(mealKcal.reduce((a, b) => a + b, 0));
     const over = eaten > budget;
-    const spans = arcs(mealKcal, budget, over);
+    const spans = arcs(mealKcal, budget);
+    const tone = tonesOf(spans), lap = lapOf(eaten, budget);
     const mac = macros(entries, doc.settings.targets, budget);
-    const ordered = isToday ? [...entries].reverse() : perMeal.flat();
-    const rows = ordered.map(e => {
-      const food = foods.get(e.foodId);
-      return `<li><button class="fr" type="button" data-entry="${P.esc(e.id)}"><span class="today-food" aria-hidden="true">${drawing(food, 32)}</span>`
-        + `<span class="t"><span class="name">${P.esc(food ? food.name : 'A food no longer in your list')}</span>`
-        + `<span class="sub">${NAME[e.meal]}, ${P.esc(e.amount)}</span></span><span class="k">${P.fmt(e.totals.kcal)}</span></button></li>`;
+    const pick = pickPage(date, isToday, perMeal, entries, clock), shown = pick.meal;
+    page = MEALS.indexOf(shown);
+    pages.set(date, pick);
+    seen = { date, ids: new Set(entries.map(e => e.id)) };
+    fresh = false;
+
+    const row = e => {
+      const food = foods.get(e.foodId), name = P.esc(food ? food.name : 'A food no longer in your list'), id = P.esc(e.id);
+      return `<li class="today-li"><button class="fr" type="button" data-entry="${id}"><span class="today-food" aria-hidden="true">${drawing(food, 32)}</span>`
+        + `<span class="t"><span class="name">${name}</span><span class="sub">${NAME[e.meal]}, ${P.esc(e.amount)}</span></span>`
+        + `<span class="k">${P.fmt(e.totals.kcal)}</span></button>`
+        + `<button class="ibtn today-del" type="button" data-del="${id}" aria-label="Delete ${name}">${TRASH}</button></li>`;
+    };
+    const tabs = MEALS.map((m, i) => `<button class="today-tab" type="button" role="tab" id="today-tab-${m}" data-page="${m}" aria-controls="today-pg-${m}"`
+      + ` aria-selected="${i === page}"><span>${NAME[m]}</span><b>${perMeal[i].length ? P.fmt(mealKcal[i]) : ''}</b></button>`).join('');
+    const mealPages = MEALS.map((m, i) => {
+      const list = isToday ? [...perMeal[i]].reverse() : perMeal[i];
+      const body = list.length ? `<ul class="rows">${list.map(row).join('')}</ul>`
+        : `<div class="today-none"><p class="note">Nothing in ${m} ${isToday ? 'yet' : 'that day'}.</p>`
+          + `<button class="btn sec today-addto" type="button" data-act="addto" data-for="${m}">${P.icon('plus')}Add to ${m}</button></div>`;
+      return `<div class="today-pg" role="tabpanel" id="today-pg-${m}" data-pg="${m}" aria-labelledby="today-tab-${m}"${i === page ? '' : ' inert'}>${body}</div>`;
     }).join('');
     const scale = Math.max(2750, 1.25 * budget), dayKcal = kcalOn.get(date);
     const snap = {
-      date, first: false, over, spans, grow: mac.grow, barOver: mac.over, gram: mac.gram, pct: mac.pct,
+      date, first: false, over, spans, tone, lap, grow: mac.grow, barOver: mac.over, gram: mac.gram, pct: mac.pct, dev: mac.dev, dn: mac.dn,
       num: P.fmt(Math.abs(budget - eaten)), lbl: eaten > budget ? 'kcal over' : 'kcal left', tot: tot(eaten, budget),
       ck: perMeal.map((list, i) => (list.length ? P.fmt(mealKcal[i]) : null)),
       cell: dayKcal === undefined ? null : { fill: dayKcal > 0 ? Math.min(100, dayKcal / scale * 100) : 0, over: dayKcal > 0 && Math.round(dayKcal) > budget },
     };
 
     put(`${head}${strip(days, kcalOn, now, date, budget)}${banner}
-      <div class="today-frame${over ? ' today-over' : ''}">${ring(spans, eaten, budget, over)}${MEALS.map((m, i) => corner(i, perMeal[i], mealKcal[i], foods)).join('')}</div>
+      <div class="today-frame${over ? ' today-over' : ''}">${ring(spans, eaten, budget, over, tone, lap)}${MEALS.map((m, i) => corner(i, perMeal[i], mealKcal[i], foods, tone[i])).join('')}</div>
       ${mac.html}
-      <section class="sec today-eaten"><h2 class="eyebrow">${isToday ? 'Eaten today' : 'Eaten that day'}</h2>
-        ${rows ? `<ul class="rows">${rows}</ul>` : `<p class="note">Nothing logged ${isToday ? 'yet today' : 'that day'}.</p>`}</section>
-      ${bottom}`, snap, via);
+      <section class="sec today-eaten" aria-label="${isToday ? 'Eaten today' : 'Eaten that day'}">
+        <div class="today-tabs" role="tablist">${tabs}</div><div class="today-pages">${mealPages}</div></section>
+      ${fab(shown, false)}`, snap, via);
+  }
+
+  // ── the meal pages ──
+  // The page the pager rests nearest to.
+  function nearest(pg) { return Math.max(0, Math.min(MEALS.length - 1, Math.round(pg.scrollLeft / (pg.clientWidth || 1)))); }
+
+  // Shows page i as the current one: its tab, the + and Scan, and the page kept for that day. The scroll is the pager's.
+  function setPage(i) {
+    if (!root || i === page) return;
+    page = i;
+    const meal = MEALS[i];
+    root.querySelectorAll('.today-tab').forEach((t, k) => { t.setAttribute('aria-selected', String(k === i)); });
+    root.querySelectorAll('.today-pg').forEach((p, k) => { p.inert = k !== i; });
+    root.querySelectorAll('.today-fab [data-for]').forEach(b => { b.dataset.for = meal; });
+    const add = root.querySelector('.today-fab [data-act="add"]');
+    if (add) add.setAttribute('aria-label', `Add food to ${meal}`);
+    pages.set(shownDate(), { meal, clock: P.mealNow() });
+    disarm();
+  }
+
+  // A tab tapped: its page comes in along the pager (at once under reduced motion); the tabs it passes stay unlit.
+  function showPage(i) {
+    const pg = root.querySelector('.today-pages');
+    if (!pg || i < 0) return;
+    setPage(i);
+    const left = i * pg.clientWidth;
+    if (Math.abs(pg.scrollLeft - left) < 1) return;
+    aiming = i;
+    pg.scrollTo({ left, behavior: reduced() ? 'instant' : 'smooth' });
+  }
+
+  function onPages(e) {
+    const pg = e.currentTarget;
+    if (!root || !pg.isConnected) return;
+    const i = nearest(pg);
+    if (aiming !== null) { if (i !== aiming) return; aiming = null; }
+    setPage(i);
+  }
+
+  function onPagesEnd(e) {
+    aiming = null;
+    if (root && e.currentTarget.isConnected) setPage(nearest(e.currentTarget));
+  }
+
+  // The meal the + and Scan add to: the page shown, or the one a tab is bringing in (first launch: the clock's meal).
+  const shownMeal = () => (root.querySelector('.today-pages') ? MEALS[page] : P.mealNow());
+
+  // The first tap of the two that take an entry out: its kcal gives way to Delete, its trash turns into Keep.
+  function arm(id) {
+    disarm();
+    const del = [...root.querySelectorAll('.today-del')].find(b => b.dataset.del === id);
+    if (!del) return;
+    armed = id;
+    del.closest('.today-li').classList.add('today-arm');
+    del.innerHTML = P.icon('x');
+    del.setAttribute('aria-label', del.getAttribute('aria-label').replace(/^Delete/, 'Keep'));
+    del.insertAdjacentHTML('beforebegin', `<button class="today-yes" type="button" data-yes="${P.esc(id)}">Delete</button>`);
+  }
+
+  function disarm() {
+    const id = armed;
+    armed = null;
+    if (!root || id === null) return;
+    const del = [...root.querySelectorAll('.today-del')].find(b => b.dataset.del === id);
+    if (!del) return;
+    const li = del.closest('.today-li'), yes = li.querySelector('.today-yes');
+    li.classList.remove('today-arm');
+    if (yes) yes.remove();
+    del.innerHTML = TRASH;
+    del.setAttribute('aria-label', del.getAttribute('aria-label').replace(/^Keep/, 'Delete'));
   }
 
   // Puts the markup on screen when it differs from what is there, then starts what the switch or the change calls for.
@@ -447,10 +666,18 @@
       const fromEnd = old ? old.scrollWidth - old.scrollLeft : null;   // days only ever join at the start
       root.innerHTML = html;
       lastHtml = html;
+      armed = null;
+      aiming = null;
       const nav = root.querySelector('.today-days');
       if (nav) {
         nav.scrollLeft = fromEnd === null ? nav.scrollWidth : nav.scrollWidth - fromEnd;
         nav.addEventListener('scrollend', moreDays, { passive: true });
+      }
+      const pg = root.querySelector('.today-pages');
+      if (pg) {
+        pg.scrollLeft = page * pg.clientWidth;
+        pg.addEventListener('scroll', onPages, { passive: true });
+        pg.addEventListener('scrollend', onPagesEnd, { passive: true });
       }
       // only where a sideways touch is a gesture, so a scroll elsewhere never waits for this page
       root.querySelectorAll('.today-frame').forEach(z => z.addEventListener('touchmove', onTouchMove, { passive: false }));
@@ -470,7 +697,7 @@
   function focused() {
     const a = document.activeElement;
     if (!a || a === root || !root.contains(a)) return null;
-    for (const k of ['day', 'act', 'meal', 'entry']) if (a.dataset[k]) return `[data-${k}="${CSS.escape(a.dataset[k])}"]`;
+    for (const k of ['day', 'act', 'meal', 'page', 'entry', 'del']) if (a.dataset[k]) return `[data-${k}="${CSS.escape(a.dataset[k])}"]`;
     return null;
   }
 
@@ -674,21 +901,25 @@
 
   const sameList = (a, b, d) => a.length === b.length && a.every((x, i) => Math.abs(x - b[i]) <= d);
   const sameSpan = (a, b) => (!a && !b) || (!!a && !!b && sameList(a, b, 0.01));
+  const devOf = d => (d === null ? 0 : d);     // no reading draws the mark at its target
+  const sameDev = (a, b) => sameList(a.map(devOf), b.map(devOf), 0.01);
   function differs(a, b) {
     if (a.first || b.first || a.date !== b.date) return false;
-    return a.over !== b.over || !a.spans.every((s, i) => sameSpan(s, b.spans[i])) || !sameList(a.grow, b.grow, 0.01)
+    const lapDeg = s => (s.lap ? s.lap.deg : 0);
+    return a.over !== b.over || !a.spans.every((s, i) => sameSpan(s, b.spans[i])) || Math.abs(lapDeg(a) - lapDeg(b)) > 0.01 || !sameList(a.grow, b.grow, 0.01) || !sameDev(a.dev, b.dev)
       || a.barOver.some((o, i) => o !== b.barOver[i]) || a.num !== b.num || a.lbl !== b.lbl || a.tot !== b.tot
       || a.ck.some((c, i) => c !== b.ck[i]) || a.gram.some((g, i) => g !== b.gram[i]) || a.pct.some((x, i) => x !== b.pct[i])
       || (!!a.cell && !!b.cell && (Math.abs(a.cell.fill - b.cell.fill) > 0.01 || a.cell.over !== b.cell.over));
   }
 
   // The macro numbers a swap can change: [the bar or label column, the number in it].
-  const MAC_PART = { pct: ['.today-bar', '.today-pct'], lpct: ['.today-labs > div', '.today-lpn'], g: ['.today-labs > div', '.today-g > span'] };
+  const MAC_PART = { pct: ['.today-bar', '.today-pct'], lpct: ['.today-labs > div', '.today-lpn'], g: ['.today-labs > div', '.today-g > span'],
+    dn: ['.today-labs > div', '.today-devn'] };
 
   // What changed between two drawings of the same day, as one motion. The greys go first: the arcs that changed run
   // from their old ends and the bars move (chart, 40 ms apart), the day's tank follows, the corner kcal and the eaten
-  // total swap in the middle, each bar's percentage and grams swap after their bar (base barsIn: at 60 % of chart, 40 ms
-  // apart); the kcal-left number swaps last, 120 ms after the greys, and the over tone lands with it.
+  // total swap in the middle, each bar's percentage, grams and deviation points swap after their bar (base barsIn: at
+  // 60 % of chart, 40 ms apart); the kcal-left number swaps last, 120 ms after the greys, and the over tone lands with it.
   function change(from, to) {
     const T = tokens(), rm = reduced();
     const chart = rm ? 0 : T.chart, stagger = rm ? 0 : T.stagger;
@@ -699,7 +930,13 @@
     const atNum = rm ? 0 : greys + 120 - swapLen;
     const flipAt = atNum + T.fast;
     const ringMoves = !from.spans.every((s, i) => sameSpan(s, to.spans[i]));
+    // the second lap runs from its old length and tone to its new ones with the arcs; from or to nothing, from 0
+    const lapA = from.lap || { deg: 0, heat: to.lap ? to.lap.heat : 0 }, lapB = to.lap || { deg: 0, heat: lapA.heat };
+    const lapMoves = Math.abs(lapA.deg - lapB.deg) > 0.01 || Math.abs(lapA.heat - lapB.heat) > 0.01;
+    const lapAt = p => ({ deg: lerp(lapA.deg, lapB.deg, p), heat: lerp(lapA.heat, lapB.heat, p) });
     const barsMove = !sameList(from.grow, to.grow, 0.01);
+    const devMoves = !sameDev(from.dev, to.dev);
+    const devAt = (t, i) => (devMoves ? lerp(devOf(from.dev[i]), devOf(to.dev[i]), bar(t, i)) : devOf(to.dev[i]));
     const fillMoves = !!(from.cell && to.cell) && Math.abs(from.cell.fill - to.cell.fill) > 0.01;
     const tones = from.over !== to.over || from.barOver.some((o, i) => o !== to.barOver[i])
       || !!(from.cell && to.cell && from.cell.over !== to.cell.over);
@@ -710,14 +947,17 @@
     from.ck.forEach((c, i) => { if (c !== to.ck[i]) swaps.push({ k: 'ck', i, at: atCk, old: c, now: to.ck[i] }); });
     MACROS.forEach((_, i) => {
       if (from.gram[i] !== to.gram[i]) swaps.push({ k: 'g', i, at: atMac(i), old: `${from.gram[i]} /` });
+      if (from.dn[i] !== to.dn[i]) swaps.push({ k: 'dn', i, at: atMac(i), old: from.dn[i] || null });
       if (from.pct[i] === to.pct[i]) return;
       const old = from.pct[i] === null ? null : `${from.pct[i]}%`;
       swaps.push({ k: 'pct', i, at: atMac(i), old }, { k: 'lpct', i, at: atMac(i), old });
     });
     const key = s => (s.i === undefined ? s.k : `${s.k}${s.i}`);
-    const ends = [swaps.length ? Math.max(...swaps.map(s => s.at + swapLen)) : 0, ringMoves || fillMoves ? chart : 0,
-      barsMove ? chart + 2 * stagger : 0, tones ? flipAt : 0];
+    const ends = [swaps.length ? Math.max(...swaps.map(s => s.at + swapLen)) : 0, ringMoves || lapMoves || fillMoves ? chart : 0,
+      barsMove || devMoves ? chart + 2 * stagger : 0, tones ? flipAt : 0];
     const end = Math.max(...ends);
+    // the arcs take the tones of the drawing they go to (its badges already show them); one going away keeps its own
+    const tone = to.tone.map((t, i) => (to.spans[i] ? t : from.tone[i]));
     // where a span grows from or shrinks to when the meal had nothing: its own start
     const pair = to.spans.map((s, i) => {
       const a = from.spans[i];
@@ -811,18 +1051,16 @@
       if (!frame) return;
       const over = flipped ? to.over : from.over;
       if (tones) frame.classList.toggle('today-over', over);
-      if (ringMoves || from.over !== to.over) {
-        const svg = frame.querySelector('.today-ring > svg');
-        const { paths, initials } = ringParts(done ? to.spans : spansAt(chartAt(t)), over);
-        svg.innerHTML = paths;
-        frame.querySelectorAll('.today-ini').forEach(n => n.remove());
-        svg.insertAdjacentHTML('afterend', initials);
+      if (ringMoves || lapMoves || from.over !== to.over) {
+        frame.querySelector('.today-ring > svg').innerHTML = done ? ringParts(to.spans, over, to.tone, to.lap)
+          : ringParts(spansAt(chartAt(t)), over, tone, lapAt(chartAt(t)));
       }
       const bars = root.querySelectorAll('.today-bar');
       bars.forEach((b, i) => {
         if (barsMove) b.style.flexGrow = String(done ? to.grow[i] : lerp(from.grow[i], to.grow[i], bar(t, i)));
         if (tones) b.classList.toggle('today-bo', flipped ? to.barOver[i] : from.barOver[i]);
       });
+      if (devMoves) root.querySelectorAll('.today-devbar').forEach((b, i) => { b.setAttribute('style', devStyle(done ? to.dev[i] : devAt(t, i))); });
       const cell = to.cell && q(`.today-day[data-day="${to.date}"]`);
       if (cell) {
         const liq = cell.querySelector('.today-liq');
@@ -838,12 +1076,15 @@
       clear() {
         swaps.forEach(s => { const r = realOf(s); if (r) r.style.removeProperty('transform'); });
         if (barsMove) root.querySelectorAll('.today-bar').forEach((b, i) => { b.style.flexGrow = String(to.grow[i]); });
+        if (devMoves) root.querySelectorAll('.today-devbar').forEach((b, i) => { b.setAttribute('style', devStyle(to.dev[i])); });
       },
       // what is on screen at t, for a change that arrives before this one has landed
       at(t) {
         const p = chartAt(t);
         return { ...to, over: t >= flipAt ? to.over : from.over, spans: ringMoves ? spansAt(p) : to.spans,
+          lap: lapMoves && p < 1 ? lapAt(p) : to.lap,
           grow: barsMove ? to.grow.map((g, i) => lerp(from.grow[i], g, bar(t, i))) : to.grow,
+          dev: devMoves ? to.dev.map((_, i) => devAt(t, i)) : to.dev,
           cell: to.cell && from.cell ? { ...to.cell, fill: lerp(from.cell.fill, to.cell.fill, p) } : to.cell };
       },
     };
@@ -938,17 +1179,34 @@
     switchTo(want || P.today(), 0, true);
   });
 
+  // A finger's tap, as app/core.js tells one: a mouse, the keyboard and code are never held.
+  const isTap = e => e.isTrusted && (e.pointerType === 'touch' || e.pointerType === 'pen'
+    || Boolean(e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents));
+
   function onClick(e) {
     const b = e.target.closest('button');
-    if (!b || !root || !root.contains(b)) return;
+    const mine = !!b && !!root && root.contains(b);
+    // the second tap of a double tap on Delete lands on what slid up under the finger (the next row, an empty meal's
+    // Add): within HOLD ms of the Delete a finger's tap on the meal pages does nothing
+    const since = e.timeStamp - deletedAt;
+    if (mine && isTap(e) && since >= 0 && since < HOLD && b.closest('.today-pages')) return;
+    // an offered Delete goes away with any other tap; only its own Delete, or a trash, acts on it
+    if (armed !== null && !(mine && (b.dataset.yes || b.dataset.del))) disarm();
+    if (!mine) return;
     if (swallow) { swallow = false; return; }     // the click a swipe ends with is part of the swipe, not a tap
     const date = shownDate();
     if (b.dataset.day) { if (b.dataset.day !== date) switchTo(b.dataset.day, 0); }
     else if (b.dataset.act === 'today') switchTo(P.today(), 0);
+    else if (b.dataset.page) showPage(MEALS.indexOf(b.dataset.page));
+    else if (b.dataset.yes) {
+      armed = null;
+      deletedAt = e.timeStamp;
+      try { P.removeEntry(b.dataset.yes); } catch (x) { P.toast(x.message); }
+    } else if (b.dataset.del) { if (armed === b.dataset.del) disarm(); else arm(b.dataset.del); }
     else if (b.dataset.meal) P.go('add', b.dataset.meal, date);
     else if (b.dataset.entry) P.go('entry', b.dataset.entry);
-    else if (b.dataset.act === 'add') P.go('add', P.mealNow(), date);
-    else if (b.dataset.act === 'scan') P.go('scan', P.mealNow(), date);
+    else if (b.dataset.act === 'addto') P.go('add', b.dataset.for, date);
+    else if (b.dataset.act === 'add' || b.dataset.act === 'scan') P.go(b.dataset.act, shownMeal(), date);
     else if (b.dataset.act === 'settings' || b.dataset.act === 'import') P.go('settings');
   }
 
@@ -956,6 +1214,7 @@
   function onDown(e) {
     if (!e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) return;
     swallow = false;
+    if (e.target.closest('.today-pages')) aiming = null;   // his finger takes the pages over from a tab's scroll
     const zone = e.target.closest('.today-frame') ? 'ring' : null;
     touch = zone ? { zone, x: e.clientX, y: e.clientY, id: e.pointerId, t: e.timeStamp, side: false, pull: 0 } : null;
   }
@@ -1046,6 +1305,9 @@
     const st = history.state;
     pinned = ours(st) ? (isDate(st.day) && st.day !== P.today() ? st.day : null) : routeDay;
     stripFrom = null;
+    fresh = true;
+    armed = null;
+    aiming = null;
     el.addEventListener('click', onClick);
     el.addEventListener('pointerdown', onDown);
     el.addEventListener('pointermove', onMove);
@@ -1056,15 +1318,18 @@
   }
 
   window.addEventListener('resize', () => { if (root && root.isConnected) layout(); });
-  // A phone keeps Today open from breakfast to lunch: coming back, the bottom button names the meal the clock suggests now.
+  // A phone keeps Today open from breakfast to lunch: brought back to the screen once the clock's meal has moved on since
+  // the page shown was chosen, Today opens on the meal page the clock suggests now, and the + and Scan add to it. Only
+  // here: back from Edit entry, a delete or any other redraw keeps the page he was on.
   document.addEventListener('visibilitychange', () => {
-    const btn = root && root.isConnected && root.querySelector('[data-act="add"]');
-    if (document.visibilityState === 'visible' && btn && btn.dataset.for !== P.mealNow()) draw();
+    if (document.visibilityState !== 'visible' || !root || !root.isConnected || shownDate() !== P.today()) return;
+    const kept = pages.get(P.today());
+    if (!kept || kept.clock !== P.mealNow()) { pages.delete(P.today()); draw(); }   // no page kept: first launch
   });
   if (document.fonts) document.fonts.addEventListener('loadingdone', () => { if (root && root.isConnected) layout(); });
   P.view('today', {
     render,
     update() { if (root && root.isConnected) draw(); },
-    leave() { finish(); if (watcher) watcher.disconnect(); watcher = null; touch = null; root = null; },
+    leave() { finish(); disarm(); if (watcher) watcher.disconnect(); watcher = null; touch = null; aiming = null; root = null; },
   });
 })();

@@ -7,6 +7,9 @@
 /* an installed app: a pull down at the top never reloads the page (the browser's pull-to-refresh) */
 html, body { overscroll-behavior-y: none; }
 html { font-size: 100%; background: var(--canvas); -webkit-text-size-adjust: none; text-size-adjust: none; }
+/* no scrollbar line at the page's right edge (Samsung Internet drew one while scrolling); the page still scrolls */
+html { scrollbar-width: none; }
+html::-webkit-scrollbar { display: none; }
 body {
   margin: 0; min-height: 100vh; min-height: 100dvh; background: var(--canvas); color: var(--ink);
   font: 500 1rem/1.5 var(--font-sans); font-variant-numeric: tabular-nums; -webkit-tap-highlight-color: transparent;

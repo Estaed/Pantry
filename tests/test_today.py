@@ -1,7 +1,12 @@
-"""Checks for Task-02, Today: day strip, meals in the corners, the G3 ring, the macro strip, the eaten list; and for
-Task-09: the budget status tones, days switched in place, the ring swipe, and the motion that shows what changed.
+"""Checks for Task-02, Today: day strip, meals in the corners, the ring, the macro strip, the eaten list; for Task-09:
+the budget status tones, days switched in place, the ring swipe, and the motion that shows what changed; and for
+Task-12: one whole ring with the meals end to end in alternating tones, over in the base danger red, one grey for the
+macro bars with a deviation mark and its points under each, one page per meal with two-tap delete (a double tap's second
+tap held) that keeps its page across the meal clock, the floating + and Scan clear of the last row, and no page
+scrollbar.
 
-Run from the repo root: python tests/test_today.py   (exit 0 = no FAIL). Reuses the gate's server and phone from
+Run from the repo root: python tests/test_today.py [scenario ...]   (exit 0 = no FAIL; names as in SCENARIOS run only
+those). Reuses the gate's server and phone from
 tests/acceptance.py (360 x 780, text at 150 %, Darwin, 07:00 on 20 Oct 2026). The data is the committed fixture
 (tests/fixtures/mynetdiary-slice.json: 8 Aug, 19 Oct, 20 Oct 2026, the days design/screens.html shows), converted by
 tools/import_mynetdiary.py into .tmp/test_today/ as Tarik converts his history. Expected numbers are worked out here
@@ -36,20 +41,35 @@ SCREEN = '[data-screen="today"]'
 TEXT = "(s) => { const el = document.querySelector(s); return el ? el.textContent.trim() : null; }"
 TEXTS = "(s) => [...document.querySelectorAll(s)].map(el => el.textContent.trim())"
 
-# Start and end of each ring segment in degrees clockwise from 12 o'clock, read from the drawn path: the M point, then
-# the end point of every arc in it, unwrapped so the end follows the start.
-ARCS_JS = """() => Object.fromEntries([...document.querySelectorAll('[data-screen="today"] .today-seg')].map(p => {
+# Start and end of a ring path in degrees clockwise from 12 o'clock, read from the drawn path: the M point, then the
+# end point of every arc in it, unwrapped so the end follows the start.
+ANGLES_JS = """const angles = p => {
   const n = p.getAttribute('d').match(/-?\\d+(?:\\.\\d+)?/g).map(Number);
   const box = p.ownerSVGElement.viewBox.baseVal, cx = box.width / 2, cy = box.height / 2;
   const pts = [[n[0], n[1]]];
   for (let i = 2; i + 6 < n.length; i += 7) pts.push([n[i + 5], n[i + 6]]);
   const ang = ([x, y]) => Math.atan2(x - cx, cy - y) * 180 / Math.PI;
   let start = ang(pts[0]);
-  if (start < -90.5) start += 360;
+  if (start < -0.5) start += 360;
   let end = start;
   for (let k = 1; k < pts.length; k++) { let d = ang(pts[k]) - ang(pts[k - 1]); while (d <= 0) d += 360; end += d; }
-  return [p.dataset.meal, [start, end]];
-}))"""
+  return [start, end];
+};"""
+ARCS_JS = "() => {" + ANGLES_JS + """
+  return Object.fromEntries([...document.querySelectorAll('[data-screen="today"] .today-seg')].map(p => [p.dataset.meal, angles(p)])); }"""
+# The track pieces: [over tint or not, start, end] each.
+TRACKS_JS = "() => {" + ANGLES_JS + """
+  return [...document.querySelectorAll('[data-screen="today"] .today-track')].map(p => [p.classList.contains('today-full'), ...angles(p)]); }"""
+
+# The second lap over budget: its [start, end], its tone and the tokens it is measured against, as sRGB.
+LAP_JS = "() => {" + ANGLES_JS + """
+  const cv = document.createElement('canvas'); cv.width = cv.height = 1;
+  const g = cv.getContext('2d', { willReadFrequently: true });
+  const rgb = c => { g.clearRect(0, 0, 1, 1); g.fillStyle = c; g.fillRect(0, 0, 1, 1); return [...g.getImageData(0, 0, 1, 1).data].slice(0, 3); };
+  const s = document.querySelector('[data-screen="today"]'), laps = [...s.querySelectorAll('.today-lap')];
+  const probe = v => { const i = document.createElement('i'); i.style.color = v; s.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return rgb(c); };
+  return { laps: laps.map(angles), tone: laps.length ? rgb(getComputedStyle(laps[0]).stroke) : null,
+           danger: probe('var(--danger)'), canvas: probe('var(--canvas)') }; }"""
 
 # Corner names and kcal against the ring's box; corner drawings and + marks against the drawn ring itself.
 CLEAR_JS = """() => {
@@ -109,13 +129,14 @@ MACRO_JS = """() => {
   });
 }"""
 
-# The visible words of an element as line boxes: one rect per line per text node, surrounding spaces left out.
-INK_JS = """const ink = el => {
+# The visible words of an element as line boxes: one rect per line per text node, surrounding spaces left out; words
+# inside `skip` (a selector) left out too.
+INK_JS = """const ink = (el, skip) => {
   const rects = [], walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
   let size = null;
   for (let n; (n = walk.nextNode());) {
     const t = n.textContent;
-    if (!t.trim() || getComputedStyle(n.parentElement).visibility !== 'visible') continue;
+    if (!t.trim() || (skip && n.parentElement.closest(skip)) || getComputedStyle(n.parentElement).visibility !== 'visible') continue;
     const r = document.createRange(); r.setStart(n, t.search(/\\S/)); r.setEnd(n, t.trimEnd().length);
     rects.push(...[...r.getClientRects()].filter(x => x.width > 0));
     if (size === null) size = parseFloat(getComputedStyle(n.parentElement).fontSize);
@@ -124,13 +145,14 @@ INK_JS = """const ink = el => {
            lines: new Set(rects.map(x => Math.round(x.top))).size, size };
 };"""
 
-# Each macro label against its bar and its neighbours; the gap the labels keep is one em of their text (0.75rem).
+# Each macro label (its name and grams; the deviation mark over them and its points are check_marks') against its bar
+# and its neighbours; the gap the labels keep is one em of their text (0.75rem).
 LABELS_JS = "() => {" + INK_JS + """
   const q = s => [...document.querySelectorAll('[data-screen="today"] ' + s)];
   const row = document.querySelector('[data-screen="today"] .today-labs').getBoundingClientRect();
   return { sep: 0.75 * parseFloat(getComputedStyle(document.documentElement).fontSize), row: [row.left, row.right],
            bars: q('.today-bar').map(b => [b.getBoundingClientRect().left, b.getBoundingClientRect().right]),
-           labels: q('.today-labs > div').map(ink) };
+           labels: q('.today-labs > div').map(el => ink(el, '.today-dev')) };
 }"""
 
 # The floating + and Scan (as in MyNetDiary, design/deviations.md): [+ size, + to the screen's right edge, gap to Scan,
@@ -179,15 +201,20 @@ def fixture_days():
     return days
 
 
-def spill(kcals):
-    """The G3 rule worked by hand: each meal starts at its quarter or where the one before ended, whichever is later."""
-    end, out = None, {}
-    for meal, start, k in zip(MEALS, (-90, 0, 90, 180), kcals):
-        if k:
-            s = start if end is None else max(start, end)
-            end = s + k / BUDGET * 360
+def end_to_end(kcals):
+    """The ring rule worked by hand (Blueprint, 2026-10-21): each logged meal's arc is kcal / budget x 360 degrees, end
+    to end in meal order from 12 o'clock; the ring stops at a full turn."""
+    end, out = 0.0, {}
+    for meal, k in zip(MEALS, kcals):
+        if k and end < 360:
+            s, end = end, min(360.0, end + k / BUDGET * 360)
             out[meal] = (s, end)
     return out
+
+
+def near(got, want, tol=0.5):
+    """Two {meal: (start, end)} maps alike within tol degrees."""
+    return set(got) == set(want) and all(abs(got[m][0] - want[m][0]) <= tol and abs(got[m][1] - want[m][1]) <= tol for m in want)
 
 
 def show(page, date=None):
@@ -304,52 +331,144 @@ def check_day(page, days):
           names == ["Carbs", "Protein", "Fat"] and label == "Calories from carbs, protein and fat"
           and page.evaluate("Pantry.MACROS.join()") == "carbs,protein,fat", (names, label))
     add_name = lambda: page.locator(f'{SCREEN} [data-act="add"]').get_attribute("aria-label")  # noqa: E731
-    check("a past day: eyebrow 'Saturday, 8 August', title '8 Aug', 'Eaten that day', the + is 'Add food to this day'",
+    eaten = page.evaluate("() => document.querySelector('[data-screen=\"today\"] .today-eaten').getAttribute('aria-label')")
+    check("a past day: eyebrow 'Saturday, 8 August', title '8 Aug', 'Eaten that day'; it opens on its first meal with "
+          "entries, so the + is 'Add food to breakfast'",
           text(page, ".top .eyebrow") == "Saturday, 8 August" and text(page, "h1") == "8 Aug"
-          and text(page, ".today-eaten .eyebrow") == "Eaten that day" and add_name() == "Add food to this day",
-          (text(page, ".top .eyebrow"), text(page, "h1"), add_name()))
-    rows = texts(page, ".fr .sub")
-    check("a past day lists what was eaten in meal order", rows == ["Breakfast, 3 pieces", "Lunch, 1 servings", "Dinner, 1000 g",
-                                                                     "Snacks, 1.5 slices"], rows)
+          and eaten == "Eaten that day" and add_name() == "Add food to breakfast",
+          (text(page, ".top .eyebrow"), text(page, "h1"), eaten, add_name()))
+    pages = page.evaluate("""() => [...document.querySelectorAll('[data-screen="today"] .today-pg')]
+        .map(p => [p.dataset.pg, [...p.querySelectorAll('.fr .sub')].map(s => s.textContent)])""")
+    check("a past day has one page per meal, in meal order, each with its own rows",
+          pages == [["breakfast", ["Breakfast, 3 pieces"]], ["lunch", ["Lunch, 1 servings"]], ["dinner", ["Dinner, 1000 g"]],
+                    ["snacks", ["Snacks, 1.5 slices"]]], pages)
     A.rows_single_line(page, "Today, 8 Aug")
+
+
+def ring_state(page):
+    """The drawn ring: {meal: (start, end)}, the track pieces, whether the frame is over, the letters on the ring."""
+    return {"arcs": page.evaluate(ARCS_JS), "tracks": page.evaluate(TRACKS_JS), "laps": page.evaluate(LAP_JS)["laps"],
+            "over": page.evaluate("() => document.querySelector('[data-screen=\"today\"] .today-frame').classList.contains('today-over')"),
+            "letters": page.evaluate("() => [...document.querySelectorAll('[data-screen=\"today\"] .today-ring span')].filter(s => /^[BLDS]$/.test(s.textContent.trim())).length")}
+
+
+# The tone of each drawn arc in drawn order (meal order is drawn order) and of each corner badge, as sRGB.
+TONE_JS = """() => {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 1;
+  const g = cv.getContext('2d', { willReadFrequently: true });
+  const rgb = c => { g.clearRect(0, 0, 1, 1); g.fillStyle = c; g.fillRect(0, 0, 1, 1); return [...g.getImageData(0, 0, 1, 1).data].slice(0, 3); };
+  const s = document.querySelector('[data-screen="today"]');
+  return { arcs: [...s.querySelectorAll('.today-seg')].map(p => [p.dataset.meal, rgb(getComputedStyle(p).stroke)]),
+           badges: Object.fromEntries([...s.querySelectorAll('.today-corner')].map(c =>
+             [c.dataset.meal, rgb(getComputedStyle(c.querySelector('.today-sw')).backgroundColor)])) }; }"""
+
+
+def tones_ok(t):
+    """Arcs side by side differ in tone and every other one shares it (dark, light, dark: OKLab distance), each corner
+    badge has its own arc's tone, and a badge with no arc the light one (the second arc's)."""
+    arcs, badges = t["arcs"], t["badges"]
+    drawn = dict(arcs)
+    alternate = (all(delta(a[1], b[1]) > 0.1 for a, b in zip(arcs, arcs[1:]))
+                 and all(delta(a[1], c[1]) < 0.01 for a, c in zip(arcs, arcs[2:])))
+    own = all(delta(badges[m], c) < 0.01 for m, c in arcs)
+    rest = len(arcs) < 2 or all(delta(c, arcs[1][1]) < 0.01 for m, c in badges.items() if m not in drawn)
+    return alternate and own and rest
+
+
+def whole_ring(r, want):
+    """The arcs are `want`, end to end with no overlap, and the rest is one unbroken track from the last end to the top."""
+    arcs, last = r["arcs"], max(e for _, e in want.values())
+    order = sorted(arcs.values())
+    return (near(arcs, want) and all(a[1] <= c[0] + 0.01 for a, c in zip(order, order[1:]))
+            and len(r["tracks"]) == 1 and not r["tracks"][0][0] and abs(r["tracks"][0][1] - last) <= 0.5
+            and abs(r["tracks"][0][2] - 360) <= 0.5 and not r["over"])
 
 
 def check_ring(page, days):
     show(page, "2026-08-08")
-    arcs = page.evaluate(ARCS_JS)
-    want = {"breakfast": (-90, 55), "lunch": (55, 112), "dinner": (112, 209), "snacks": (209, 233)}
-    rule = spill([days["2026-08-08"]["meals"][m] for m in MEALS])
-    check("the hand-worked spill rule gives the angles the task names for 8 Aug",
-          all(abs(rule[m][0] - want[m][0]) <= 2 and abs(rule[m][1] - want[m][1]) <= 2 for m in MEALS), rule)
-    check("8 Aug ring, measured from the drawn arcs: breakfast -90..55, lunch 55..112, dinner 112..209, snacks 209..233 (2 deg)",
-          set(arcs) == set(MEALS) and all(abs(arcs[m][0] - want[m][0]) <= 2 and abs(arcs[m][1] - want[m][1]) <= 2 for m in MEALS), arcs)
-    initials = texts(page, ".today-ini")
-    check("each segment carries its meal's initial", initials == ["B", "L", "D", "S"], initials)
+    want = end_to_end([days["2026-08-08"]["meals"][m] for m in MEALS])
+    r = ring_state(page)
+    check("8 Aug ring, measured from the drawn arcs: breakfast 0..145, lunch ..203, dinner ..299, snacks ..323 end to end "
+          "from 12 o'clock, then one track back to the top (0.5 deg)",
+          abs(want["snacks"][1] - 323.3) < 0.5 and whole_ring(r, want), (want, r))
+    check("the ring carries no meal letters (the corner badges do)", r["letters"] == 0
+          and texts(page, ".today-sw") == ["B", "L", "D", "S"], (r["letters"], texts(page, ".today-sw")))
 
     show(page, "2026-10-19")
-    arcs = page.evaluate(ARCS_JS)
-    b = arcs.get("breakfast", (None, None))
-    d = arcs.get("dinner", (None, None))
-    check("19 Oct ring: breakfast -90..71.7; dinner starts in its own quarter at 90, not at 71.7 (2 deg)",
-          set(arcs) == {"breakfast", "dinner"} and abs(b[0] + 90) <= 2 and abs(b[1] - 71.7) <= 2
-          and d[0] is not None and abs(d[0] - 90) <= 2 and abs(d[0] - 71.7) > 10, arcs)
-    check("19 Oct is 92 over: the ring is full (a closed track), the tail stops at 9 o'clock, the centre says '92 kcal over'",
-          page.locator(f"{SCREEN} .today-track.today-full").count() == 1 and d[1] is not None and d[1] <= 270.5
-          and text(page, '[data-test="kcal-left"]') == "92" and text(page, ".today-lbl") == "kcal over", (d, text(page, ".today-lbl")))
+    r = ring_state(page)
+    want = end_to_end([days["2026-10-19"]["meals"][m] for m in MEALS])
+    closed = lambda r: len(r["tracks"]) == 1 and r["tracks"][0][0] and abs(r["tracks"][0][2] - r["tracks"][0][1] - 360) <= 0.5  # noqa: E731
+    check("19 Oct is 92 over: breakfast 0..161.7 and dinner on from it, stopped at the top; a closed track in the over tint "
+          "under them; the centre says '92 kcal over'",
+          near(r["arcs"], want) and abs(want["breakfast"][1] - 161.7) < 0.1 and abs(want["dinner"][1] - 360) < 0.01 and r["over"]
+          and closed(r) and text(page, '[data-test="kcal-left"]') == "92" and text(page, ".today-lbl") == "kcal over", r)
+    check("19 Oct's 92 over runs on as a second lap from the top: 0..15.1 deg (92 / 2,200 of a turn)",
+          len(r["laps"]) == 1 and abs(r["laps"][0][0]) <= 0.5 and abs(r["laps"][0][1] - 92 / BUDGET * 360) <= 0.5, r["laps"])
+    tones = page.evaluate(TONE_JS)
+    check("19 Oct (breakfast and dinner, lunch skipped): the two arcs side by side are the full over tone and its light "
+          "tint, never one tone cut by a gap; each corner badge has its arc's tone, the meals with no arc the light one",
+          [m for m, _ in tones["arcs"]] == ["breakfast", "dinner"] and tones_ok(tones), tones)
 
-    # under budget, a heavy last meal that would run past 9 o'clock is pulled back into free space, never over breakfast
-    page.evaluate("""() => Pantry.change(d => { d.entries.push(
-        { id: 'tt-b', date: '2026-07-01', meal: 'breakfast', foodId: 'x', amount: '1', grams: null, totals: { kcal: 300 } },
-        { id: 'tt-d', date: '2026-07-01', meal: 'dinner', foodId: 'x', amount: '1', grams: null, totals: { kcal: 900 } },
-        { id: 'tt-s', date: '2026-07-01', meal: 'snacks', foodId: 'x', amount: '1', grams: null, totals: { kcal: 700 } }); })""")
+    # breakfast alone, then dinner, then lunch logged after dinner (it moves dinner on), then over budget
+    def log(entry_id, meal, kcal):
+        page.evaluate("""([id, meal, kcal]) => Pantry.change(d => { d.entries.push(
+            { id, date: '2026-07-01', meal, foodId: 'x', amount: '1', grams: null, totals: { kcal } }); })""", [entry_id, meal, kcal])
+        until(page, "() => !document.querySelector('[data-screen=\"today\"]').dataset.motion")   # the change has landed
+        return ring_state(page)
     show(page, "2026-07-01")
-    arcs = page.evaluate(ARCS_JS)
-    sizes = {m: arcs[m][1] - arcs[m][0] for m in arcs}
-    order = sorted(arcs.values())
-    check("under budget, every arc keeps its size and none overlaps another or passes a full turn",
-          all(abs(sizes[m] - k / BUDGET * 360) <= 0.5 for m, k in (("breakfast", 300), ("dinner", 900), ("snacks", 700)))
-          and all(a[1] <= c[0] + 0.01 for a, c in zip(order, order[1:])) and order[0][0] >= -90.01 and order[-1][1] <= 270.01, arcs)
+    empty = ring_state(page)
+    check("nothing logged: no arc, the whole ring one track", empty["arcs"] == {} and len(empty["tracks"]) == 1
+          and abs(empty["tracks"][0][1]) <= 0.5 and abs(empty["tracks"][0][2] - 360) <= 0.5, empty)
+    only = log("tt-b", "breakfast", 300)
+    check("only breakfast logged (300): one breakfast arc 0..49.1 and one unbroken track 49.1..360, no slot for lunch, dinner or snacks",
+          whole_ring(only, end_to_end([300, 0, 0, 0])), only)
+    two = log("tt-d", "dinner", 900)
+    check("breakfast and dinner logged: two arcs end to end (dinner from 49.1 to 196.4) and one track",
+          whole_ring(two, end_to_end([300, 0, 900, 0])), two)
+    two_tones = page.evaluate(TONE_JS)
+    check("breakfast and dinner within budget: dark then light grey side by side; each badge has its arc's tone, lunch's "
+          "and snacks' the light one", [m for m, _ in two_tones["arcs"]] == ["breakfast", "dinner"] and tones_ok(two_tones), two_tones)
+    three = log("tt-l", "lunch", 200)
+    check("lunch logged after dinner takes its place in meal order and moves dinner's arc on (81.8..229.1); no overlap",
+          whole_ring(three, end_to_end([300, 200, 900, 0])) and abs(three["arcs"]["dinner"][0] - 81.8) < 0.5, three)
+    three_tones = page.evaluate(TONE_JS)
+    check("lunch between them: breakfast dark, lunch light, dinner dark again (its arc and its badge change tone)",
+          [m for m, _ in three_tones["arcs"]] == MEALS[:3] and tones_ok(three_tones)
+          and delta(three_tones["badges"]["dinner"], two_tones["badges"]["dinner"]) > 0.1, three_tones)
+    over = log("tt-s", "snacks", 1000)
+    check("over budget (2,400): the arcs fill the ring and stop at the top, the track is the closed over-tint ring, the frame is over",
+          near(over["arcs"], end_to_end([300, 200, 900, 1000])) and abs(over["arcs"]["snacks"][1] - 360) < 0.5 and over["over"]
+          and closed(over), over)
+    check_lap(page, log, two)
     page.evaluate("() => Pantry.change(d => { d.entries = d.entries.filter(e => !e.id.startsWith('tt-')); })")
+
+
+def check_lap(page, log, within):
+    """Past the budget the ring runs on as a second lap from 12 o'clock (Tarik, 2026-10-21, MyNetDiary's 19 Oct):
+    excess / budget x 360 degrees, a whole lap at most; within budget no lap, and the gap from the last arc's end to
+    the top is what is left. The lap's red deepens with the excess, full `danger` from 25 % over (app/today.js HOT).
+    The page holds 2,400 kcal on 1 Jul (300 + 200 + 900 + 1,000) when this runs."""
+    left = (BUDGET - 1200) / BUDGET * 360
+    check("within budget (1,200 of 2,200): no second lap, and the track from dinner's end to the top is the 1,000 left "
+          "(196.4..360)", not within["laps"] and abs(within["tracks"][0][2] - within["tracks"][0][1] - left) <= 0.5, within)
+    seen = {}
+    for extra, total in ((0, 2400), (20, 2420), (330, 2750), (550, 3300), (1540, 4840)):
+        if extra:
+            log(f"tt-x{total}", "snacks", extra)
+        seen[total] = page.evaluate(LAP_JS)
+    want = lambda total: min(360.0, (total - BUDGET) / BUDGET * 360)  # noqa: E731
+    ok = {t: len(r["laps"]) == 1 and abs(r["laps"][0][0]) <= 0.5 and abs(r["laps"][0][1] - want(t)) <= 0.5 for t, r in seen.items()}
+    check("over budget a second lap runs from 12 o'clock over the full ring: 200 over is 32.7 deg, 220 over (10 %) 36, "
+          "1,100 over (50 %) 180, 2,640 over (more than a lap) a whole lap and no more", all(ok.values()),
+          {t: r["laps"] for t, r in seen.items()})
+    far = {t: delta(r["tone"], r["canvas"]) for t, r in seen.items() if r["tone"]}
+    check("the lap's red deepens with the excess: lighter at 10 % over than at 50 %, the full danger red from 25 % over "
+          "(OKLab distance from the canvas, and from danger)",
+          len(far) == len(seen) and far[2420] + 0.03 < far[3300] and delta(seen[2750]["tone"], seen[2750]["danger"]) < 0.01
+          and delta(seen[3300]["tone"], seen[3300]["danger"]) < 0.01 and delta(seen[2420]["tone"], seen[2420]["danger"]) > 0.03,
+          {t: (r["tone"], round(far.get(t, -1), 3)) for t, r in seen.items()})
+    page.evaluate("() => Pantry.change(d => { d.entries = d.entries.filter(e => !e.id.startsWith('tt-x')); })")
+    until(page, "() => !document.querySelector('[data-screen=\"today\"]').dataset.motion")
 
 
 def check_strip(page, url):
@@ -452,8 +571,15 @@ def check_routes(page):
         "gear": tap_goes(page, '[data-act="settings"]', "2026-08-08"),
     }
     want = {"add": "#/add/breakfast/2026-08-08", "scan": "#/scan/breakfast/2026-08-08", "row": "#/entry/2026-08-08-102", "gear": "#/settings"}
-    check("on a past day, Add to this day opens add <the clock's meal> <date>, scan opens scan <meal> <date>, a row opens entry <id>, the gear settings",
+    check("on a past day shown on its breakfast page, the + opens add breakfast <date>, Scan scan breakfast <date>, a row entry <id>, the gear settings",
           went == want, went)
+    page.locator(f'{SCREEN} .today-tab[data-page="dinner"]').click()
+    until(page, "() => document.querySelector('[data-act=\"add\"]').dataset.for === 'dinner'")
+    named = page.locator(f'{SCREEN} [data-act="add"]').get_attribute("aria-label")
+    went = [tap_goes(page, '[data-act="add"]', "2026-08-08"), tap_goes(page, '[data-act="scan"]', "2026-08-08")]
+    check("on the dinner page the + is 'Add food to dinner' and the + and Scan open add dinner and scan dinner for the day "
+          "(the page shown, kept on the way back)",
+          named == "Add food to dinner" and went == ["#/add/dinner/2026-08-08", "#/scan/dinner/2026-08-08"], (named, went))
     show(page)
     named = page.locator(f'{SCREEN} [data-act="add"]').get_attribute("aria-label")
     check("on Today at 07:00 the + is 'Add food to breakfast' and is found as 'Add food'",
@@ -468,17 +594,18 @@ def check_live(page):
     show(page)
     food = page.evaluate("Pantry.doc().foods[0].id")
     seen = page.evaluate("""f => {
+        const sub = () => { const s = document.querySelector('[data-screen="today"] .today-pg[data-pg="lunch"] .fr .sub'); return s ? s.textContent : null; };
         const read = () => [document.querySelector('[data-test="kcal-left"]').textContent,
                             (document.querySelector('.today-corner[data-meal="lunch"] .today-ck') || {}).textContent || null,
-                            document.querySelector('[data-screen="today"] .fr .sub').textContent];
+                            sub(), document.querySelector('.today-tab[data-page="lunch"] b').textContent];
         const before = read();
         Pantry.change(d => { d.entries.push({ id: 'tt-live', date: Pantry.today(), meal: 'lunch', foodId: f, amount: '1 g', grams: 1, totals: { kcal: 500 } }); });
         const added = read();
         Pantry.change(d => { d.entries = d.entries.filter(e => e.id !== 'tt-live'); });
         return [before, added, read()];
     }""", food)
-    check("an entry added or removed shows in the same frame: kcal left, the corner, the newest row first",
-          seen[0][:2] == ["896", None] and seen[1] == ["396", "500", "Lunch, 1 g"] and seen[2][:2] == ["896", None], seen)
+    check("an entry added or removed shows in the same frame: kcal left, the corner, the lunch page's row and its tab's kcal",
+          seen[0] == ["896", None, None, ""] and seen[1] == ["396", "500", "Lunch, 1 g", "500"] and seen[2] == ["896", None, None, ""], seen)
 
 
 def check_midnight(page):
@@ -591,9 +718,10 @@ def check_text_and_theme(page, url):
     big = page.evaluate(A.TEXT_SIZES_JS)
     flat = [a[0] for a, b in zip(small, big) if b[1] < 1.45 * a[1]]
     names = [a[0] for a in small]
-    check("every text on Today for 8 Aug grows with the text size, the ring's initials included (rem only)",
-          len(small) == len(big) and small and not flat and sum(1 for n in names if n in ("span:B", "span:L", "span:D", "span:S")) >= 4,
-          flat or (len(small), len(big)))
+    check("every text on Today for 8 Aug grows with the text size, the corner badges' letters and the meal tabs included (rem only)",
+          len(small) == len(big) and small and not flat and sum(1 for n in names if n in ("i:B", "i:L", "i:D", "i:S")) == 4
+          and sum(1 for n in names if n in ("span:Breakfast", "span:Lunch", "span:Dinner", "span:Snacks")) >= 8,
+          flat or (len(small), len(big), names[:12]))
 
     colours = {}
     for scheme in ("dark", "light"):
@@ -686,19 +814,27 @@ TONES_JS = """() => {
                              over: d.classList.contains('today-ov') }];
   }));
   const num = s.querySelector('.today-frame [data-test="kcal-left"]');
+  const track = s.querySelector('.today-track');
   return { ring: [...s.querySelectorAll('.today-seg')].map(p => rgb(cs(p).stroke)), num: rgb(cs(num).color),
            sw: [...s.querySelectorAll('.today-sw')].map(e => rgb(cs(e).backgroundColor)),
            bars: [...s.querySelectorAll('.today-bar')].map(e => rgb(cs(e).backgroundColor)),
-           cells, accent: probe('var(--primary-display)'), words: [num.textContent, s.querySelector('.today-lbl').textContent] };
+           track: track ? rgb(cs(track).stroke) : null,
+           cells, accent: probe('var(--primary-display)'), danger: probe('var(--danger)'), violet: probe('var(--chart-5)'),
+           canvas: probe('var(--canvas)'), grey: probe('var(--chart-neutral)'),
+           words: [num.textContent, s.querySelector('.today-lbl').textContent] };
 }"""
 
 NEUTRAL, TONED = 0.02, 0.05      # OKLCH chroma: below is grey, above carries a hue
 
 
 def check_status(browser, url, doc, errors):
-    """Within budget the greys and the orange answer; over it one hue on the ring, its swatches, the number and the
-    day's tank, clear of the orange accent; a macro bar over its own target takes it too; an empty day stays neutral.
+    """Within budget the greys and the orange answer; over it the base danger red (Task-12, Tarik's pick over chart-5
+    violet) on the ring, its badges, the number and the day's tank; a macro bar over its own target grams takes it too
+    and the others share one grey; an empty day stays neutral.
     Synthetic days: 2,200.4 kcal (shown as 2,200: within), 2,200.6 (shown as 2,201: over by 1), 1,500, and nothing."""
+    source = (ROOT / "app" / "today.js").read_text(encoding="utf-8")
+    check("app/today.js names no chart-5: the over tone is var(--danger)", "chart-5" not in source
+          and "--today-over: var(--danger)" in source, [ln for ln in source.splitlines() if "chart-5" in ln][:3])
     ctx, page = A.phone(browser, errors, "today-status", text=1.0)
     A.open_today(page, url)
     page.evaluate("d => Pantry.change(() => d, { dirty: false })", doc)
@@ -715,22 +851,26 @@ def check_status(browser, url, doc, errors):
         over = page.evaluate(TONES_JS)
         page.screenshot(path=str(ROOT / ".tmp" / f"today-over-{scheme}.png"))
         A.fits(page, f"Today over budget, {scheme}, 360 px, text 1.0")
-        tone = over["num"]
+        tone, red, violet = over["num"], over["danger"], over["violet"]
+        # over, the first lap's arcs and badges are light tints of the token (so the second lap, check_lap, reads on
+        # top): the same hue, so they are measured by hue against danger and by distance from violet
+        reddish = lambda c: chroma(c) >= TONED and hue_gap(c, red) <= 20 and delta(c, violet) > 0.1  # noqa: E731
         check(f"{scheme}: 2,200.4 kcal reads '0 kcal left' and stays within: the ring grey, the number the orange answer",
               within["words"] == ["0", "kcal left"] and within["ring"] and all(chroma(c) < NEUTRAL for c in within["ring"])
               and delta(within["num"], within["accent"]) < 0.01 and all(chroma(c) < NEUTRAL for c in within["sw"]),
               {"words": within["words"], "ring": within["ring"], "num": within["num"], "accent": within["accent"]})
-        check(f"{scheme}: 2,200.6 kcal reads '1 kcal over' and the ring, its swatches and the number turn to one hue, clear of the orange",
-              over["words"] == ["1", "kcal over"] and chroma(tone) >= 0.1 and delta(tone, over["accent"]) >= 0.15
-              and over["ring"] and all(chroma(c) >= TONED and hue_gap(c, tone) <= 20 for c in over["ring"] + over["sw"]),
-              {"words": over["words"], "num": tone, "ring": over["ring"], "sw": over["sw"], "accent": over["accent"]})
-        check(f"{scheme}: within and over differ on the ring, the swatches and the number",
-              delta(within["ring"][0], over["ring"][0]) > 0.1 and delta(within["num"], tone) > 0.1
-              and delta(within["sw"][0], over["sw"][0]) > 0.1, (within["ring"][0], over["ring"][0], within["num"], tone))
+        check(f"{scheme}: 2,200.6 kcal reads '1 kcal over': the number is var(--danger), the ring and its badges are light "
+              "tints of it under the second lap, nothing is chart-5 violet",
+              over["words"] == ["1", "kcal over"] and delta(tone, red) < 0.01 and over["ring"]
+              and delta(over["ring"][0], red) > 0.05 and all(reddish(c) for c in over["ring"] + over["sw"])
+              and over["track"] and chroma(over["track"]) >= 0.03 and hue_gap(over["track"], red) <= 20,
+              {"words": over["words"], "num": tone, "ring": over["ring"], "sw": over["sw"], "track": over["track"], "danger": red})
+        check(f"{scheme}: within and over differ on the ring and the badges",
+              delta(within["ring"][0], over["ring"][0]) > 0.1 and delta(within["sw"][0], over["sw"][0]) > 0.1,
+              (within["ring"][0], over["ring"][0], within["sw"][0], over["sw"][0]))
         shown_over = over["cells"]["2026-09-11"]
-        check(f"{scheme}: the shown day over budget fills its tank in the over tone, not the orange of the shown day",
-              shown_over["over"] and shown_over["fill"] and chroma(shown_over["fill"]) >= TONED and hue_gap(shown_over["fill"], tone) <= 20,
-              shown_over)
+        check(f"{scheme}: the shown day over budget fills its tank in the danger tint, not the orange of the shown day",
+              shown_over["over"] and shown_over["fill"] and reddish(shown_over["fill"]), shown_over)
         show(page, "2026-09-13")
         cells = page.evaluate(TONES_JS)["cells"]
         w, o, e = cells["2026-09-10"], cells["2026-09-11"], cells["2026-09-12"]
@@ -743,9 +883,19 @@ def check_status(browser, url, doc, errors):
         show(page, "2026-08-08")
         aug = page.evaluate(TONES_JS)
         bars = aug["bars"]
-        check(f"{scheme}: 8 Aug's protein (258 / 110 g) is over its target and takes the over tone; carbs (186 / 248) and fat (34 / 86) stay grey",
-              len(bars) == 3 and chroma(bars[1]) >= TONED and hue_gap(bars[1], tone) <= 20
-              and chroma(bars[0]) < NEUTRAL and chroma(bars[2]) < NEUTRAL, bars)
+        check(f"{scheme}: 8 Aug's protein (258 / 110 g) is over its target and is var(--danger); carbs (186 / 248) and fat "
+              "(34 / 86) share one grey (chart-neutral)",
+              len(bars) == 3 and delta(bars[1], red) < 0.01 and delta(bars[0], aug["grey"]) < 0.005 and delta(bars[2], aug["grey"]) < 0.005
+              and chroma(bars[0]) < NEUTRAL, bars)
+        show(page)
+        bars = page.evaluate(TONES_JS)["bars"]
+        check(f"{scheme}: 20 Oct (143 / 248, 67 / 110, 48 / 86 g: none past its target) draws its three bars in one grey",
+              len(bars) == 3 and all(delta(b, aug["grey"]) < 0.005 for b in bars) and chroma(bars[0]) < NEUTRAL, bars)
+        show(page, "2026-10-19")
+        bars = page.evaluate(TONES_JS)["bars"]
+        check(f"{scheme}: 19 Oct: protein (139 / 110 g) and fat (105 / 86 g) past their targets are danger, carbs (212 / 248) grey",
+              len(bars) == 3 and delta(bars[0], aug["grey"]) < 0.005 and delta(bars[1], red) < 0.01 and delta(bars[2], red) < 0.01, bars)
+        show(page, "2026-08-08")
         A.fits(page, f"Today 8 Aug, {scheme}, 360 px, text 1.0")
         page.screenshot(path=str(ROOT / ".tmp" / f"today-within-{scheme}.png"))
     page.evaluate("() => Pantry.change(d => { d.entries = d.entries.filter(e => !e.id.startsWith('tt-s')); })")
@@ -1010,10 +1160,12 @@ STATE_JS = """() => {
   const ghost = k => st(s.querySelector(`.today-ghost[data-k="${k}"]`));
   const liq = s.querySelector('.today-day[data-day="2026-10-20"] .today-liq');
   const macs = [0, 1, 2].map(i => ({ g: st(s.querySelectorAll('.today-g > span:first-child')[i]), gGhost: ghost('g' + i),
-                                     pct: st(s.querySelectorAll('.today-pct')[i]), pctGhost: ghost('pct' + i) }));
+                                     pct: st(s.querySelectorAll('.today-pct')[i]), pctGhost: ghost('pct' + i),
+                                     dn: st(s.querySelectorAll('.today-labs > div')[i].querySelector('.today-devn')), dnGhost: ghost('dn' + i) }));
   return { motion: s.dataset.motion || null, macs, num: st(s.querySelector('.today-frame [data-test="kcal-left"]')), numGhost: ghost('num'),
            ck: st(s.querySelector('.today-corner[data-meal="dinner"] .today-ck')), tot: st(s.querySelector('.today-tot')), totGhost: ghost('tot'),
            bars: [...s.querySelectorAll('.today-bar')].map(b => parseFloat(b.style.flexGrow)), ghosts: s.querySelectorAll('.today-ghost').length,
+           devs: [...s.querySelectorAll('.today-devbar')].map(b => b.getAttribute('style')),
            fill: liq ? parseFloat(liq.style.height) : null, over: s.querySelector('.today-frame').classList.contains('today-over') };
 }"""
 STEP = 16
@@ -1065,6 +1217,13 @@ def macro_shown(entries):
     return [f"{half(g):,} /" for g in grams], [f"{half(k / sum(kcal) * 100)}%" for k in kcal]
 
 
+def dev_points(entries):
+    """The points each deviation mark writes for these entries, worked out here against the 45 / 20 / 35 % targets."""
+    grams = [sum(e["totals"].get(k, 0) for e in entries) for k in ("carbs", "protein", "fat")]
+    kcal = [g * per for g, per in zip(grams, (4, 4, 9))]
+    return [points(k / sum(kcal) * 100 - t) for k, t in zip(kcal, (45, 20, 35))]
+
+
 def macros_still(s):
     return all(still(m["g"]) and still(m["pct"]) and m["gGhost"] is None and m["pctGhost"] is None for m in s["macs"])
 
@@ -1093,11 +1252,13 @@ def check_motion(browser, url, doc, errors):
     final_arcs = end["arcs"]
     dinner = [s["arcs"].get("dinner") for s in run]
     grown = [d for d in dinner if d]
-    check("back after logging dinner: the dinner arc grows from its old end (its own start, 123 deg) to 270, never back",
+    check("back after logging dinner: the dinner arc grows from its old end (its own start, where breakfast ends at 213.4 deg) "
+          "to the top (360), never back",
           "dinner" not in first_arcs and grown and all(abs(d[0] - final_arcs["dinner"][0]) < 0.01 for d in grown)
-          and all(b[1] >= a[1] - 0.01 for a, b in zip(grown, grown[1:])) and abs(final_arcs["dinner"][1] - 270) < 0.5
+          and abs(final_arcs["dinner"][0] - 1304 / BUDGET * 360) < 0.5
+          and all(b[1] >= a[1] - 0.01 for a, b in zip(grown, grown[1:])) and abs(final_arcs["dinner"][1] - 360) < 0.5
           and len({round(d[1], 1) for d in grown}) > 3, [None if d is None else [round(x, 1) for x in d] for d in dinner[:12]])
-    check("only what changed moves: breakfast's arc stays at -90..123 in every frame, no other meal gets an arc",
+    check("only what changed moves: breakfast's arc stays at 0..213.4 in every frame, no other meal gets an arc",
           all(s["arcs"].get("breakfast") == before[0]["breakfast"] and set(s["arcs"]) <= {"breakfast", "dinner"} for s in run),
           before[0])
     check("numbers never count up: kcal-left holds its new value (104) in every frame while the old one (896) leaves as a ghost",
@@ -1117,6 +1278,15 @@ def check_motion(browser, url, doc, errors):
           and [m["g"]["text"] for m in macs] == new_g and [m["pct"]["text"] for m in macs] == new_p
           and all(swapped(old_g[i], new_g[i], m["g"], m["gGhost"]) and swapped(old_p[i], new_p[i], m["pct"], m["pctGhost"])
                   for i, m in enumerate(macs)), macs)
+    old_d, new_d = dev_points(today), dev_points(today + [{"totals": DINNER}])
+    dn_swapped = lambda old, new, m: (m["dn"] is not None and m["dn"]["text"] == new and (  # noqa: E731
+        m["dn"]["opacity"] == 0 and (m["dnGhost"] or {}).get("text") == (old or None) if old != new else still(m["dn"]) and m["dnGhost"] is None))
+    check(f"the deviation points ({' / '.join(map(repr, old_d))} to {' / '.join(map(repr, new_d))}) swap with them, never "
+          "jump: a changed one holds its new value hidden in the first frame while its old value leaves as a ghost (none "
+          "when it had none); an unchanged one stays still; at the end all are still",
+          old_d != new_d and any(a == b for a, b in zip(old_d, new_d))
+          and all(dn_swapped(old_d[i], new_d[i], m) for i, m in enumerate(macs))
+          and all(still(m["dn"]) and m["dnGhost"] is None for m in end["macs"]), (old_d, new_d, [(m["dn"], m["dnGhost"]) for m in macs]))
     bars_end = settled_at(run, lambda s: s["bars"] == end["bars"])
     times = {
         "arc": settled_at(run, lambda s: s["arcs"] == final_arcs),
@@ -1132,6 +1302,10 @@ def check_motion(browser, url, doc, errors):
           "number finishes last, after every grey",
           first["bars"] != end["bars"] and first["fill"] < end["fill"] and None not in times.values()
           and times["macro numbers"] > times["bars"] and all(times["kcal left"] > v for v in greys) and 0 < times["arc"], times)
+    devs_end = settled_at(run, lambda s: s["devs"] == end["devs"])
+    check("the deviation marks move from their old values to their new ones with the bars and land when the bars do",
+          first["devs"] != end["devs"] and devs_end is not None and times["bars"] is not None and devs_end <= times["bars"] + STEP
+          and len({s["devs"][1] for s in run}) > 3, (first["devs"], end["devs"], devs_end, times["bars"]))
     flip = settled_at(run, lambda s: s["over"])
     check("the over tone lands with the kcal-left number: grey until its old value has left, then over",
           not first["over"] and end["over"] and flip is not None and times["kcal left"] - 300 <= flip < times["kcal left"]
@@ -1210,7 +1384,437 @@ def check_motion(browser, url, doc, errors):
     ctx.close()
 
 
+# ── Task-12: the deviation marks, the meal pages, the floating + and Scan, the page scrollbar ──
+
+# Each macro's deviation mark: whether it shows, its centre and half width, the target tick's centre, the bar from it,
+# its label column, what it says, and the points written over it (their ink, as text).
+MARKS_JS = "() => {" + INK_JS + """
+ return [...document.querySelectorAll('[data-screen="today"] .today-labs > div')].map(col => {
+  const dev = col.querySelector('.today-dev'), r = el => (el ? el.getBoundingClientRect() : null);
+  const d = r(dev), t = r(dev && dev.querySelector('.today-devtick')), b = r(dev && dev.querySelector('.today-devbar')), c = r(col);
+  const n = dev && dev.querySelector('.today-devn'), nb = n && n.textContent ? ink(n) : null;
+  return { visible: !!dev && getComputedStyle(dev).visibility === 'visible' && d.width > 0 && d.height > 0,
+           mid: d && d.left + d.width / 2, half: d && d.width / 2, edges: d && [d.left, d.right], top: d && d.top, tick: t && t.left + t.width / 2,
+           bar: b && [b.left, b.right], col: c && [c.left, c.right], said: dev && dev.getAttribute('aria-label'),
+           points: n ? n.textContent : null, pbox: nb && [nb.left, nb.right, r(n).bottom], size: nb && nb.size };
+ }); }"""
+SPAN = 20          # points of share for half the mark's scale (app/today.js DEV_SPAN)
+
+
+def points(d):
+    """The points a mark writes for a deviation: rounded half up as the app's numbers are, signed, none on target."""
+    if d is None:
+        return None
+    off = math.floor(d + 0.5)
+    return "" if off == 0 else f"{'+' if off > 0 else '−'}{abs(off)}"
+
+
+def marks_ok(marks, devs):
+    """Every mark shows inside its label column, its tick at its centre, and its bar runs from the tick toward the side
+    the share leans, min(|deviation|, 20) / 20 of the half long (1 px). Over the scale (never on it, where the bar runs)
+    its points are written centred on the tick, inside the column, at 11 px at least; none on target or unlogged."""
+    bad = []
+    for m, d in zip(marks, devs):
+        reach = 0 if d is None else math.copysign(min(abs(d), SPAN) / SPAN * m["half"], d)
+        want = sorted([m["mid"], m["mid"] + reach])
+        said = points(d)
+        written = m["points"] == said if said is None else (m["points"] or "") == said
+        placed = not said or (m["pbox"] is not None and abs((m["pbox"][0] + m["pbox"][1]) / 2 - m["tick"]) <= 1
+                              and m["pbox"][2] <= m["top"] + 0.5 and m["pbox"][0] >= m["col"][0] - 0.5
+                              and m["pbox"][1] <= m["col"][1] + 0.5 and m["size"] >= 11)
+        if not (m["visible"] and abs(m["tick"] - m["mid"]) <= 1 and m["edges"][0] >= m["col"][0] - 0.5 and m["edges"][1] <= m["col"][1] + 0.5
+                and abs(m["bar"][0] - want[0]) <= 1 and abs(m["bar"][1] - want[1]) <= 1 and written and placed):
+            bad.append({"mark": m, "deviation": d, "want": want, "points": said})
+    return len(marks) == len(devs) and not bad, bad
+
+
+def check_marks(page, days):
+    for day, words in (("2026-08-08", ["Carbs: 9 points under its 45% target", "Protein: 30 points over its 20% target",
+                                       "Fat: 20 points under its 35% target"]), ("2026-10-20", None)):
+        d = days[day]
+        kc = [d["c"] * 4, d["p"] * 4, d["f"] * 9]
+        devs = [k / sum(kc) * 100 - t for k, t in zip(kc, (45, 20, 35))]
+        show(page, day)
+        marks = page.evaluate(MARKS_JS)
+        ok, bad = marks_ok(marks, devs)
+        said = [m["said"] for m in marks]
+        check(f"{day}: under each macro bar its deviation mark shows how far its share is from its target share "
+              f"({', '.join(f'{x:+.1f}' for x in devs)} points: a bar from the target tick, right when above, left when below, "
+              f"and over the tick the points, {' / '.join(repr(points(x)) for x in devs)})",
+              ok and (words is None or said == words), bad or said)
+    show(page, "2026-10-18")
+    marks = page.evaluate(MARKS_JS)
+    ok, bad = marks_ok(marks, [None] * 3)
+    check("a day with nothing logged draws each mark's target tick alone (no bar, no points, nothing said)",
+          ok and all(m["said"] is None for m in marks), bad or marks)
+
+
+PAGES_JS = """() => { const s = document.querySelector('[data-screen="today"]'), pg = s.querySelector('.today-pages');
+  const add = s.querySelector('[data-act="add"]');
+  return { left: pg.scrollLeft, width: pg.clientWidth,
+           selected: [...s.querySelectorAll('.today-tab')].filter(t => t.getAttribute('aria-selected') === 'true').map(t => t.dataset.page),
+           live: [...s.querySelectorAll('.today-pg')].filter(p => !p.inert).map(p => p.dataset.pg),
+           add: add.getAttribute('aria-label'), addFor: add.dataset.for, scanFor: s.querySelector('[data-act="scan"]').dataset.for,
+           armed: s.querySelectorAll('.today-arm').length, h1: s.querySelector('h1').textContent,
+           strip: s.querySelector('.today-days').scrollLeft, hash: location.hash, state: JSON.stringify(history.state) }; }"""
+
+
+def pages_at(page, meal):
+    """Waits (at most 5 s) for the pages to rest on `meal`'s snap; returns what the screen shows then."""
+    until(page, """i => { const pg = document.querySelector('[data-screen="today"] .today-pages');
+        return !!pg && Math.abs(pg.scrollLeft - i * pg.clientWidth) < 1; }""", MEALS.index(meal))
+    page.wait_for_timeout(150)
+    return page.evaluate(PAGES_JS)
+
+
+def resting(st, meal):
+    """The pages rest on `meal`: scrolled to its snap, its tab alone lit, its page alone live, the + and Scan for it."""
+    return (abs(st["left"] - MEALS.index(meal) * st["width"]) < 1 and st["selected"] == [meal] and st["live"] == [meal]
+            and st["add"] == f"Add food to {meal}" and st["addFor"] == meal and st["scanFor"] == meal)
+
+
+def held_drag(page, x0, x1, y):
+    """A finger drawn sideways and held still before it lifts (headless Chromium never ends the fling a quick lift
+    starts, so the pages would never settle; the phone ends it)."""
+    cdp = page.context.new_cdp_session(page)
+    cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": x0, "y": y}]})
+    for i in range(1, 11):
+        cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": x0 + (x1 - x0) * i / 10, "y": y}]})
+        page.wait_for_timeout(16)
+    page.wait_for_timeout(200)
+    cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+    cdp.detach()
+
+
+def tab(page, meal):
+    page.locator(f'{SCREEN} .today-tab[data-page="{meal}"]').click()
+    return pages_at(page, meal)
+
+
+def check_pages(browser, url, doc, errors):
+    """The eaten section as one page per meal at 360 x 780, text 1.0: 19 Oct has breakfast (3) and dinner (1)."""
+    ctx, page = A.phone(browser, errors, "today-pages", text=1.0)
+    A.open_today(page, url)
+    page.evaluate("d => Pantry.change(() => d, { dirty: false })", doc)
+    day = "2026-10-19"
+    names = {f["id"]: f["name"] for f in doc["foods"]}
+    logged = lambda meal: [e for e in doc["entries"] if e["date"] == day and e["meal"] == meal]  # noqa: E731
+    show(page, day)
+    st = pages_at(page, "breakfast")
+    check("19 Oct opens on breakfast, its first meal with entries: a tab per meal with its kcal, a page per meal, only "
+          "breakfast's page live, its rows in the order logged",
+          resting(st, "breakfast") and texts(page, ".today-tab span") == ["Breakfast", "Lunch", "Dinner", "Snacks"]
+          and texts(page, ".today-tab b") == ["988", "", "1,304", ""] and page.locator(f"{SCREEN} .today-pg").count() == 4
+          and texts(page, '.today-pg[data-pg="breakfast"] .fr .name') == [names[e["foodId"]] for e in logged("breakfast")]
+          and len(logged("breakfast")) == 3, st)
+
+    # the empty page: says so, offers Add to <meal>, and is no .fr row
+    st = tab(page, "lunch")
+    lunch = page.locator(f'{SCREEN} .today-pg[data-pg="lunch"]')
+    add_to = lunch.get_by_role("button", name="Add to lunch", exact=True)
+    check("tapping Lunch opens its page: it says 'Nothing in lunch that day.' and offers 'Add to lunch'; no placeholder is a "
+          ".fr row; Today still has one 'Add food' (the +) and one 'Scan a barcode'",
+          resting(st, "lunch") and text(page, '.today-pg[data-pg="lunch"] .note') == "Nothing in lunch that day."
+          and add_to.count() == 1 and page.locator(f'{SCREEN} .today-pg:not(:has(.today-li)) .fr').count() == 0
+          and page.locator(f"{SCREEN} .fr").count() == 4 and page.get_by_role("button", name="Add food").count() == 1
+          and page.get_by_role("button", name="Scan a barcode").count() == 1, st)
+    went = tap_goes(page, '.today-pg[data-pg="lunch"] [data-act="addto"]', day)
+    st = pages_at(page, "lunch")
+    check("'Add to lunch' opens lunch's list for the day; back on Today the lunch page shows again",
+          went == f"#/add/lunch/{day}" and resting(st, "lunch"), (went, st))
+
+    # a tab far away: the tabs passed on the way stay unlit
+    tab(page, "breakfast")
+    page.evaluate("""() => { window.__lit = []; new MutationObserver(ms => ms.forEach(m => {
+        if (m.target.getAttribute('aria-selected') === 'true') window.__lit.push(m.target.dataset.page); }))
+        .observe(document.querySelector('[data-screen="today"] .today-tabs'), { subtree: true, attributeFilter: ['aria-selected'] }); }""")
+    st = tab(page, "snacks")
+    lit = page.evaluate("window.__lit")
+    check("tapping Snacks from Breakfast scrolls the pages to snacks; only Snacks lights up on the way (lunch and dinner do not)",
+          resting(st, "snacks") and lit == ["snacks"], (lit, st))
+
+    # one sideways swipe, one meal; it moves nothing else
+    before = tab(page, "breakfast")
+    box = page.locator(f"{SCREEN} .today-pages").bounding_box()
+    y = box["y"] + 28
+    held_drag(page, 330, 90, y)
+    one = pages_at(page, "lunch")
+    held_drag(page, 90, 330, y)
+    back = pages_at(page, "breakfast")
+    held_drag(page, 352, 8, y)
+    far = pages_at(page, "lunch")
+    same = lambda s: (s["h1"], s["strip"], s["hash"], s["state"]) == (before["h1"], before["strip"], before["hash"], before["state"])  # noqa: E731
+    check("a sideways swipe on the pages moves one meal (left: lunch, right: breakfast again; a swipe across the whole "
+          "screen still one meal) and leaves the day, the strip, the address and history alone",
+          resting(one, "lunch") and resting(back, "breakfast") and resting(far, "lunch") and same(one) and same(back) and same(far),
+          (one, back, far))
+
+    # a row opens Edit entry; back, and Save, return to the same meal page
+    tab(page, "dinner")
+    page.locator(f'{SCREEN} .today-pg[data-pg="dinner"] .fr').click()
+    until(page, "() => location.hash.startsWith('#/entry/')")
+    went = page.evaluate("location.hash")
+    page.evaluate("history.back()")
+    until(page, BACK_TO_JS, "19 Oct")
+    back = pages_at(page, "dinner")
+    page.locator(f'{SCREEN} .today-pg[data-pg="dinner"] .fr').click()
+    page.wait_for_selector('[data-screen="entry"]')
+    page.locator('[data-screen="entry"]').get_by_role("button", name="Save").click()
+    page.wait_for_selector(f"{SCREEN} .today-frame")
+    saved = pages_at(page, "dinner")
+    check("a dinner row opens 'entry <its id>'; back from Edit entry, and its Save, show the dinner page again",
+          went == f"#/entry/{logged('dinner')[0]['id']}" and resting(back, "dinner") and resting(saved, "dinner"), (went, back, saved))
+
+    # two deliberate taps take an entry out, through Pantry.removeEntry; Undo puts it back
+    tab(page, "breakfast")
+    doc0 = A.stored(page)
+    rows = f'{SCREEN} .today-pg[data-pg="breakfast"] .today-li'
+    first = page.locator(rows).first
+    entry_id = first.locator(".fr").get_attribute("data-entry")
+    first.locator(".today-del").click()
+    one_tap = A.stored(page)
+    offered = first.get_by_role("button", name="Delete", exact=True)
+    keep = first.locator(".today-del").get_attribute("aria-label")
+    food = names[logged("breakfast")[0]["foodId"]]
+    shown = offered.count() == 1 and offered.is_visible() and keep == f"Keep {food}"
+    if offered.count() == 1:
+        offered.click()
+    gone = A.stored(page)
+    st = pages_at(page, "breakfast")
+    toast = page.locator("#toast")
+    said = toast.inner_text().strip() if toast.count() else ""
+    lines = [r for r in gone.get("removed", []) if r.get("id") == entry_id]
+    check("the trash is the first tap (nothing is removed; Delete takes the kcal's place and the trash becomes Keep), Delete "
+          "the second: the entry is gone with a doc.removed line, the breakfast page stays, the toast offers Undo",
+          one_tap == doc0 and shown and entry_id not in [e["id"] for e in gone["entries"]] and len(lines) == 1
+          and isinstance(lines[0].get("at"), str) and resting(st, "breakfast") and said.startswith(f"Deleted {food}")
+          and "Undo" in said, (shown, keep, said, lines, st))
+    undo = toast.get_by_role("button", name="Undo")
+    if undo.count() == 1:
+        undo.click()
+    undone = A.stored(page)
+    check("Undo puts the entry back deep-equal at its place and drops its removed line",
+          undone["entries"] == doc0["entries"] and undone.get("removed") == doc0.get("removed")
+          and page.locator(rows).count() == 3, (len(undone["entries"]), undone.get("removed")))
+
+    # a double tap on the trash is not two deliberate steps: the second lands on Keep
+    spot = centre_of(page, '.today-pg[data-pg="breakfast"] .today-del')
+    page.mouse.click(*spot)
+    page.mouse.click(*spot)
+    st = page.evaluate(PAGES_JS)
+    check("two quick taps on one trash remove nothing: the second is Keep, and nothing stays offered",
+          A.stored(page)["entries"] == doc0["entries"] and st["armed"] == 0, st)
+
+    # a sideways swipe never removes anything, even one that starts on an offered Delete or on a trash
+    page.locator(f"{rows} .today-del").first.click()
+    yes = centre_of(page, '.today-pg[data-pg="breakfast"] .today-yes')
+    held_drag(page, yes[0], yes[0] - 240, yes[1])
+    from_yes = pages_at(page, "lunch")
+    tab(page, "breakfast")
+    trash = centre_of(page, '.today-pg[data-pg="breakfast"] .today-del')
+    held_drag(page, trash[0], trash[0] - 240, trash[1])
+    from_trash = pages_at(page, "lunch")
+    check("a sideways swipe that starts on an offered Delete, or on a trash, changes the meal and removes nothing; the offer goes",
+          resting(from_yes, "lunch") and resting(from_trash, "lunch") and from_yes["armed"] == 0 and from_trash["armed"] == 0
+          and A.stored(page)["entries"] == doc0["entries"], (from_yes, from_trash))
+
+    # Delete on Edit entry returns to the same page, which now says it is empty
+    tab(page, "dinner")
+    page.locator(f'{SCREEN} .today-pg[data-pg="dinner"] .fr').click()
+    page.wait_for_selector('[data-screen="entry"]')
+    page.locator('[data-screen="entry"]').get_by_role("button", name="Delete").click()
+    page.wait_for_selector(f"{SCREEN} .today-frame")
+    st = pages_at(page, "dinner")
+    check("after a delete on Edit entry, Today shows the dinner page, now 'Nothing in dinner that day.'",
+          resting(st, "dinner") and text(page, '.today-pg[data-pg="dinner"] .note') == "Nothing in dinner that day.", st)
+    page.locator("#toast").get_by_role("button", name="Undo").click()
+    until(page, "() => document.querySelectorAll('[data-screen=\"today\"] .today-pg[data-pg=\"dinner\"] .fr').length === 1")
+
+    # the page he chose holds across the meal clock (11:00): back from Edit entry, on Today and on a past day, and a
+    # delete in place; Today brought back to the screen once the clock's meal has moved on opens on the clock's meal
+    clock = lambda h, m: page.clock.set_fixed_time(datetime.datetime(2026, 10, 20, h, m, tzinfo=A.DARWIN))  # noqa: E731
+    page.evaluate("""() => Pantry.change(d => { for (const [id, meal] of [['tt-b1', 'breakfast'], ['tt-b2', 'breakfast'], ['tt-d1', 'dinner']])
+        d.entries.push({ id, date: Pantry.today(), meal, foodId: d.foods[0].id, amount: '1 g', grams: 1, totals: { kcal: 10 } }); })""")
+    across = {}
+    for d, title in ((None, "Today"), (day, "19 Oct")):
+        clock(10, 58)
+        show(page, d)
+        tab(page, "dinner")
+        page.locator(f'{SCREEN} .today-pg[data-pg="dinner"] .fr').first.click()
+        page.wait_for_selector('[data-screen="entry"]')
+        clock(11, 1)
+        page.evaluate("history.back()")
+        until(page, BACK_TO_JS, title)
+        across[title] = pages_at(page, "dinner")
+    clock(10, 58)
+    show(page)
+    tab(page, "breakfast")
+    clock(11, 1)
+    n0 = len(A.stored(page)["entries"])
+    page.locator(f'{SCREEN} .today-pg[data-pg="breakfast"] .today-del').first.click()
+    page.locator(f'{SCREEN} .today-pg[data-pg="breakfast"] .today-yes').click()
+    deleted = pages_at(page, "breakfast")
+    n1 = len(A.stored(page)["entries"])
+    clock(11, 30)
+    page.evaluate("document.dispatchEvent(new Event('visibilitychange'))")
+    woken = pages_at(page, "lunch")
+    page.clock.set_fixed_time(A.NOW)
+    page.evaluate("document.dispatchEvent(new Event('visibilitychange'))")
+    page.evaluate("() => Pantry.change(d => { d.entries = d.entries.filter(e => !e.id.startsWith('tt-')); })")
+    show(page, day)
+    check("the page he chose holds across 11:00 (the clock's meal turning to lunch): back from Edit entry, on Today and on "
+          "19 Oct, the dinner page shows; a delete at 11:01 leaves the breakfast page where it is; only Today brought back "
+          "to the screen at 11:30 opens on lunch, and its + adds to lunch",
+          resting(across["Today"], "dinner") and resting(across["19 Oct"], "dinner") and resting(deleted, "breakfast")
+          and n1 == n0 - 1 and resting(woken, "lunch"), (across, deleted, n0, n1, woken))
+
+    # back from logging: the meal just logged to
+    tab(page, "breakfast")
+    page.evaluate("""day => { Pantry.go('add', 'snacks', day);
+        Pantry.change(d => { d.entries.push({ id: 'tt-snack', date: day, meal: 'snacks', foodId: d.foods[0].id, amount: '1 g', grams: 1,
+          totals: { kcal: 10 } }); });
+        Pantry.go('today', day); }""", day)
+    page.wait_for_selector(f"{SCREEN} .today-frame")
+    after_log = pages_at(page, "snacks")
+    page.evaluate("() => Pantry.change(d => { d.entries = d.entries.filter(e => e.id !== 'tt-snack'); })")
+    page.evaluate("""() => Pantry.change(d => { d.entries.push({ id: 'tt-dinner-only', date: '2026-07-02', meal: 'dinner',
+        foodId: d.foods[0].id, amount: '1 g', grams: 1, totals: { kcal: 10 } }); })""")
+    show(page, "2026-07-02")
+    only_dinner = pages_at(page, "dinner")
+    show(page)
+    today = pages_at(page, "breakfast")
+    page.evaluate("() => Pantry.change(d => { d.entries = d.entries.filter(e => e.id !== 'tt-dinner-only'); })")
+    check("the page it opens on: back from logging a snack, snacks; a past day with dinner alone, dinner; Today at 07:00, breakfast",
+          resting(after_log, "snacks") and resting(only_dinner, "dinner") and resting(today, "breakfast"), (after_log, only_dinner, today))
+
+    for scheme in ("dark", "light"):
+        page.emulate_media(color_scheme=scheme)
+        show(page, day)
+        tab(page, "lunch")
+        A.fits(page, f"Today 19 Oct on its empty lunch page, {scheme}, 360 x 780, text 1.0")
+        tab(page, "breakfast")
+        page.locator(f"{rows} .today-del").first.click()
+        A.fits(page, f"Today 19 Oct with a Delete offered, {scheme}, 360 x 780, text 1.0")
+        page.screenshot(path=str(ROOT / ".tmp" / f"today-pages-{scheme}.png"))
+        page.locator(f"{rows} .today-del").first.click()
+    ctx.close()
+
+
+def check_double_delete(browser, url, doc, errors):
+    """A double tap on Delete takes one entry out and stays on Today: the second tap, on the row that slid up under the
+    finger, does nothing; a tap there once the hold is over opens that row. 8 Aug's snacks (the gate's long day): a
+    synthetic row (kcal only, so the macro strip above keeps its height) mid-screen, clear of the toast the delete
+    brings up; finger taps with the times they claim."""
+    ctx, page = A.phone(browser, errors, "today-double-delete", text=1.0)
+    A.open_today(page, url)
+    page.evaluate("d => Pantry.change(() => d, { dirty: false })", long_day(doc))
+    day = "2026-08-08"
+    show(page, day)
+    tab(page, "snacks")
+    trash = '.today-pg[data-pg="snacks"] [data-del="synthetic-scroll-0"]'
+    page.evaluate("s => scrollTo(0, scrollY + document.querySelector(s).getBoundingClientRect().top - 300)", f"{SCREEN} {trash}")
+    n0 = len(A.stored(page)["entries"])
+    page.touchscreen.tap(*centre_of(page, trash))
+    page.wait_for_selector(f"{SCREEN} .today-yes")
+    spot = centre_of(page, ".today-yes")
+    page.touchscreen.tap(*spot)
+    page.wait_for_timeout(80)
+    under = page.evaluate("""([x, y]) => { const b = document.elementFromPoint(x, y).closest('button');
+        return b && b.dataset.entry ? b.dataset.entry : null; }""", list(spot))
+    page.touchscreen.tap(*spot)
+    page.wait_for_timeout(300)
+    twice = page.evaluate(f"() => document.querySelector('{SCREEN} .today-pages') ? ({PAGES_JS})() : {{ hash: location.hash }}")
+    n1 = len(A.stored(page)["entries"])
+    page.wait_for_timeout(200)
+    page.touchscreen.tap(*spot)
+    until(page, "() => location.hash.startsWith('#/entry/')")
+    later = page.evaluate("location.hash")
+    check("two finger taps on Delete 80 ms apart take out one entry and stay on Today's snacks page: the second, on the "
+          "row that slid up under the finger, does nothing; a tap there once the hold (350 ms) is over opens that row",
+          under is not None and n1 == n0 - 1 and twice["hash"] == f"#/today/{day}" and resting(twice, "snacks")
+          and later == f"#/entry/{under}", (under, n0, n1, twice, later))
+    ctx.close()
+
+
+# The text of each row on the shown meal page (ink, not boxes) against the + and Scan; and how the two float.
+FAB_CLEAR_JS = "() => {" + INK_JS + """
+  const s = document.querySelector('[data-screen="today"]'), r = el => el.getBoundingClientRect();
+  const add = s.querySelector('[data-act="add"]'), scan = s.querySelector('[data-act="scan"]');
+  const hit = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+  const parts = [...s.querySelectorAll('.today-pg:not([inert]) .fr')].flatMap(fr => [...fr.querySelectorAll('.name, .sub, .k')]);
+  const under = parts.filter(el => { const i = ink(el), box = { left: i.left, right: i.right, top: r(el).top, bottom: r(el).bottom };
+    return hit(box, r(add)) || hit(box, r(scan)); }).map(el => el.textContent);
+  const cs = el => getComputedStyle(el);
+  const probe = v => { const p = document.createElement('i'); p.style.color = v; s.appendChild(p); const c = cs(p).color; p.remove(); return c; };
+  return { rows: parts.length / 3, under, end: Math.abs(scrollY + innerHeight - document.documentElement.scrollHeight) < 1,
+           shadow: [cs(add).boxShadow, cs(scan).boxShadow], scanBg: cs(scan).backgroundColor, scanLine: cs(scan).borderTopColor,
+           level: { surface1: probe('var(--surface-1)'), surface3: probe('var(--surface-3)'), strong: probe('var(--hairline-strong)') } };
+}"""
+
+
+def long_day(doc):
+    """The fixture plus 16 synthetic snacks on 8 Aug (as tests/test_shell.py's scroll checks have it)."""
+    d = json.loads(json.dumps(doc))
+    potato = "v1.iDrOYS8VTR3WqlsjSmhKQquNuENy*Ye3zEYbkuAybx6Agegqo+nWunqLTjg="
+    for i in range(16):
+        d["entries"].append({"id": f"synthetic-scroll-{i}", "date": "2026-08-08", "meal": "snacks", "foodId": potato,
+                             "amount": "100 g", "grams": 100, "totals": {"kcal": 59}})
+    return d
+
+
+def check_fab(browser, url, doc, errors):
+    """Scrolled to the end, no row's words or kcal lie under the floating + or Scan, on the longest page and on a short
+    one; Scan floats as the + does (the base's level 3: the same shadow; dark a step up with a strong hairline)."""
+    for scheme in ("dark", "light"):
+        ctx, page = A.phone(browser, errors, f"today-fab-{scheme}", text=1.0)
+        page.emulate_media(color_scheme=scheme)
+        A.open_today(page, url)
+        page.evaluate("d => Pantry.change(() => d, { dirty: false })", long_day(doc))
+        for date, meal in (("2026-08-08", "snacks"), ("2026-08-08", "breakfast"), ("2026-10-19", "breakfast")):
+            show(page, date)
+            tab(page, meal)
+            page.evaluate("scrollTo(0, document.documentElement.scrollHeight)")
+            page.wait_for_timeout(150)
+            r = page.evaluate(FAB_CLEAR_JS)
+            check(f"{scheme}, {date} on its {meal} page scrolled to the end: no row's name, amount or kcal lies under the + or Scan "
+                  f"({int(r['rows'])} rows)", r["end"] and r["rows"] >= 1 and not r["under"], r)
+        lvl = r["level"]
+        level3 = (r["scanBg"] == lvl["surface3"] and r["scanLine"] == lvl["strong"]) if scheme == "dark" else \
+            (r["scanBg"] == lvl["surface1"] and r["shadow"][1] != "none")
+        check(f"{scheme}: Scan floats as the + does: the same shadow ({r['shadow'][0]}), the base's level 3 surface, not the flat grey tile",
+              r["shadow"][0] == r["shadow"][1] and level3, r)
+        A.fits(page, f"Today 19 Oct scrolled to the end, {scheme}, 360 x 780, text 1.0")
+        ctx.close()
+
+
+def check_scrollbar(p, url, doc, errors):
+    """No scrollbar line at the page's right edge: a browser that draws classic scrollbars (Playwright hides them by
+    default) gives the long Today no scrollbar width, and it still scrolls."""
+    browser = p.chromium.launch(ignore_default_args=["--hide-scrollbars"])
+    ctx = browser.new_context(viewport={"width": 360, "height": 780}, timezone_id="Australia/Darwin", locale="en-AU")
+    ctx.clock.set_fixed_time(A.NOW)
+    page = ctx.new_page()
+    A.watch(page, errors, "today-scrollbar")
+    A.open_today(page, url)
+    page.evaluate("d => Pantry.change(() => d, { dirty: false })", long_day(doc))
+    show(page, "2026-08-08")
+    tab(page, "snacks")
+    r = page.evaluate("""() => { const before = scrollY; scrollTo(0, 300); const y = scrollY; scrollTo(0, before);
+        return { bar: innerWidth - document.documentElement.clientWidth, room: document.documentElement.scrollHeight - innerHeight, y }; }""")
+    check("the long Today scrolls with no page scrollbar at its right edge (0 px of scrollbar where one would take 15)",
+          r["bar"] == 0 and r["room"] > 300 and r["y"] == 300, r)
+    ctx.close()
+    browser.close()
+
+
+SCENARIOS = ["main", "fit", "first launch", "status", "tap after swipe", "edges", "motion", "pages", "fab", "scrollbar"]
+
+
 def main():
+    want = set(sys.argv[1:]) or set(SCENARIOS)
+    unknown = want - set(SCENARIOS)
+    if unknown:
+        raise SystemExit(f"unknown scenario {sorted(unknown)}; choose from {SCENARIOS}")
     days = fixture_days()
     doc = imported()
     srv, site, url = A.start_site()
@@ -1218,23 +1822,31 @@ def main():
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch()
-            ctx, page = A.phone(browser, errors, "today")
-            A.open_today(page, url)
-            page.evaluate("d => Pantry.change(() => d, { dirty: false })", doc)
-            for name, fn, args in (("8 Aug", check_day, (page, days)), ("ring", check_ring, (page, days)),
-                                   ("strip", check_strip, (page, url)), ("waves", check_waves, (page,)),
-                                   ("routes", check_routes, (page,)), ("live", check_live, (page,)),
-                                   ("banner", check_banner, (page,)), ("dates", check_dates, (page,)),
-                                   ("midnight", check_midnight, (page,)), ("meal follows the clock", check_meal_clock, (page,)), ("ring swipe", check_swipe, (page,)),
-                                   ("days in place", check_in_place, (page,)), ("text and theme", check_text_and_theme, (page, url))):
-                A.guarded(f"Today {name} checks", fn, *args)
-            ctx.close()
-            A.guarded("Today fit checks", check_fit, browser, url, doc, errors)
-            A.guarded("Today first launch checks", check_first_launch, browser, url, errors)
-            A.guarded("Today budget status checks", check_status, browser, url, doc, errors)
-            A.guarded("Today tap after a swipe checks", check_tap_after_swipe, browser, url, doc, errors)
-            A.guarded("Today moving edge checks", check_moving_edges, browser, url, doc, errors)
-            A.guarded("Today motion checks", check_motion, browser, url, doc, errors)
+            if "main" in want:
+                ctx, page = A.phone(browser, errors, "today")
+                A.open_today(page, url)
+                page.evaluate("d => Pantry.change(() => d, { dirty: false })", doc)
+                for name, fn, args in (("8 Aug", check_day, (page, days)), ("ring", check_ring, (page, days)),
+                                       ("deviation mark", check_marks, (page, days)),
+                                       ("strip", check_strip, (page, url)), ("waves", check_waves, (page,)),
+                                       ("routes", check_routes, (page,)), ("live", check_live, (page,)),
+                                       ("banner", check_banner, (page,)), ("dates", check_dates, (page,)),
+                                       ("midnight", check_midnight, (page,)), ("meal follows the clock", check_meal_clock, (page,)), ("ring swipe", check_swipe, (page,)),
+                                       ("days in place", check_in_place, (page,)), ("text and theme", check_text_and_theme, (page, url))):
+                    A.guarded(f"Today {name} checks", fn, *args)
+                ctx.close()
+            for key, name, fn, args in (("fit", "fit", check_fit, (browser, url, doc, errors)),
+                                        ("first launch", "first launch", check_first_launch, (browser, url, errors)),
+                                        ("status", "budget status", check_status, (browser, url, doc, errors)),
+                                        ("tap after swipe", "tap after a swipe", check_tap_after_swipe, (browser, url, doc, errors)),
+                                        ("edges", "moving edge", check_moving_edges, (browser, url, doc, errors)),
+                                        ("motion", "motion", check_motion, (browser, url, doc, errors)),
+                                        ("pages", "meal pages", check_pages, (browser, url, doc, errors)),
+                                        ("pages", "double tap on Delete", check_double_delete, (browser, url, doc, errors)),
+                                        ("fab", "floating + and Scan", check_fab, (browser, url, doc, errors)),
+                                        ("scrollbar", "page scrollbar", check_scrollbar, (p, url, doc, errors))):
+                if key in want:
+                    A.guarded(f"Today {name} checks", fn, *args)
             browser.close()
         check("no console errors or page errors", not errors, "\n".join(errors[:10]))
     finally:
