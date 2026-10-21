@@ -1,24 +1,41 @@
 /* Log: a meal's food list and the gram sheet drawn over it (design/screens.html → 2, 3, 3b).
 
    Routes (Blueprint → Screens and seams; a missing date is today, a missing meal Pantry.mealNow()):
-     '#/add/<meal>/<date>'        the meal's foods: search by food or brand, tabs Frequent / Recent / My foods. A row's
-                                  + logs its usual amount at once and the list stays (toast with Undo); tapping the row
-                                  opens the gram sheet over the list, and the phone's back gesture closes it again.
+     '#/add/<meal>/<date>'        the meal's list: search by food or brand, tabs <Meal> / Frequent / Recent / My foods.
+                                  It opens on the meal's own tab when the meal holds entries that day, else on Frequent;
+                                  a Back to it shows the tab it showed (history.state.logTab), where it was scrolled.
+                                  In the food tabs a row's + logs its usual amount at once and the list stays (toast
+                                  with Undo); a tap anywhere else on the row, its drawing included, opens the gram sheet
+                                  over the list, and the phone's back gesture closes it again.
      '#/food/<id>/<meal>/<date>'  the same list with the gram sheet for one food already open; closing it goes back.
    "Add to <meal>" on the sheet logs and returns with Pantry.go('today', date); Back from Today shows the list, not the sheet.
 
-   Staying in the meal (MyNetDiary's way): under the title, the meal so far on the shown day ("In dinner: 2 foods,
-   1,422 kcal"), and a check with its count on each row already in it. A row is ticked by tapping its drawing (as a
-   mail app's avatar), so the tick costs the name no width; ticked rows go in with one "Add N to <meal>", each at its
-   usual amount as its + would log it, with one Undo; ticks hold across tabs and search and clear after Add. A food
-   with no usual amount cannot be ticked (its drawing and its + open the sheet). The sheet's Add logs the ticked foods
-   with its own ("Add 4 to dinner"), still at the list's meal and amounts when its radio names another meal ("Add to
-   lunch, 3 to dinner"), and a + on a ticked row unticks it, so nothing is dropped or logged twice. Above the rows,
-   "Same as yesterday's <meal>", when the day before the shown day has entries at that meal, names its foods and kcal;
-   one tap copies them (amounts and log-time totals unchanged, one Undo) and the row reads as added while that copy is
-   logged (its ids say so, so a reload keeps it). Every log answers before it is saved: the + turns into a check and
-   Pantry.haptic('tap') pulses in the tap's own handler; the save runs once the browser has painted that. The check is
-   the answer, not a second +: until it turns back (with the toast), another tap logs nothing.
+   The meal's tab ("Lunch") lists what that meal holds on the shown day, in log order, each entry with its amount and
+   kcal; a tap opens Edit entry ('entry <id>'). Its − takes the entry out in two taps and he stays in the meal: the
+   first turns it into "Remove" (for 4 s, or until a tap elsewhere), the second calls Pantry.removeEntry (a removed
+   line, the Undo toast; when the save fails, the row stays and the toast says why). A second tap within 350 ms of the first is the end of a double tap, not a decision, and does
+   nothing. The tab follows the log while it is shown (a + on another tab, an Undo, another browser tab, a sync); an
+   empty meal's tab says so. Its rows carry no .fr, .log-open or +, so nothing that looks for a food row reaches them.
+
+   Staying in the meal (MyNetDiary's way): under the title, on every tab, the meal so far on the shown day ("In dinner:
+   2 foods, 1,422 kcal"), and a check with its count on each food row already in it. Several foods at once start with
+   a long press on a food row (500 ms, or the browser's own long press if sooner), Android's own way to start choosing
+   in a list, so a tap meant to open a food never ticks it. While any food is ticked, a tap on a row ticks or unticks
+   it, as in Android's lists. A finger that moves past 10 px, starts a scroll, or lands on a list that is still
+   scrolling (within 100 ms of its last scroll: that touch stops a fling) starts nothing; ending the press opens nothing,
+   and the browser's menu and text selection never come up over a row. Ticked rows go in with one "Add N to <meal>",
+   each at its usual amount as its + would log it, with one Undo; ticks hold across tabs and search and clear after
+   Add or the bar's x. A food with no usual amount cannot be ticked (a tap and its + open the sheet). The sheet's Add
+   logs the ticked foods with its own ("Add 4 to dinner"), still at the list's meal and amounts when its radio names
+   another meal ("Add to lunch, 3 to dinner"), and a + on a ticked row unticks it, so nothing is dropped or logged
+   twice. Above the Frequent tab's rows, "Same as yesterday's <meal>", when the day before the shown day has entries
+   at that meal, names its foods and kcal; one tap on its + copies them (amounts and log-time totals unchanged, one
+   Undo); a tap elsewhere on it does nothing, as a tap on a food's drawing never logs. The row reads as added while
+   that copy is logged (its ids say so, so a reload keeps it). Every log answers before
+   it is saved: the + turns into a check and Pantry.haptic('tap') pulses in the tap's own handler; the save runs once
+   the browser has painted that. The check is the answer, not a second +: until it turns back (with the toast),
+   another tap logs nothing. The list is its own layer under the sticky search and tabs, so a row's check scrolls
+   under them.
 
    Rules
      Frequent    the foods logged at that meal in the 90 days up to today, most often first (then the latest first);
@@ -26,15 +43,18 @@
      Recent      the last distinct foods logged; My foods every food, A to Z.
      Search      every typed word starts a word of the food's name or brand, ignoring case and accents.
      Usual       Pantry.usualAmounts(foodId, meal)[0], the one rule in core; the sheet's chips are that list, with no use
-                 counts, then the food's pack ('1 pack' serving) when it has one. The amount starts selected; Enter logs.
+                 counts, then the food's pack ('1 pack' serving) when it has one.
+     Sheet       opens with no field focused, so no keyboard: the amount shows, the chips, radios and Add work without
+                 it. A tap on the amount brings the keyboard with the amount selected, so typing replaces it; Enter logs.
      Servings    a food without per100 is logged by its servings: n x (its last entry's totals / that entry's
                  servings), so his macros stay; with no entry yet, kcal from its first serving only. grams is null.
      Every entry keeps its totals from log time. Undo deletes like any delete: the entry goes, a removed line is added.
    The list keeps its order while it is shown, so a + never moves the row under his thumb.
 
-   Gate hooks (tests/acceptance.py): row buttons whose accessible name starts with the food name; the five starter
-   foods in order with "Brand, N g" on an empty log; the "Grams" field and its data-test="portion-kcal"; the meal
-   radios Breakfast to Snacks; the "Add to <meal>" button; the error line .err. */
+   Gate hooks (tests/acceptance.py): food rows .fr whose button's accessible name starts with the food name, on the
+   Frequent, Recent and My foods tabs (the meal's tab names its buttons "Edit <food>…" and "Remove <food>…"); the five
+   starter foods in order with "Brand, N g" on an empty log; the "Grams" field and its data-test="portion-kcal"; the
+   meal radios Breakfast to Snacks; the "Add to <meal>" button; the error line .err. */
 (() => {
   'use strict';
   const P = window.Pantry;
@@ -58,8 +78,16 @@
   // carbs, protein, fat: the order every screen shows them in (Pantry.MACROS); [key, label, kcal per g]
   const MACRO = { carbs: ['Carbs', 4], protein: ['Protein', 4], fat: ['Fat', 9] };
   const MACROS = P.MACROS.map(k => [k, ...MACRO[k]]);
-  const TOAST_MS = 4000;      // a log's toast, and the check its + shows meanwhile
+  const TOAST_MS = 4000;      // a log's toast, and the check its + shows meanwhile; also how long "Remove" waits
   const NAME_MAX = 28;        // a food's name in a toast, cut at a word beyond this
+  const HOLD = 500;           // ms a finger rests on a food row to tick it (Android's classic long press)
+  const SLOP = 10;            // px a resting finger may drift before it is a scroll
+  const FLING = 100;          // ms after the page last scrolled: a finger landing then stops a fling, it is no press
+  const SECOND = 350;         // ms before a second tap counts (on "Remove", on a sheet a tap opened): sooner, it ends a double tap
+  const TABS = ['meal', 'frequent', 'recent', 'mine'];
+  // a finger's tap, not a mouse, the keyboard or code, told apart as core's tap guard does
+  const isTap = e => !!e && e.isTrusted && (e.pointerType === 'touch' || e.pointerType === 'pen'
+    || Boolean(e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents));
   const ICON = {
     search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
     down: '<path d="m6 9 6 6 6-6"/>',
@@ -97,10 +125,14 @@
     }
     .log-tab[aria-selected="true"] { color: var(--ink); }
     .log-tab[aria-selected="true"]::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--ink); }
-    .log-list { padding: 0 20px 24px; }
+    /* the list is its own layer under the sticky search and tabs (z-index 2): a row's check (z-index 2 inside it)
+       scrolls under them, never over them */
+    .log-list { position: relative; z-index: 0; padding: 0 20px 24px; }
     .log-list.log-swap { animation: log-fade var(--dur-fast) var(--ease-enter); }
     .log-list .rows { margin: 0; }
     .log-row { position: relative; padding: 0; gap: 4px; }
+    /* a long press on a row ticks it: no text selection and no callout come up over the rows */
+    .log-row, .log-ent, .log-yday, .log-tabs { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
     .log-open {
       flex: 1; min-width: 0; min-height: 56px; display: grid; grid-template-columns: 40px minmax(0, 1fr) auto;
       grid-template-areas: "food name k" "food sub k"; align-items: center; gap: 0 12px; padding: 6px 0;
@@ -121,11 +153,25 @@
     /* an amount longer than its line even without the brand: the kcal moves up beside the name, the amount gets the whole line */
     .log-open.log-long { grid-template-areas: "food name k" "food sub sub"; }
     .log-open.log-long .k { align-self: end; }
-    .log-food { position: relative; grid-area: food; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; background: var(--surface-2); }
+    .log-food {
+      position: relative; grid-area: food; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; background: var(--surface-2);
+      transition: box-shadow var(--dur-fast) var(--ease-standard);
+    }
     .log-food svg { width: 32px; height: 32px; }
+    /* ticked: the drawing's circle fills with the checkbox's ink (action) and shows the check; while any food is ticked,
+       the others that can be ticked ring their drawing, so a tap is seen to tick */
+    .log-box {
+      position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; border-radius: 50%;
+      background: var(--action); color: var(--on-action); opacity: 0; transform: scale(0.6);
+      transition: opacity var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard);
+    }
+    .log-box svg.i { width: 20px; height: 20px; stroke-width: 2.5; }
+    .log-ticked .log-box { opacity: 1; transform: none; }
+    .log-picking .log-row[data-tick]:not(.log-ticked) .log-food { box-shadow: inset 0 0 0 2px var(--hairline-strong); }
+    @media (prefers-reduced-motion: reduce) { .log-box { transform: none; } }
     /* already in the meal on the shown day: a quiet check with its count on the drawing (grey; the tick is the ink one) */
     .log-mark {
-      position: absolute; z-index: 2; right: -6px; bottom: -4px; pointer-events: none; min-width: 1.125rem; height: 1.125rem; padding: 0 4px; display: flex;
+      position: absolute; z-index: 2; right: -6px; bottom: -4px; min-width: 1.125rem; height: 1.125rem; padding: 0 4px; display: flex;
       align-items: center; justify-content: center; gap: 1px; border-radius: 0.5625rem; background: var(--surface-3);
       box-shadow: 0 0 0 2px var(--canvas); color: var(--ink); font: 700 0.6875rem/1 var(--font-figure);
     }
@@ -137,20 +183,36 @@
     /* logged: the + answers with a check on a filled circle while the toast shows */
     .log-plus.log-done::before { background: var(--surface-2); }
     .log-plus.log-done svg.i { stroke-width: 2.25; }
-    /* the tick is the drawing (a mail app's avatar), so the names keep their width: its target covers the gutter, the
-       drawing and the row's height; ticked, the drawing's circle fills with the checkbox's ink (action) and shows the check */
-    .log-tick { position: absolute; z-index: 1; top: 0; bottom: 0; left: -20px; width: 66px; cursor: pointer; }
-    .log-tick input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: inherit; }
-    .log-box {
-      position: absolute; left: 20px; top: 50%; width: 40px; height: 40px; margin-top: -20px; display: grid; place-items: center;
-      border-radius: 50%; background: var(--action); color: var(--on-action); opacity: 0; transform: scale(0.6); pointer-events: none;
-      transition: opacity var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard);
+    /* the meal's tab: what the meal holds, a row per entry (drawing, name over amount, kcal) and its − at the end, where
+       the + stands on the food tabs; the first tap on − opens "Remove" from it over the kcal, the second takes it out */
+    .log-ent { display: flex; align-items: center; gap: 4px; min-height: 56px; }
+    .log-edit {
+      flex: 1; min-width: 0; min-height: 56px; display: grid; grid-template-columns: 40px minmax(0, 1fr) auto;
+      grid-template-areas: "food name k" "food sub k"; align-items: center; gap: 0 12px; padding: 6px 0;
+      border: 0; background: none; color: var(--ink); text-align: left;
     }
-    .log-box svg.i { width: 20px; height: 20px; stroke-width: 2.5; }
-    .log-tick input:checked + .log-box { opacity: 1; transform: none; }
-    .log-tick input:focus-visible + .log-box { opacity: 1; transform: none; outline: 2px solid var(--primary); outline-offset: 2px; }
-    .log-tick input:not(:checked):focus-visible + .log-box { background: none; color: transparent; }
-    @media (prefers-reduced-motion: reduce) { .log-box { transform: none; } }
+    .log-edit .t { display: contents; }
+    .log-edit .name, .log-edit .sub {
+      display: block; min-width: 0; margin-right: var(--log-rm-room, 0px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .log-edit .name { grid-area: name; align-self: end; font: 600 0.9375rem/1.3 var(--font-sans); }
+    .log-edit .sub { grid-area: sub; align-self: start; font: 500 0.8125rem/1.35 var(--font-figure); color: var(--ink-muted); }
+    .log-edit .k { grid-area: k; font: 700 0.875rem/1.3 var(--font-figure); }
+    .log-rm { position: relative; width: 48px; height: 48px; flex: none; display: grid; place-items: center; padding: 0; border: 0; background: none; color: var(--ink); }
+    .log-rm::before { content: ''; position: absolute; inset: 4px; border-radius: 50%; border: 1.5px solid var(--hairline-strong); transition: background-color var(--fast); }
+    .log-rm:active::before { background: var(--surface-3); }
+    .log-rm svg.i { position: relative; width: 18px; height: 18px; }
+    .log-rm-go {
+      position: absolute; top: 4px; bottom: 4px; right: 4px; display: flex; align-items: center; padding: 0 18px; border-radius: 20px;
+      background: var(--action); color: var(--on-action); font: 700 0.875rem/1 var(--font-sans); white-space: nowrap;
+      opacity: 0; visibility: hidden; pointer-events: none; clip-path: inset(0 0 0 calc(100% - 40px) round 20px);
+      transition: opacity var(--dur-fast) var(--ease-exit), clip-path var(--dur-fast) var(--ease-exit), visibility 0s linear var(--dur-fast);
+    }
+    .log-rm.log-armed .log-rm-go {
+      opacity: 1; visibility: visible; pointer-events: auto; clip-path: inset(0 round 20px);
+      transition: opacity var(--dur-fast) var(--ease-enter), clip-path var(--dur-base) var(--ease-enter), visibility 0s;
+    }
+    @media (prefers-reduced-motion: reduce) { .log-rm-go, .log-rm.log-armed .log-rm-go { clip-path: none; } }
     /* "In dinner: 2 foods, 1,422 kcal" under the title */
     .log-sum { margin: 4px 0 0; font: 500 0.8125rem/1.35 var(--font-sans); color: var(--ink-muted); }
     .log-num { display: inline-block; font: 700 0.8125rem/1.35 var(--font-figure); color: var(--ink); }
@@ -170,7 +232,7 @@
     }
     .log-again .k { font: 700 0.8125rem/1.35 var(--font-figure); color: var(--ink); }
     .log-again .log-plus { grid-area: plus; }
-    .log-again[aria-disabled="true"] { cursor: default; }
+    .log-again .log-plus[aria-disabled="true"] { cursor: default; }
     .log-again .log-food { grid-area: art; align-self: center; justify-self: start; }
     .log-again .log-art { grid-area: art; align-self: center; justify-self: start; width: 40px; height: 40px; }
     .log-again .log-art svg { width: 40px; height: 40px; }
@@ -450,8 +512,31 @@
   // ── the shown screen ──────────────────────────────────────────────
   // { el, route, meal, dateArg, tab, query, ids, main, list, sheet, afterPop,
   //   ticked: food ids in tick order, done: food id -> timer of its +'s check, pending: + taps not saved yet,
-  //   adding / copying: the ticked foods / yesterday's meal on their way to the save, drawn: [id, markup] of the rows }
+  //   adding / copying: the ticked foods / yesterday's meal on their way to the save, drawn: [id, markup] of the rows
+  //   (entry ids on the meal's tab, food ids on the others), kind: 'meal' or 'foods', what drawn holds,
+  //   press: the finger on a food row { id, pointer, x, y, t, timer, fired, off }, swallow: the click that ends a long
+  //   press opens nothing, armed: the entry whose "Remove" shows { id, at, timer } }
   let S = null;
+  let scrolledAt = -Infinity;   // event time of the page's last scroll
+
+  function stop(s) {
+    if (!s) return;
+    s.done.forEach(t => clearTimeout(t));
+    if (s.press) clearTimeout(s.press.timer);
+    if (s.armed) clearTimeout(s.armed.timer);
+  }
+
+  // The tab a list opens on: the one a Back returns to, else the meal's own when it holds entries that day, else
+  // Frequent. It is kept in the list's history entry, so a Back shows it again where it was scrolled.
+  function firstTab(meal, date) {
+    const has = P.doc().entries.some(e => e.date === date && e.meal === meal);
+    const kept = history.state && history.state.logTab;
+    if (TABS.includes(kept) && (kept !== 'meal' || has)) return kept;
+    return has ? 'meal' : 'frequent';
+  }
+  function keepTab() {
+    try { history.replaceState({ ...(history.state || {}), logTab: S.tab }, ''); } catch (e) { /* only the tab is not kept */ }
+  }
 
   const dateOf = () => S.dateArg || P.today();
   const mealWord = meal => LABEL[meal].toLowerCase();
@@ -488,9 +573,11 @@
 
   function renderList(el, route, mealArg, dateArg) {
     const meal = mealArg || P.mealNow();
-    if (S) S.done.forEach(t => clearTimeout(t));
-    S = { el, route, meal, dateArg, tab: 'frequent', query: '', ids: null, sheet: null,
-      ticked: new Set(), done: new Map(), pending: new Set(), adding: false, copying: false, drawn: null, ydayKey: '' };
+    stop(S);
+    S = { el, route, meal, dateArg, tab: firstTab(meal, dateArg || P.today()), query: '', ids: null, sheet: null,
+      ticked: new Set(), done: new Map(), pending: new Set(), adding: false, copying: false, drawn: null, kind: '', ydayKey: '',
+      press: null, swallow: false, armed: null };
+    keepTab();
     el.innerHTML = `<div class="log-main">
       ${header(P.dayLabel(dateOf()), LABEL[meal], true)}
       <div class="log-head">
@@ -501,12 +588,12 @@
           <button class="ibtn log-scan" type="button" data-act="scan" aria-label="Scan a barcode">${P.icon('scan')}</button>
         </div>
         <div class="log-tabs" role="tablist" aria-label="Foods">
-          ${[['frequent', 'Frequent'], ['recent', 'Recent'], ['mine', 'My foods']].map(([k, t]) => `<button class="log-tab" type="button" role="tab"
+          ${[['meal', LABEL[meal]], ['frequent', 'Frequent'], ['recent', 'Recent'], ['mine', 'My foods']].map(([k, t]) => `<button class="log-tab" type="button" role="tab"
             id="log-tab-${k}" data-tab="${k}" aria-controls="log-list" aria-selected="${k === S.tab}">${t}</button>`).join('')}
         </div>
       </div>
       <div class="log-yday" hidden></div>
-      <div class="log-list" id="log-list" role="tabpanel" aria-labelledby="log-tab-frequent"></div>
+      <div class="log-list" id="log-list" role="tabpanel" aria-labelledby="log-tab-${S.tab}"></div>
       <div class="bottom log-bar" hidden>
         <button class="btn" type="button" data-act="add-ticked"></button>
         <button class="ibtn box" type="button" data-act="untick" aria-label="Clear the ticks">${P.icon('x')}</button>
@@ -540,6 +627,8 @@
       const tab = e.target.closest('[data-tab]');
       if (!tab || tab.dataset.tab === S.tab) return;
       S.tab = tab.dataset.tab;
+      keepTab();
+      disarm();
       tabs.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-selected', String(b === tab)));
       S.list.setAttribute('aria-labelledby', tab.id);
       S.list.classList.remove('log-swap');
@@ -547,21 +636,42 @@
       S.list.classList.add('log-swap');
       drawRows(true);
     });
+    // the click a long press ends with (when the browser sends one) is part of the press: it opens nothing
+    S.list.addEventListener('click', e => {
+      if (!S.swallow) return;
+      S.swallow = false;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    }, true);
     S.list.addEventListener('click', e => {
       const act = e.target.closest('[data-act]');
-      if (!act || act.dataset.act === 'tick') return;   // a tick is its change event
+      if (!act) return;
       if (act.dataset.act === 'scan') { P.go('scan', S.meal, S.dateArg); return; }
+      const ent = act.closest('[data-entry]');
+      if (ent) {
+        if (act.dataset.act === 'edit') P.go('entry', ent.dataset.entry);
+        if (act.dataset.act === 'remove') removeTap(ent.dataset.entry, act, e);
+        return;
+      }
       const row = act.closest('[data-id]');
       if (!row) return;
-      if (act.dataset.act === 'open') openSheet(row.dataset.id, { push: S.route === 'add' });
-      if (act.dataset.act === 'plus') plus(row.dataset.id, act);
+      // choosing several: a tap ticks or unticks a food that can be ticked; one that cannot opens its sheet as ever
+      if (act.dataset.act === 'open' && S.ticked.size && row.hasAttribute('data-tick')) { toggleTick(row.dataset.id); return; }
+      if (act.dataset.act === 'open') openSheet(row.dataset.id, { push: S.route === 'add', tap: e });
+      if (act.dataset.act === 'plus') plus(row.dataset.id, act, e);
     });
-    S.list.addEventListener('change', e => {
-      const box = e.target.closest('[data-act="tick"]');
-      const row = box && box.closest('[data-id]');
-      if (!row) return;
-      if (box.checked && !box.disabled) S.ticked.add(row.dataset.id); else S.ticked.delete(row.dataset.id);
-      paintBar(true);
+    S.list.addEventListener('pointerdown', pressStart);
+    S.list.addEventListener('pointermove', pressMove);
+    S.list.addEventListener('pointerup', pressEnd);
+    S.list.addEventListener('pointercancel', pressOff);   // the browser took the touch for a scroll
+    // a long press on a phone is a contextmenu event: never the browser's menu or a text selection over a row, and
+    // a tick when it belongs to the press under way (not one a scroll has cancelled)
+    S.list.addEventListener('contextmenu', e => {
+      const li = e.target.closest('.log-row, .log-ent');
+      if (!li) return;
+      e.preventDefault();
+      const p = S.press;
+      if (p && li.classList.contains('log-row') && p.id === li.dataset.id) hold(p);
     });
     S.yday.addEventListener('click', e => { if (e.target.closest('[data-act="again"]')) again(); });
     S.bar.addEventListener('click', e => {
@@ -582,19 +692,60 @@
     const doc = P.doc();
     const byId = new Map(doc.foods.map(f => [f.id, f]));
     const query = S.query.trim();
+    if (S.tab === 'meal' && !query) { drawMeal(doc, byId, !recompute); return; }
+    disarm();
     if (recompute || !S.ids) {
       S.ids = query ? search(doc, S.meal, query) : S.tab === 'frequent' ? frequent(doc, S.meal, byId) : S.tab === 'recent' ? recent(doc, byId) : mine(doc);
     }
     const foods = S.ids.map(id => byId.get(id)).filter(Boolean);
     const drawn = foods.map(f => [f.id, row(doc, f)]);
     const lis = S.list.querySelectorAll('.log-row');
-    const keep = !recompute && S.drawn && S.drawn.length === drawn.length && lis.length === drawn.length
+    const keep = !recompute && S.kind === 'foods' && S.drawn && S.drawn.length === drawn.length && lis.length === drawn.length
       && drawn.every(([id], i) => S.drawn[i][0] === id);
     if (keep) drawn.forEach(([, html], i) => { if (html !== S.drawn[i][1]) lis[i].outerHTML = html; });
     else S.list.innerHTML = foods.length ? `<ul class="rows">${drawn.map(r => r[1]).join('')}</ul>` : empty(doc, query);
     S.drawn = drawn;
+    S.kind = 'foods';
     paint(keep);
     fitRows();
+  }
+
+  // The meal's tab: its entries on the shown day in log order, always as the log has them now (it follows a +, an
+  // Undo, a sync). Shown and changed, only rows whose markup changed are redrawn; an entry that arrives fades in.
+  function drawMeal(doc, byId, animate) {
+    const date = dateOf();
+    const list = doc.entries.filter(e => e.date === date && e.meal === S.meal);
+    const drawn = list.map(e => [e.id, entryRow(e, byId.get(e.foodId))]);
+    const was = S.kind === 'meal' && S.drawn ? S.drawn : null;
+    const lis = S.list.querySelectorAll('.log-ent');
+    if (was && was.length === drawn.length && lis.length === drawn.length && drawn.every(([id], i) => was[i][0] === id)) {
+      drawn.forEach(([, html], i) => { if (html !== was[i][1]) lis[i].outerHTML = html; });
+    } else {
+      S.list.innerHTML = list.length ? `<ul class="rows">${drawn.map(r => r[1]).join('')}</ul>` : empty(doc, '');
+      if (animate && was) {
+        const before = new Set(was.map(r => r[0]));
+        S.list.querySelectorAll('.log-ent').forEach(li => { if (!before.has(li.dataset.entry)) fadeIn(li); });
+      }
+    }
+    S.drawn = drawn;
+    S.kind = 'meal';
+    S.ids = null;
+    const armed = S.armed && entryLi(S.armed.id);
+    if (armed) armRow(armed);
+    else disarm();
+    paint(animate);
+  }
+
+  function entryRow(e, food) {
+    const name = food ? food.name : 'A food no longer in your list';
+    const amount = amountText(e.amount), kcal = P.fmt(e.totals.kcal);
+    const remove = `Remove ${name}, ${amount}, from ${mealWord(S.meal)}`;
+    return `<li class="log-ent" data-entry="${P.esc(e.id)}">`
+      + `<button class="log-edit" type="button" data-act="edit" aria-label="${P.esc(`Edit ${name}, ${amount}, ${kcal} kcal`)}">`
+      + `<span class="log-food" aria-hidden="true">${drawing(food, 32)}</span>`
+      + `<span class="t"><span class="name">${P.esc(name)}</span><span class="sub">${P.esc(amount)}</span></span><span class="k">${kcal}</span></button>`
+      + `<button class="log-rm" type="button" data-act="remove" aria-label="${P.esc(remove)}" data-label="${P.esc(remove)}">`
+      + `${P.icon('minus')}<span class="log-rm-go" aria-hidden="true">Remove</span></button></li>`;
   }
 
   function row(doc, food) {
@@ -607,12 +758,11 @@
     const kcal = u ? P.fmt(u.totals.kcal) : food.per100 ? P.fmt(food.per100.kcal) : '';
     const name = [food.name, sub, kcal && `${kcal} kcal`].filter(Boolean).join(', ');
     const add = u ? `Add ${amountText(u.amount)} of ${food.name}` : `Choose an amount of ${food.name}`;
-    // a food with no usual amount has no tick: its drawing is part of the row and opens the sheet
-    const tick = u ? `<label class="log-tick"><input type="checkbox" data-act="tick" aria-label="${P.esc(`Tick ${food.name}, ${amountText(u.amount)}`)}">`
-      + `<span class="log-box" aria-hidden="true">${P.icon('check')}</span></label>` : '';
-    return `<li class="fr log-row" data-id="${P.esc(food.id)}">${tick}`
+    // data-tick: a food with a usual amount can be ticked (a long press); one with none cannot, a tap opens its sheet
+    return `<li class="fr log-row" data-id="${P.esc(food.id)}"${u ? ' data-tick' : ''}>`
       + `<button class="log-open" type="button" data-act="open" aria-label="${P.esc(name)}" data-label="${P.esc(name)}">`
-      + `<span class="log-food">${drawing(food, 32)}<span class="log-mark" aria-hidden="true" hidden></span></span>`
+      + `<span class="log-food">${drawing(food, 32)}${u ? `<span class="log-box" aria-hidden="true">${P.icon('check')}</span>` : ''}`
+      + `<span class="log-mark" aria-hidden="true" hidden></span></span>`
       + `<span class="t"><span class="name">${P.esc(food.name)}</span><span class="sub">${subHtml}</span></span><span class="k">${kcal}</span></button>`
       + `<button class="log-plus" type="button" data-act="plus" aria-label="${P.esc(add)}">${P.icon('plus')}</button></li>`;
   }
@@ -637,9 +787,7 @@
 
   function paintRow(li, n, animate) {
     const id = li.dataset.id;
-    const box = li.querySelector('[data-act="tick"]');
-    if (!box) S.ticked.delete(id);
-    else box.checked = S.ticked.has(id);
+    if (!li.hasAttribute('data-tick')) S.ticked.delete(id);
     const mark = li.querySelector('.log-mark');
     if (mark.dataset.n !== String(n)) {
       const was = !mark.hidden;
@@ -648,10 +796,133 @@
       mark.hidden = !n;
       if (n && !was && animate) fadeIn(mark);
     }
+    paintTick(li);
+    setPlus(li.querySelector('[data-act="plus"]'), S.done.has(id), animate);
+  }
+
+  // A row's tick and its button's name: the food, how often it is in the meal already, and whether it is ticked.
+  function paintTick(li) {
+    const on = S.ticked.has(li.dataset.id);
+    li.classList.toggle('log-ticked', on);
+    const n = Number(li.querySelector('.log-mark').dataset.n) || 0;
     const open = li.querySelector('.log-open');
     const at = ` at ${mealWord(S.meal)}${dateOf() === P.today() ? ' today' : ''}`;
-    open.setAttribute('aria-label', open.dataset.label + (n ? `, logged ${n === 1 ? 'once' : `${n} times`}${at}` : ''));
-    setPlus(li.querySelector('[data-act="plus"]'), S.done.has(id), animate);
+    open.setAttribute('aria-label', open.dataset.label + (n ? `, logged ${n === 1 ? 'once' : `${n} times`}${at}` : '') + (on ? ', ticked' : ''));
+  }
+
+  function toggleTick(id) {
+    const li = [...S.list.querySelectorAll('.log-row')].find(r => r.dataset.id === id);
+    if (!li || !li.hasAttribute('data-tick')) return false;
+    if (!S.ticked.delete(id)) S.ticked.add(id);
+    paintTick(li);
+    paintBar(true);
+    return true;
+  }
+
+  // ── a long press on a food row ticks it ──
+  function pressStart(e) {
+    if (!S) return;
+    S.swallow = false;
+    if (S.press) clearTimeout(S.press.timer);
+    S.press = null;
+    if (!e.isPrimary) return;                       // a second finger: a pinch, no press
+    const li = e.target.closest('.log-row');
+    if (!li || e.target.closest('[data-act="plus"]')) return;   // the + only ever logs, held or not
+    const p = { id: li.dataset.id, pointer: e.pointerId, x: e.clientX, y: e.clientY, t: e.timeStamp, timer: 0, fired: false, off: false };
+    S.press = p;
+    if (e.timeStamp - scrolledAt < FLING) { p.off = true; return; }   // it stops a fling: no press
+    if (e.pointerType === 'mouse' && e.button !== 0) return;          // a right click is its contextmenu
+    p.timer = setTimeout(() => hold(p), HOLD);
+  }
+  function pressMove(e) {
+    const p = S && S.press;
+    if (p && !p.fired && !p.off && e.pointerId === p.pointer && Math.hypot(e.clientX - p.x, e.clientY - p.y) > SLOP) pressOff();
+  }
+  function pressOff() {
+    const p = S && S.press;
+    if (p && !p.fired) { clearTimeout(p.timer); p.off = true; }
+  }
+  // A quick tap is no press, even for a browser that sends its contextmenu on release.
+  function pressEnd(e) {
+    const p = S && S.press;
+    if (!p || e.pointerId !== p.pointer) return;
+    clearTimeout(p.timer);
+    if (!p.fired && e.timeStamp - p.t < 300) p.off = true;
+  }
+  function hold(p) {
+    clearTimeout(p.timer);
+    if (!S || S.press !== p || p.fired || p.off) return;
+    p.fired = true;
+    S.swallow = true;
+    if (toggleTick(p.id)) P.haptic('tap');
+  }
+
+  // ── the meal's tab: − then "Remove" takes an entry out ──
+  const entryLi = id => [...S.list.querySelectorAll('.log-ent')].find(li => li.dataset.entry === id) || null;
+
+  // "Remove" lies over the kcal, and over the end of a long name or amount, where its ellipsis is drawn: while it shows,
+  // the name and the amount end 8 px before it (--log-rm-room), and they get their width back once it has faded.
+  function armRow(li) {
+    const btn = li.querySelector('.log-rm');
+    btn.classList.add('log-armed');
+    btn.setAttribute('aria-label', `Tap again to ${btn.dataset.label.replace(/^Remove/, 'remove')}`);
+    li.style.removeProperty('--log-rm-room');
+    const room = Math.ceil(li.querySelector('.log-edit .name').getBoundingClientRect().right
+      - btn.querySelector('.log-rm-go').getBoundingClientRect().left + 8);
+    if (room > 0) li.style.setProperty('--log-rm-room', `${room}px`);
+  }
+
+  function disarm() {
+    if (!S || !S.armed) return;
+    clearTimeout(S.armed.timer);
+    const li = entryLi(S.armed.id);
+    S.armed = null;
+    if (!li) return;
+    const btn = li.querySelector('.log-rm');
+    btn.classList.remove('log-armed');
+    btn.setAttribute('aria-label', btn.dataset.label);
+    setTimeout(() => { if (!btn.classList.contains('log-armed')) li.style.removeProperty('--log-rm-room'); }, msOf('--dur-fast'));
+  }
+
+  function removeTap(id, btn, e) {
+    if (S.armed && S.armed.id === id) {
+      if (e.timeStamp - S.armed.at < SECOND) return;   // the end of a double tap: one step, not two
+      const li = btn.closest('.log-ent');
+      disarm();
+      takeOut(id, li);
+      return;
+    }
+    disarm();
+    const me = S;
+    S.armed = { id, at: e.timeStamp, timer: setTimeout(() => { if (S === me) disarm(); }, TOAST_MS) };
+    armRow(btn.closest('.log-ent'));
+  }
+
+  // The row folds away (fast, ease-exit), then Pantry.removeEntry takes the entry out with its removed line and the
+  // "Deleted <food>" toast whose Undo puts it back; the tab follows the log, so the row leaves, or comes back on Undo.
+  // When nothing was taken out (the save failed: the phone's storage is full), the folded row opens again, since its
+  // entry is still in the log and the tab shows the log.
+  function takeOut(id, li) {
+    let ran = false, fold = null;
+    const run = () => {
+      if (ran) return;
+      ran = true;
+      try { P.removeEntry(id); } catch (x) {
+        if (fold) { fold.cancel(); li.style.removeProperty('overflow'); fadeIn(li); }
+        P.toast(x.message);
+        if (S) drawRows(false);
+      }
+    };
+    const ms = msOf('--dur-fast');
+    if (li && li.animate) {
+      li.style.overflow = 'hidden';
+      const h = `${li.offsetHeight}px`;
+      const frames = still() ? [{ opacity: 1 }, { opacity: 0 }]
+        : [{ opacity: 1, height: h, minHeight: h }, { opacity: 0, height: '0px', minHeight: '0px' }];
+      fold = li.animate(frames, { duration: ms, easing: css('--ease-exit'), fill: 'forwards' });
+      fold.finished.then(run, run);
+    }
+    setTimeout(run, li ? ms + 80 : 0);
   }
 
   // The + (or yesterday's circle) as a check: logged. The circle fills at once; the icon fades in. A + showing the check
@@ -691,7 +962,7 @@
   function drawYesterday(doc, animate) {
     const box = S.yday;
     const day = daysBefore(dateOf(), 1);
-    const list = S.query.trim() ? [] : doc.entries.filter(e => e.date === day && e.meal === S.meal);
+    const list = S.query.trim() || S.tab !== 'frequent' ? [] : doc.entries.filter(e => e.date === day && e.meal === S.meal);
     if (!list.length) { box.hidden = true; box.replaceChildren(); S.ydayKey = ''; return; }
     const meal = mealWord(S.meal);
     const key = list.map(e => `${e.id} ${e.foodId} ${e.totals.kcal}`).join(' ');   // a sync keeps the id and changes the rest
@@ -708,24 +979,26 @@
       const known = foods.filter(Boolean);
       const art = known.length > 1 ? `<span class="log-art" aria-hidden="true">${drawings(known, 40)}</span>`
         : `<span class="log-food" aria-hidden="true">${drawing(known[0], 32)}</span>`;
-      box.innerHTML = `<button class="log-again" type="button" data-act="again">${art}`
-        + `<span class="name"></span><span class="sub"><span class="k">${kcal}</span> kcal: ${P.esc(names)}</span>`
-        + `<span class="log-plus" aria-hidden="true">${P.icon('plus')}</span></button>`;
+      // only its + is a button: the row's text is what the +'s name says, so a screen reader hears it once
+      box.innerHTML = `<div class="log-again">${art}`
+        + `<span class="name" aria-hidden="true"></span><span class="sub" aria-hidden="true"><span class="k">${kcal}</span> kcal: ${P.esc(names)}</span>`
+        + `<button class="log-plus" type="button" data-act="again">${P.icon('plus')}</button></div>`;
     }
     box.hidden = false;
     const done = S.copying || copied(doc, dateOf(), S.meal);
-    const btn = box.querySelector('.log-again');
+    const btn = box.querySelector('[data-act="again"]');
     const name = done ? `Yesterday's ${meal} added` : `Same as yesterday's ${meal}`;
-    btn.querySelector('.name').textContent = name;
+    box.querySelector('.log-again .name').textContent = name;
     btn.setAttribute('aria-disabled', String(done));
     btn.setAttribute('aria-label', `${name}, ${box.dataset.what}, ${box.dataset.kcal} kcal`);
-    setPlus(btn.querySelector('.log-plus'), done, animate);
+    setPlus(btn, done, animate);
   }
 
   function paintBar(animate) {
     const n = S.ticked.size;
     const was = !S.bar.hidden;
     S.bar.hidden = !n;
+    S.main.classList.toggle('log-picking', n > 0);
     if (n) S.bar.querySelector('[data-act="add-ticked"]').textContent = `Add ${n} to ${mealWord(S.meal)}`;
     if (n && !was && animate) riseIn(S.bar);
   }
@@ -766,6 +1039,7 @@
   function empty(doc, query) {
     const scan = `<button class="btn sec" type="button" data-act="scan">${P.icon('scan')}Scan a barcode</button>`;
     if (query) return `<div class="log-empty"><p class="note">No food matches “${P.esc(query)}”. Scan its barcode to add it.</p>${scan}</div>`;
+    if (S.tab === 'meal') return `<div class="log-empty"><p class="note">Nothing in ${mealWord(S.meal)} yet. Log from Frequent, Recent or My foods; what you add shows here, to edit or take out.</p></div>`;
     if (S.tab === 'frequent') return `<div class="log-empty"><p class="note">Nothing logged at ${mealWord(S.meal)} in the last ${WINDOW} days. Search, or look in Recent and My foods.</p></div>`;
     if (S.tab === 'recent') return '<div class="log-empty"><p class="note">Nothing logged yet. The foods you log show here, newest first.</p></div>';
     return `<div class="log-empty"><p class="note">No foods yet. Scan a product to add your first.</p>${scan}</div>`;
@@ -820,17 +1094,17 @@
   // The +: the check and the pulse now, in the tap's own handler; the save once that is painted. While the check shows,
   // a tap (a double tap, a bouncing finger, a second look) logs nothing: the toast's Undo answers for exactly one entry.
   // A ticked food logged by its + is unticked, so "Add N" does not log it again.
-  function plus(foodId, btn) {
+  function plus(foodId, btn, tap) {
     if (S.pending.has(foodId) || S.done.has(foodId)) return;
     const doc = P.doc();
     const food = doc.foods.find(f => f.id === foodId);
     if (!food) { P.toast('This food is no longer in your list.'); return; }
     const u = usualFor(doc, food, S.meal);
-    if (!u) { openSheet(foodId, { push: S.route === 'add' }); return; }
+    if (!u) { openSheet(foodId, { push: S.route === 'add', tap }); return; }
     const me = S, meal = S.meal, date = dateOf();
     if (me.ticked.delete(foodId)) {
-      const box = btn.closest('.log-row').querySelector('[data-act="tick"]');
-      if (box) box.checked = false;
+      const li = btn.closest('.log-row');
+      if (li) paintTick(li);
       paintBar(true);
     }
     me.pending.add(foodId);
@@ -931,7 +1205,8 @@
   }
 
   // ── the gram sheet ────────────────────────────────────────────────
-  function openSheet(foodId, { push }) {
+  // tap: the event that opened it, when that was a tap (the sheet then holds a second tap, see buildSheet)
+  function openSheet(foodId, { push, tap }) {
     const doc = P.doc();
     const food = doc.foods.find(f => f.id === foodId);
     if (!food || !S) return;
@@ -939,12 +1214,13 @@
     S.el.querySelectorAll('.log-layer').forEach(l => l.remove());   // one still sliding out
     if (push) history.pushState({ ...(history.state || {}), depth: depth() + 1, logSheet: foodId }, '', location.href);
     const sheet = buildSheet(doc, food);
+    if (isTap(tap)) sheet.tapAt = tap.timeStamp;
     S.sheet = sheet;
     S.main.inert = true;
     S.el.appendChild(sheet.layer);
-    // the amount starts selected, so typing replaces it (on the phone the keyboard comes up with it)
-    sheet.input.focus({ preventScroll: true });
-    sheet.input.select();
+    // No field takes the focus, so no keyboard comes up with the sheet (it left Samsung Internet's back key dead): the
+    // sheet itself holds it, for Escape and a screen reader. The keyboard comes from a tap on the amount.
+    sheet.form.focus({ preventScroll: true });
   }
 
   // Closing asks history first when the sheet has its own entry, so the back gesture and the scrim agree.
@@ -959,6 +1235,7 @@
     const sheet = S && S.sheet;
     if (!sheet) return;
     S.sheet = null;
+    blurIn(sheet);
     S.main.inert = false;
     sheet.layer.classList.add('log-out');
     setTimeout(() => sheet.layer.remove(), 220);
@@ -1003,7 +1280,9 @@
     form.addEventListener('touchcancel', end);
   }
 
-  function removeSheet(sheet) { sheet.layer.remove(); if (S && S.sheet === sheet) { S.sheet = null; S.main.inert = false; } }
+  function removeSheet(sheet) { blurIn(sheet); sheet.layer.remove(); if (S && S.sheet === sheet) { S.sheet = null; S.main.inert = false; } }
+  // A sheet that goes takes the keyboard with it: the amount it held focused lets go first.
+  function blurIn(sheet) { if (sheet.layer.contains(document.activeElement)) document.activeElement.blur(); }
 
   function buildSheet(doc, food) {
     const m = measure(doc, food, S.meal);
@@ -1053,7 +1332,7 @@
     const more = form.querySelector('.log-more');
     const nutr = form.querySelector('.log-nutr');
     const chipBox = form.querySelector('.log-chips');
-    const sheet = { foodId: food.id, layer, form, input, refresh: null, done: false };
+    const sheet = { foodId: food.id, layer, form, input, refresh: null, done: false, tapAt: -Infinity };
     const meal = () => form.elements.meal.value;
     const listMeal = S.meal;   // ticked rows go in with this food, at the list's meal and amounts whatever the radio says
     const read = () => readNumber(input.value, grams || MEASURES.has(unit) ? MAX_GRAMS : 1000, grams ? 1 : 2);   // a 1.25 l bottle is 1,250 ml
@@ -1090,10 +1369,26 @@
       big: grams ? `That is more than 10 kg. ${example()}` : `That is more than 1,000. ${example()}`,
     }[r.error]);
 
+    // The tap that opened the sheet may be the first of a double tap, or a finger that bounces: its second lands on the
+    // sheet as it rises, on Add, the amount or the scrim. For SECOND ms after that tap a finger's tap there does nothing,
+    // so no food is logged and no keyboard comes up by surprise (held on mousedown too, the amount takes no focus).
+    const held = e => {
+      const since = e.timeStamp - sheet.tapAt;
+      if (isTap(e) && since >= 0 && since < SECOND) { e.preventDefault(); e.stopImmediatePropagation(); }
+    };
+    layer.addEventListener('mousedown', held, true);
+    layer.addEventListener('click', held, true);
     layer.querySelector('.log-scrim').addEventListener('click', requestClose);
     pullToClose(form, layer.querySelector('.log-scroll'), layer.querySelector('.log-scrim'));
-    input.addEventListener('focus', () => input.select());
-    input.addEventListener('input', () => { touched = true; err.hidden = true; refresh(); });
+    // A tap on the amount brings the keyboard with the amount selected, so typing replaces it ("350" never becomes
+    // "3502"). A phone puts the caret where the finger landed after the focus, so the tap's own click selects again,
+    // once; a later tap in the field places the caret as usual.
+    let fresh = false;
+    input.addEventListener('focus', () => { fresh = true; input.select(); });
+    input.addEventListener('mouseup', e => { if (fresh) e.preventDefault(); });
+    input.addEventListener('click', () => { if (fresh) input.select(); fresh = false; });
+    input.addEventListener('blur', () => { fresh = false; });
+    input.addEventListener('input', () => { fresh = false; touched = true; err.hidden = true; refresh(); });
     // Enter (the keyboard's done key) logs like the Add button; an amount that is not one is said and logs nothing
     input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); form.requestSubmit(submit); } });
     form.addEventListener('change', e => {
@@ -1125,7 +1420,7 @@
       if (sheet.done) return;   // logged; on its way to Today
       if (!m) { fail('This food has no grams or servings to log. Open it from Scan to add its label values.'); return; }
       const r = read();
-      if (r.error) { fail(say(r)); input.focus(); return; }
+      if (r.error) { fail(say(r)); return; }   // said, not focused: the keyboard comes only from a tap on the amount
       const f = P.doc().foods.find(x => x.id === food.id);
       if (!f) { fail('This food is no longer in your list.'); return; }
       const chip = chips.find(c => c.n === r.value);
@@ -1231,7 +1526,7 @@
       else closeSheet();
     }
   }
-  const leave = () => { if (S) S.done.forEach(t => clearTimeout(t)); S = null; if (fitter) fitter.disconnect(); };
+  const leave = () => { stop(S); S = null; if (fitter) fitter.disconnect(); };
 
   P.view('add', {
     render(el, mealArg, dateArg) {
@@ -1265,5 +1560,13 @@
     if (S.sheet && S.sheet.foodId !== want) closeSheet();
     else if (!S.sheet && want && P.doc().foods.some(f => f.id === want)) openSheet(want, { push: false });
   });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && S && S.sheet) { e.preventDefault(); requestClose(); } });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && S && S.sheet) { e.preventDefault(); requestClose(); } else if (e.key === 'Escape' && S && S.armed) disarm();
+  });
+  // A scroll ends any press under way, and its time tells a finger that stops a fling from a press.
+  window.addEventListener('scroll', e => { scrolledAt = e.timeStamp; pressOff(); }, { passive: true });
+  // "Remove" turns back at a touch anywhere but on it.
+  document.addEventListener('pointerdown', e => {
+    if (S && S.armed && !(e.target instanceof Element && e.target.closest('.log-rm.log-armed'))) disarm();
+  }, true);
 })();

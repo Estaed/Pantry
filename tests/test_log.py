@@ -1,7 +1,11 @@
-"""Checks for Task-03 and Task-08: the meal list and the gram sheet (app/log.js) and the food drawings (app/drawings.js);
-Task-08's checks (11-16) are logging the MyNetDiary way: the meal so far, ticks (and how they meet the + and the sheet),
-yesterday's meal, the instant +, the sheet's keys and chips, and the list at his text size 1.0. Those that need
-yesterday drive the page clock.
+"""Checks for Task-03, Task-08 and Task-11: the meal list and the gram sheet (app/log.js) and the food drawings
+(app/drawings.js); Task-08's checks (11-16) are logging the MyNetDiary way: the meal so far, ticks (and how they meet
+the + and the sheet), yesterday's meal, the instant +, the sheet's keys and chips, and the list at his text size 1.0.
+Those that need yesterday drive the page clock. Task-11's checks (18-26) are the meal's own tab (its entries, Edit
+entry, taking one out in two taps, following the log), a tap that opens and never logs, the sheet with no keyboard,
+the long press that starts ticking several, the check painted under the sticky search, the layout at 360 x 780, and a
+double tap on a row that opens its sheet and never logs.
+Ticks are made the way his finger makes them: a long press through the DevTools protocol's touch events.
 
 Run from the repo root: python tests/test_log.py   (exit 0 = no FAIL; prints PASS, FAIL or SKIP per check)
 
@@ -73,6 +77,23 @@ def add_entries(page, entries):
 def go(page, *args):
     page.evaluate("a => Pantry.go(...a)", list(args))
     page.wait_for_selector(f'[data-screen="{args[0]}"]')
+
+
+def tab(page, name):
+    """Selects a tab of the meal list by its label (a meal with entries opens on its own tab, Task-11)."""
+    page.locator('[data-screen] .log-tabs').get_by_role("tab", name=name, exact=True).click()
+    page.wait_for_function("n => [...document.querySelectorAll('.log-tab')].some(t => t.textContent === n && t.getAttribute('aria-selected') === 'true')",
+                           arg=name)
+
+
+def go_frequent(page, *args):
+    """The meal's list on its Frequent tab, whatever tab it opens on."""
+    go(page, "add", *args)
+    tab(page, "Frequent")
+
+
+def selected_tab(page):
+    return page.evaluate("() => (document.querySelector('.log-tab[aria-selected=\"true\"]') || {}).textContent || null")
 
 
 def rows(page):
@@ -260,7 +281,7 @@ def check_servings(browser, errors):
     doc = fixture_doc()
     roy_entry = next(e for e in doc["entries"] if e["foodId"] == ROY)
     load(page, doc)
-    go(page, "add", "lunch", "2026-08-08")
+    go_frequent(page, "lunch", "2026-08-08")            # 8 Aug's lunch holds the sandwich: the list opens on Lunch
     r = next((x for x in rows(page) if x["id"] == ROY), {})
     row_button(page, ROY, "plus").click()
     page.locator("#toast .toast").wait_for()
@@ -291,7 +312,7 @@ def check_servings(browser, errors):
           shown == "700" and e.get("grams") is None and e.get("amount") == "2 servings" and e.get("foodId") == ROY
           and e.get("date") == "2026-08-08" and e.get("meal") == "lunch" and t.get("kcal") == 700 and t.get("protein") == 78 and doubled, e)
     page.go_back()
-    page.wait_for_selector('[data-screen] .log-row')
+    page.wait_for_selector('[data-screen="add"] .log-tabs')
     where = page.evaluate("location.hash")
     CHECK("Back from Today after Add on a food route shows that meal's list, not the sheet again",
           where == "#/add/lunch/2026-08-08" and sheet(page).count() == 0, (where, sheet(page).count()))
@@ -427,7 +448,7 @@ def check_history(browser, errors):
     ctx, page = A.phone(browser, errors, "history")
     A.open_today(page, URL)
     load(page, full)
-    go(page, "add", "dinner")
+    go_frequent(page, "dinner")
     got = rows(page)
     order = [count[r["id"]] for r in got]
     CHECK(f"with the full history, Dinner lists the {len(count)} foods of the last 90 days by count ({order[:8]}...)",
@@ -527,8 +548,9 @@ def check_amounts(browser, errors):
             go(page, "add", meal)
             if meal == "dinner":
                 tabs = page.evaluate(TABS_JS)
-                CHECK(f"the three tab labels sit on one row, each on one line ({where})",
-                      len(tabs) == 3 and all(t["lines"] == 1 for t in tabs) and len({t["top"] for t in tabs}) == 1, tabs)
+                CHECK(f"the four tab labels (Dinner, Frequent, Recent, My foods) each stay on one line; a tab with no room "
+                      f"moves whole to the next row ({where})",
+                      [t["tab"] for t in tabs] == ["Dinner", "Frequent", "Recent", "My foods"] and all(t["lines"] == 1 for t in tabs), tabs)
             for tab in ("Frequent", "Recent", "My foods"):
                 page.get_by_role("tab", name=tab).click()
                 for r in page.evaluate(AMOUNTS_JS):
@@ -568,13 +590,55 @@ def wait_toast(page, text):
     return page.locator("#toast .toast").inner_text()
 
 
+CENTRE_JS = """el => { el.scrollIntoView({ block: 'center' }); const r = el.getBoundingClientRect();
+  return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }"""
+HIT_JS = "([x, y, sel]) => { const hit = document.elementFromPoint(x, y), want = document.querySelector(sel); return !!(hit && want && want.contains(hit)); }"
+
+
+def finger_at(page, selector):
+    """The centre of what the selector names, scrolled to the middle of the screen; the page is left still for longer
+    than a fling lasts (100 ms), so a press there is a press, and a gram sheet has finished rising. Raises when something
+    else lies over that point."""
+    page.locator(selector).first.evaluate(CENTRE_JS)
+    page.wait_for_timeout(180)
+    page.wait_for_function("() => !document.querySelector('.log-sheet') || !document.querySelector('.log-sheet').getAnimations().length")
+    point = page.locator(selector).first.evaluate(CENTRE_JS)
+    if not page.evaluate(HIT_JS, [point["x"], point["y"], selector]):
+        raise AssertionError(f"{selector} is covered at {point}")
+    return point["x"], point["y"]
+
+
+def touch(page, x, y, hold_ms, moves=()):
+    """One finger through the DevTools protocol: down at (x, y), along moves [(dx, dy, ms)], rests hold_ms, lifts."""
+    cdp = page.context.new_cdp_session(page)
+    cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": x, "y": y}]})
+    for dx, dy, ms in moves:
+        cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": x + dx, "y": y + dy}]})
+        page.wait_for_timeout(ms)
+    page.wait_for_timeout(hold_ms)
+    cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+    cdp.detach()
+
+
+def long_press(page, selector, hold_ms=700):
+    x, y = finger_at(page, selector)
+    touch(page, x, y, hold_ms)
+    settle(page)
+
+
+def finger_tap(page, selector):
+    x, y = finger_at(page, selector)
+    page.touchscreen.tap(x, y)
+    settle(page)
+
+
 def tick(page, food_id):
-    page.locator(f'[data-screen] .log-row[data-id={json.dumps(food_id)}] [data-act="tick"]').check()
+    """A long press on the food's name: how his finger ticks a food (Task-11)."""
+    long_press(page, f'[data-screen] .log-row[data-id={json.dumps(food_id)}] .name')
 
 
 def ticked(page):
-    return page.evaluate("""() => [...document.querySelectorAll('[data-screen] .log-row [data-act="tick"]')]
-        .filter(b => b.checked).map(b => b.closest('.log-row').dataset.id)""")
+    return page.evaluate("() => [...document.querySelectorAll('[data-screen] .log-row.log-ticked')].map(r => r.dataset.id)")
 
 
 def summary(page):
@@ -611,9 +675,12 @@ def check_meal_line(browser, errors):
         {"id": "m4", "date": "2026-10-18", "meal": "dinner", "foodId": RICE, "amount": "100 g", "grams": 100, "totals": rice}])
     go(page, "add", "dinner")
     want = fmt(page, chicken["kcal"] + tzatziki["kcal"])
+    on_meal = summary(page)
+    tab(page, "Frequent")
     said = summary(page)
-    CHECK(f"under the title: what dinner holds today, 'In dinner: 2 foods, {want} kcal' (not lunch's rice, not another day's)",
-          said == f"In dinner: 2 foods, {want} kcal", said)
+    CHECK(f"under the title, on the Dinner tab and on Frequent: what dinner holds today, 'In dinner: 2 foods, {want} kcal' "
+          "(not lunch's rice, not another day's)",
+          said == on_meal == f"In dinner: 2 foods, {want} kcal", (on_meal, said))
     got = marks(page)
     CHECK("rows already in today's dinner carry a check (chicken, tzatziki); rice (lunch today, dinner another day) has none",
           got.get(CHICKEN) == 1 and got.get(TZATZIKI) == 1 and got.get(RICE) == 0, got)
@@ -654,19 +721,26 @@ def check_ticks(browser, errors):
     wait_toast(page, "350 g of Chicken Breast Raw added to dinner on 8 Aug")
     one = new_entries(page, ids)
     page.get_by_role("button", name="Undo").click()
-    art = page.locator(f'[data-screen] .log-row[data-id={json.dumps(CHICKEN)}] .log-food').bounding_box()
-    page.touchscreen.tap(art["x"] + art["width"] / 2, art["y"] + art["height"] / 2)
-    by_drawing = ticked(page) == [CHICKEN] and sheet(page).count() == 0
-    tick(page, RICE)
+    chicken_row = f'[data-screen] .log-row[data-id={json.dumps(CHICKEN)}]'
+    finger_tap(page, f"{chicken_row} .log-food")
+    by_drawing = ticked(page) == [] and sheet(page).count() == 1
+    if by_drawing:
+        page.go_back()
+        page.wait_for_selector(".log-layer:not(.log-out)", state="detached")
+    tick(page, CHICKEN)                                  # the long press starts choosing several
+    finger_tap(page, f'[data-screen] .log-row[data-id={json.dumps(RICE)}] .name')      # then a tap ticks
     page.get_by_role("tab", name="My foods").click()
-    tick(page, BUTTER)
+    finger_tap(page, f'[data-screen] .log-row[data-id={json.dumps(BUTTER)}] .log-food')
     bar = page.locator('[data-screen] [data-act="add-ticked"]')
-    CHECK("a tap on a row's drawing ticks it (no sheet); ticks hold across tabs: three ticked, the bar offers 'Add 3 to dinner'",
-          by_drawing and sorted(ticked(page)) == sorted([CHICKEN, RICE, BUTTER]) and bar.is_visible() and bar.inner_text() == "Add 3 to dinner",
-          (by_drawing, ticked(page), bar.is_visible()))
-    oats = page.locator('[data-screen] .log-row[data-id="test-new"]')
-    no_tick = oats.locator('[data-act="tick"]').count() == 0
-    oats.locator(".log-food").click()                    # no tick over it: the drawing is part of the row
+    CHECK("a tap on a row's drawing opens its sheet and ticks nothing; a long press on chicken ticks it, then a tap ticks rice "
+          "and, on My foods, butter (ticks hold across tabs, no sheet): three ticked, the bar offers 'Add 3 to dinner'",
+          by_drawing and sorted(ticked(page)) == sorted([CHICKEN, RICE, BUTTER]) and sheet(page).count() == 0
+          and bar.is_visible() and bar.inner_text() == "Add 3 to dinner", (by_drawing, ticked(page), bar.is_visible()))
+    oats_row = '[data-screen] .log-row[data-id="test-new"]'
+    no_tick = page.locator(f"{oats_row}[data-tick]").count() == 0
+    long_press(page, f"{oats_row} .name")
+    held = len(ticked(page)) == 3 and sheet(page).count() == 0
+    finger_tap(page, f"{oats_row} .log-food")             # while three are ticked: it cannot be ticked, so it opens
     by_art = sheet(page).count() == 1
     page.go_back()
     page.wait_for_selector(".log-layer:not(.log-out)", state="detached")
@@ -674,8 +748,9 @@ def check_ticks(browser, errors):
     opened = sheet(page).count() == 1
     page.go_back()
     page.wait_for_selector(".log-layer:not(.log-out)", state="detached")
-    CHECK("a food with no usual amount has no tick: its drawing and its + open the gram sheet; the ticks stay",
-          no_tick and by_art and opened and len(ticked(page)) == 3, (no_tick, by_art, opened, ticked(page)))
+    CHECK("a food with no usual amount cannot be ticked: a long press leaves it as it is, a tap and its + open the gram "
+          "sheet; the ticks stay", no_tick and held and by_art and opened and len(ticked(page)) == 3,
+          (no_tick, held, by_art, opened, ticked(page)))
     before = stored(page)
     ids = {e["id"] for e in before["entries"]}
     bar.click()
@@ -758,26 +833,29 @@ def check_ticks_meet(browser, errors):
     page.get_by_role("button", name="Undo").click()
     CHECK("its one Undo removes all three", stored(page)["entries"] == before["entries"], len(stored(page)["entries"]) - len(before["entries"]))
     # the sheet's radio sends its own food to lunch: the ticked butter still goes to dinner at dinner's 5 g (as its +
-    # on this list would log it, not lunch's 10 g), and the button and the toast say both meals
+    # on this list would log it, not lunch's 10 g), and the button and the toast say both meals. While a food is ticked
+    # a tap ticks, so the sheet is the oats', opened by its + (it has no usual amount)
     add_entries(page, [entry(4, BUTTER, "2026-10-04", "lunch", "10 g", 10), entry(5, BUTTER, "2026-10-05", "lunch", "10 g", 10)])
-    go(page, "add", "dinner", "2026-08-08")
+    go_frequent(page, "dinner", "2026-08-08")            # 8 Aug's dinner holds the chicken now: it opens on Dinner
     ids = {e["id"] for e in stored(page)["entries"]}
     tick(page, BUTTER)
-    row_button(page, CHICKEN, "open").click()
+    page.get_by_role("tab", name="My foods").click()
+    row_button(page, "test-new", "plus").click()
     sheet(page).wait_for()
     page.get_by_role("radio", name="Lunch").check()
+    page.get_by_label("Grams").fill("60")
     label = page.locator(".log-sheet [type=submit]").inner_text()
     page.locator(".log-sheet [type=submit]").click()
     page.wait_for_selector('[data-screen="today"]')
     toast = wait_toast(page, "added to lunch")
     new = new_entries(page, ids)
-    want = [(BUTTER, "dinner", "5 g", 5, totals(page, BUTTER, 5)), (CHICKEN, "lunch", "350 g", 350, totals(page, CHICKEN, 350))]
+    want = [(BUTTER, "dinner", "5 g", 5, totals(page, BUTTER, 5)), ("test-new", "lunch", "60 g", 60, totals(page, "test-new", 60))]
     CHECK("with butter ticked on the dinner list and the sheet's radio on Lunch, the button reads 'Add to lunch, 1 to dinner'; "
-          "butter goes to dinner at its dinner 5 g, chicken to lunch, under one toast ('2 foods added to lunch and dinner')",
+          "butter goes to dinner at its dinner 5 g, the oats to lunch, under one toast ('2 foods added to lunch and dinner')",
           label == "Add to lunch, 1 to dinner" and [(e["foodId"], e["meal"], e["amount"], e["grams"], e["totals"]) for e in new] == want
           and "2 foods added to lunch and dinner on 8 Aug" in toast, (label, new, toast))
     # a ticked food deleted from another tab or device: the bar counts what is left, and Add logs exactly that
-    go(page, "add", "dinner", "2026-08-08")
+    go_frequent(page, "dinner", "2026-08-08")
     ids = {e["id"] for e in stored(page)["entries"]}
     tick(page, CHICKEN)
     tick(page, RICE)
@@ -792,13 +870,18 @@ def check_ticks_meet(browser, errors):
 
 
 # ── 13. "Same as yesterday's <meal>" ──
+AGAIN = '.log-again [data-act="again"]'          # the row's + is its one button (Task-11: a tap elsewhere never logs)
+OFFER_JS = """() => { const r = document.querySelector('.log-again'), b = r.querySelector('[data-act="again"]');
+    return [b.getAttribute('aria-disabled'), r.querySelector('.name').textContent]; }"""
+
+
 def check_yesterday(browser, errors):
     ctx, page = A.phone(browser, errors, "yesterday", text=1.0)
     A.open_today(page, URL)
     doc = fixture_doc()
     load(page, doc)
     potato, grilled = food_id(doc, "Washed White Potato"), food_id(doc, "Chicken Grilled")
-    go(page, "add", "dinner", "2026-08-08")
+    go_frequent(page, "dinner", "2026-08-08")
     CHECK("no 'Same as yesterday' when 7 Aug has no dinner", page.locator(".log-again").count() == 0)
     y = [{"id": "y1", "date": "2026-08-07", "meal": "dinner", "foodId": potato, "amount": "750 g", "grams": 750,
           "totals": {"kcal": 442.2, "protein": 17.03, "carbs": 111.0}},
@@ -807,7 +890,7 @@ def check_yesterday(browser, errors):
          {"id": "y3", "date": "2026-08-07", "meal": "lunch", "foodId": grilled, "amount": "2 pieces", "grams": 384, "totals": {"kcal": 592}}]
     add_entries(page, y)
     page.evaluate("id => Pantry.change(d => { const f = d.foods.find(x => x.id === id); f.per100.kcal = 999; f.per100.protein = 50; })", potato)
-    go(page, "add", "dinner", "2026-08-08")
+    go_frequent(page, "dinner", "2026-08-08")
     again = page.get_by_role("button", name=re.compile("^Same as yesterday's dinner"))
     label = again.get_attribute("aria-label") if again.count() == 1 else ""
     seen = [page.locator(f".log-again {c}").inner_text() for c in (".name", ".sub", ".k")] if again.count() == 1 else []
@@ -822,6 +905,16 @@ def check_yesterday(browser, errors):
     page.evaluate(set_kcal, 442.2)
     CHECK("an edit to yesterday's dinner while the list is open shows in the row at once (838 kcal), as its tap would copy it",
           edited == "838" and page.locator(".log-again .k").inner_text() == "738", edited)
+    # the row is drawn as a food row is (drawing, name, a circle where the + stands): a finger anywhere but on its +
+    # logs nothing, as on the food rows (Task-11; Tarık: "artıya tıkladığımızda direkt eklesin")
+    before = stored(page)
+    missed = {}
+    for part in (".log-art", ".name", ".sub"):
+        finger_tap(page, f"[data-screen] .log-again {part}")
+        missed[part] = {"same": stored(page) == before, "sheet": sheet(page).count()}
+        close_sheet(page)
+    CHECK("a finger's tap on yesterday's row's drawing, its name or its foods logs nothing and opens nothing (only its + copies)",
+          missed == {p: {"same": True, "sheet": 0} for p in missed}, missed)
     ids = {e["id"] for e in stored(page)["entries"]}
     page.evaluate("() => { const b = document.querySelector('[data-act=\"again\"]'); b.click(); b.click(); }")
     wait_toast(page, "2 foods from yesterday added to dinner on 8 Aug")
@@ -833,11 +926,11 @@ def check_yesterday(browser, errors):
           [(e["foodId"], e["amount"], e["grams"], e["totals"]) for e in new] == [(x["foodId"], x["amount"], x["grams"], x["totals"]) for x in y[:2]]
           and all(e["date"] == "2026-08-08" and e["meal"] == "dinner" and e["id"] not in ids for e in new)
           and len({e["id"] for e in new}) == 2, new)
-    state = page.evaluate("""() => { const b = document.querySelector('.log-again');
-        return [b.getAttribute('aria-disabled'), b.querySelector('.name').textContent, b.querySelector('.sub').textContent,
-                b.querySelector('.log-plus').classList.contains('log-done')]; }""")
+    state = page.evaluate("""() => { const r = document.querySelector('.log-again'), b = r.querySelector('[data-act="again"]');
+        return [b.getAttribute('aria-disabled'), r.querySelector('.name').textContent, r.querySelector('.sub').textContent,
+                b.classList.contains('log-done')]; }""")
     n = len(stored(page)["entries"])
-    page.locator(".log-again").click(force=True)        # aria-disabled: Playwright would wait for it to be enabled
+    page.locator(AGAIN).click(force=True)        # aria-disabled: Playwright would wait for it to be enabled
     settle(page)
     CHECK("the row then reads as added (\"Yesterday's dinner added\", its foods still named, a check) and another tap logs nothing",
           state == ["true", "Yesterday's dinner added", "738 kcal: Washed White Potato, Chicken Grilled", True]
@@ -845,17 +938,16 @@ def check_yesterday(browser, errors):
     page.get_by_role("button", name="Undo").click()
     left = {e["id"] for e in stored(page)["entries"]}
     CHECK("one Undo removes both copies, and the row offers yesterday's dinner again",
-          left == ids and page.locator(".log-again").get_attribute("aria-disabled") == "false", left - ids)
+          left == ids and page.locator(AGAIN).get_attribute("aria-disabled") == "false", left - ids)
     # he logs yesterday's two foods one by one at the same amounts (as two + would): the row did not copy them, so it
     # still offers yesterday's dinner, and its tap still copies
     add_entries(page, [dict(x, id=f"by-hand-{x['id']}", date="2026-08-08") for x in y[:2]])
     settle(page)
-    offered = page.evaluate("""() => { const b = document.querySelector('.log-again');
-        return [b.getAttribute('aria-disabled'), b.querySelector('.name').textContent]; }""")
+    offered = page.evaluate(OFFER_JS)
     ids = {e["id"] for e in stored(page)["entries"]}
     copies = []
     if offered[0] == "false":                          # a row reading as added would make the click wait for nothing
-        page.locator(".log-again").click()
+        page.locator(AGAIN).click()
         wait_toast(page, "2 foods from yesterday added to dinner on 8 Aug")
         copies = new_entries(page, ids)
         page.get_by_role("button", name="Undo").click()
@@ -864,15 +956,14 @@ def check_yesterday(browser, errors):
     # the app reopens with the copy still logged (Android kills a PWA in the background): the row still reads as added
     # and its tap logs nothing, though no Undo is left
     ids = {e["id"] for e in stored(page)["entries"]}
-    page.locator(".log-again").click()
+    page.locator(AGAIN).click()
     wait_toast(page, "2 foods from yesterday added to dinner on 8 Aug")
     settle(page)
     copies = new_entries(page, ids)
     page.reload()
     page.wait_for_selector('[data-screen="add"] .log-again')
-    reopened = page.evaluate("""() => { const b = document.querySelector('.log-again');
-        return [b.getAttribute('aria-disabled'), b.querySelector('.name').textContent]; }""")
-    page.locator(".log-again").click(force=True)
+    reopened = page.evaluate(OFFER_JS)
+    page.locator(AGAIN).click(force=True)
     settle(page)
     CHECK("after a reload with the copy still logged, the row still reads \"Yesterday's dinner added\" and a tap logs nothing",
           len(copies) == 2 and reopened == ["true", "Yesterday's dinner added"] and len(new_entries(page, ids)) == 2,
@@ -886,13 +977,12 @@ def check_yesterday(browser, errors):
         page.get_by_role("button", name="Save").click()
         page.wait_for_selector('[data-screen="today"]')
     moved = [(e["id"], e["meal"]) for e in stored(page)["entries"] if e["id"] in {c["id"] for c in copies}]
-    go(page, "add", "dinner", "2026-08-08")
-    offered = page.evaluate("""() => { const b = document.querySelector('.log-again');
-        return [b.getAttribute('aria-disabled'), b.querySelector('.name').textContent]; }""")
+    go_frequent(page, "dinner", "2026-08-08")
+    offered = page.evaluate(OFFER_JS)
     ids = {e["id"] for e in stored(page)["entries"]}
     recopied = []
     if offered[0] == "false":                          # a row reading as added would make the click wait for nothing
-        page.locator(".log-again").click()
+        page.locator(AGAIN).click()
         wait_toast(page, "2 foods from yesterday added to dinner on 8 Aug")
         recopied = new_entries(page, ids)
     CHECK("both copies moved to lunch on the entry screen (their ids kept): the dinner list no longer reads as added, "
@@ -902,7 +992,7 @@ def check_yesterday(browser, errors):
     page.evaluate("ids => Pantry.change(d => { d.entries = d.entries.filter(e => !ids.includes(e.id)); })", [e["id"] for e in copies + recopied])
     offers = {}
     for meal, date in (("breakfast", "2026-08-08"), ("dinner", "2026-08-10"), ("dinner", "2026-08-09")):
-        go(page, "add", meal, date)
+        go_frequent(page, meal, date)
         offers[(meal, date)] = page.locator(".log-again").count()
     CHECK("only the shown day − 1 counts: no row for 8 Aug breakfast (none on 7 Aug) or 10 Aug dinner, one for 9 Aug dinner",
           offers == {("breakfast", "2026-08-08"): 0, ("dinner", "2026-08-10"): 0, ("dinner", "2026-08-09"): 1}, offers)
@@ -910,7 +1000,8 @@ def check_yesterday(browser, errors):
     page.evaluate("location.hash = '#/add'")
     page.wait_for_function("document.querySelector('[data-screen=\"add\"] [data-test=\"log-day\"]')?.textContent === 'Saturday, 8 August'"
                            " && document.querySelector('[data-screen=\"add\"] .title').textContent === 'Dinner'")
-    label = page.locator(".log-again").get_attribute("aria-label") if page.locator(".log-again").count() else ""
+    tab(page, "Frequent")                              # 8 Aug's dinner has entries: the list opened on Dinner
+    label = page.locator(AGAIN).get_attribute("aria-label") if page.locator(AGAIN).count() else ""
     CHECK("with the page clock at 8 Aug 19:30, today's dinner (no date in the route) offers 7 Aug's dinner",
           label.startswith("Same as yesterday's dinner, 2 foods"), label)
     page.get_by_label("Search food or brand").fill("pot")
@@ -974,8 +1065,9 @@ def check_sheet_keys(browser, errors):
     go(page, "add", "dinner")
     row_button(page, CHICKEN, "open").click()
     sheet(page).wait_for()
+    finger_tap(page, ".log-sheet input[name=amount]")
     sel = page.evaluate("() => { const i = document.activeElement; return [i.name, i.value, i.selectionStart, i.selectionEnd]; }")
-    CHECK("the gram sheet opens with the amount focused and selected", sel == ["amount", "350", 0, 3], sel)
+    CHECK("a tap on the amount focuses it with the amount selected", sel == ["amount", "350", 0, 3], sel)
     shade = page.evaluate("""() => { const i = document.activeElement, c = document.createElement('canvas').getContext('2d');
         const rgba = v => { c.clearRect(0, 0, 1, 1); c.fillStyle = '#f00'; c.fillStyle = v; c.fillRect(0, 0, 1, 1); return [...c.getImageData(0, 0, 1, 1).data]; };
         const s = getComputedStyle(i, '::selection'); return { bg: s.backgroundColor, rgba: rgba(s.backgroundColor) }; }""")
@@ -1052,20 +1144,21 @@ def check_comfort_layout(browser, errors):
         loaf = food_id(doc, LOAF_NAME)
         tick(page, loaf)
         tick(page, food_id(doc, "Washed White Potato"))
-        A.fits(page, f"meal list with yesterday's row, checks, two ticks and the Add bar ({where})")
+        A.fits(page, f"meal list with checks, two ticks and the Add bar ({where})")
         A.rows_single_line(page, f"meal list with ticks ({where})")
         settle(page)                                     # the check's scale-in has finished
         look = page.evaluate("""n => { const name = [...document.querySelectorAll('.log-row .name')].find(e => e.textContent === n);
-          const li = document.querySelector('.log-row:has(.log-tick input:checked)'), tick = li.querySelector('.log-tick').getBoundingClientRect();
+          const li = document.querySelector('.log-row.log-ticked');
           const box = li.querySelector('.log-box').getBoundingClientRect(), art = li.querySelector('.log-food').getBoundingClientRect();
           const round = b => [b.left, b.top, b.width, b.height].map(Math.round);
-          return { loafCut: name.scrollWidth > name.clientWidth, tick: [Math.round(tick.width), Math.round(tick.height), li.clientHeight],
+          return { loafCut: name.scrollWidth > name.clientWidth, shown: getComputedStyle(li.querySelector('.log-box')).opacity,
                    over: JSON.stringify(round(box)) === JSON.stringify(round(art)),
                    bg: getComputedStyle(document.body).backgroundColor, theme: document.documentElement.dataset.theme }; }""", LOAF_NAME)
-        CHECK(f"the long loaf name ends in an ellipsis, the tick's target is at least 44 px wide and the row's height, its "
-              f"check fills the drawing's circle, the {scheme} canvas renders ({where})",
-              look["loafCut"] and look["tick"][0] >= 44 and look["tick"][1] == look["tick"][2] and look["over"]
-              and look["bg"] == canvas and look["theme"] == scheme, look)
+        CHECK(f"the long loaf name ends in an ellipsis, a ticked row's check fills its drawing's circle, the {scheme} canvas "
+              f"renders ({where})",
+              look["loafCut"] and look["shown"] == "1" and look["over"] and look["bg"] == canvas and look["theme"] == scheme, look)
+        tab(page, "Frequent")                            # yesterday's row belongs to Frequent; the ticks hold
+        A.fits(page, f"meal list with yesterday's row, checks, two ticks and the Add bar ({where})")
         again = page.evaluate("""() => { const b = document.querySelector('.log-again'); if (!b) return null;
           const name = b.querySelector('.name'), sub = b.querySelector('.sub'), s = getComputedStyle(sub);
           return { name: name.textContent, nameWhole: name.scrollWidth <= name.clientWidth, sub: sub.textContent,
@@ -1118,6 +1211,548 @@ def check_pull_close(browser, errors):
     ctx.close()
 
 
+# ── Task-11: the meal's own tab, a tap that opens, the sheet with no keyboard, the long press, the check's paint order ──
+ENTS_JS = """() => [...document.querySelectorAll('[data-screen] .log-ent')].map(r => ({
+  id: r.dataset.entry, name: r.querySelector('.name').textContent, sub: r.querySelector('.sub').textContent,
+  kcal: r.querySelector('.k').textContent }))"""
+ARMED_JS = """id => { const b = document.querySelector(`[data-screen] .log-ent[data-entry="${id}"] [data-act="remove"]`);
+  if (!b) return { armed: false, shown: '', label: 'the entry is gone' };
+  const go = b.querySelector('.log-rm-go');
+  return { armed: b.classList.contains('log-armed'), shown: getComputedStyle(go).visibility === 'visible' ? go.textContent : '',
+           label: b.getAttribute('aria-label') }; }"""
+# a text field has the focus (the phone's keyboard would be up); a radio or a button is no field
+FOCUS_JS = """() => { const a = document.activeElement;
+  return { tag: a ? a.tagName.toLowerCase() : null, inSheet: !!(a && a.closest('.log-sheet')),
+           field: !!a && (a.matches('input:not([type=radio]):not([type=checkbox]), textarea, select') || a.isContentEditable) }; }"""
+SEL_JS = "() => { const i = document.activeElement; return [i.name, i.value, i.selectionStart, i.selectionEnd]; }"
+# the phone's caret step: a click on the amount reaches the page with the caret already at the end of the field
+CARET_JS = """() => addEventListener('click', e => { const i = e.target;
+  if (i instanceof HTMLInputElement && i.name === 'amount') i.setSelectionRange(i.value.length, i.value.length); }, true)"""
+MANY_FOODS_JS = """meal => Pantry.change(d => { for (let i = 10; i < 40; i++) {
+  d.foods.push({ id: `test-food-${i}`, name: `Test Food ${i}`, per100: { kcal: 100 + i }, servings: [], source: 'label' });
+  d.entries.push({ id: `test-e-${i}`, date: meal ? Pantry.today() : '2026-09-01', meal: meal || 'lunch', foodId: `test-food-${i}`,
+                   amount: '100 g', grams: 100, totals: { kcal: 100 + i } }); } })"""
+
+
+def ents(page):
+    return page.evaluate(ENTS_JS)
+
+
+def lunch_today(page):
+    """Today's lunch as he logged it: tzatziki, then chicken, with dinner's butter logged between them; rice yesterday."""
+    day, yday = TODAY.isoformat(), (TODAY - datetime.timedelta(days=1)).isoformat()
+    t = {f: totals(page, f, g) for f, g in ((TZATZIKI, 125), (CHICKEN, 350), (BUTTER, 5), (RICE, 100))}
+    es = [{"id": "L1", "date": day, "meal": "lunch", "foodId": TZATZIKI, "amount": "125 g", "grams": 125, "totals": t[TZATZIKI]},
+          {"id": "D1", "date": day, "meal": "dinner", "foodId": BUTTER, "amount": "5 g", "grams": 5, "totals": t[BUTTER]},
+          {"id": "L2", "date": day, "meal": "lunch", "foodId": CHICKEN, "amount": "350 g", "grams": 350, "totals": t[CHICKEN]},
+          {"id": "L0", "date": yday, "meal": "lunch", "foodId": RICE, "amount": "100 g", "grams": 100, "totals": t[RICE]}]
+    add_entries(page, es)
+    return es
+
+
+def close_sheet(page):
+    if sheet(page).count():
+        page.go_back()
+        page.wait_for_selector(".log-layer:not(.log-out)", state="detached")
+
+
+# ── 18. the meal's tab: what is in lunch, first and selected; Edit entry; an empty meal opens on Frequent ──
+def check_meal_tab(browser, errors):
+    ctx, page = A.phone(browser, errors, "meal-tab", text=1.0)
+    A.open_today(page, URL)
+    es = lunch_today(page)
+    go(page, "add", "lunch")
+    tabs = page.evaluate("() => [...document.querySelectorAll('.log-tab')].map(t => [t.textContent, t.getAttribute('aria-selected')])")
+    want = [{"id": e["id"], "name": n, "sub": e["amount"], "kcal": fmt(page, e["totals"]["kcal"])}
+            for e, n in ((es[0], "Classic Tzatziki Dip"), (es[2], "Chicken Breast Raw"))]
+    got = ents(page)
+    foodish = page.evaluate("() => document.querySelectorAll('#log-list .fr, #log-list .log-open, #log-list [data-act=\"plus\"]').length")
+    CHECK("lunch with entries today opens on a first tab named 'Lunch', selected, listing exactly today's lunch in log order "
+          "(tzatziki, chicken; not dinner's butter, not yesterday's rice) with name, amount and kcal; no .fr, .log-open or + on its rows",
+          [t[0] for t in tabs] == ["Lunch", "Frequent", "Recent", "My foods"] and tabs[0][1] == "true" and got == want and foodish == 0,
+          (tabs, got, foodish))
+    lines = {}
+    for name in ("Lunch", "Frequent", "Recent", "My foods"):
+        tab(page, name)
+        lines[name] = (summary(page), page.locator(".log-yday").is_visible())
+    line = f"In lunch: 2 foods, {fmt(page, es[0]['totals']['kcal'] + es[2]['totals']['kcal'])} kcal"
+    CHECK("'In lunch: 2 foods, N kcal' stays under the title on every tab; 'Same as yesterday's lunch' shows on Frequent only",
+          lines == {"Lunch": (line, False), "Frequent": (line, True), "Recent": (line, False), "My foods": (line, False)}, lines)
+    tab(page, "Lunch")
+    page.locator('[data-screen] .log-ent[data-entry="L2"] [data-act="edit"]').click()
+    opened = screen_within(page, "entry") and page.evaluate("location.hash") == "#/entry/L2"
+    page.go_back()
+    back = screen_within(page, "add") and selected_tab(page) == "Lunch" and [r["id"] for r in ents(page)] == ["L1", "L2"]
+    CHECK("tapping an entry opens Edit entry ('#/entry/L2'); Back shows the list on its Lunch tab again, nothing changed",
+          opened and back and len(stored(page)["entries"]) == 4, (opened, back))
+    go(page, "add", "breakfast")
+    first = selected_tab(page)
+    tab(page, "Breakfast")
+    empty = page.locator("#log-list .log-empty")
+    note = empty.inner_text() if empty.count() else ""
+    CHECK("an empty breakfast opens on Frequent, and its Breakfast tab says it is empty",
+          first == "Frequent" and "Nothing in breakfast yet" in note and not ents(page), (first, note))
+    ctx.close()
+
+
+# ── 19. taking an entry out of the meal: two deliberate taps, Pantry.removeEntry, Undo, he stays in the meal ──
+# an entry's row as his eye finds it: its opacity, its height, and whether a tap at its centre lands on it
+ROW_SHOWN_JS = """id => { const li = document.querySelector(`[data-screen] .log-ent[data-entry="${id}"]`);
+  if (!li) return null;
+  const r = li.getBoundingClientRect(), hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+  return { opacity: getComputedStyle(li).opacity, height: Math.round(r.height), hit: li.contains(hit) }; }"""
+
+
+def check_take_out(browser, errors):
+    ctx, page = A.phone(browser, errors, "take-out", text=1.0, init=BUZZ_JS)
+    A.open_today(page, URL)
+    lunch_today(page)
+    go(page, "add", "lunch")
+    before = stored(page)
+    rm = page.locator('[data-screen] .log-ent[data-entry="L2"] [data-act="remove"]')
+    # a finger's double tap on − (two clicks in one go): the first opens "Remove", the second belongs to the double tap
+    page.evaluate("() => { const b = document.querySelector('.log-ent[data-entry=\"L2\"] [data-act=\"remove\"]'); b.click(); b.click(); }")
+    settle(page)
+    armed = page.evaluate(ARMED_JS, "L2")
+    CHECK("a double tap on chicken's − is one step: 'Remove' shows over its kcal and nothing is taken out",
+          armed["armed"] and armed["shown"] == "Remove" and armed["label"].startswith("Tap again to remove Chicken Breast Raw")
+          and stored(page) == before, armed)
+    page.locator('[data-screen] .top .title').click()          # a tap elsewhere: "Remove" turns back
+    calm = not page.evaluate(ARMED_JS, "L2")["armed"] and stored(page) == before
+    rm.click()
+    page.wait_for_timeout(450)
+    page.evaluate("() => { window.__buzz = []; }")
+    rm.click()                                                  # the second, deliberate tap
+    toast = wait_toast(page, "Deleted Chicken Breast Raw")
+    page.wait_for_function("() => !document.querySelector('.log-ent[data-entry=\"L2\"]')")
+    after = stored(page)
+    line = [r for r in after.get("removed", []) if r["id"] == "L2"]
+    CHECK("a tap elsewhere turns 'Remove' back; then − and 'Remove' (two taps) take chicken out through Pantry.removeEntry: its "
+          "removed line, the delete pulse, 'Deleted Chicken Breast Raw' with Undo; he stays on the Lunch tab, now the tzatziki alone",
+          calm and [e["id"] for e in after["entries"]] == ["L1", "D1", "L0"] and len(line) == 1 and "Undo" in toast
+          and page.evaluate("window.__buzz") == [20] and page.evaluate("location.hash") == "#/add/lunch"
+          and selected_tab(page) == "Lunch" and [r["id"] for r in ents(page)] == ["L1"], (calm, after["entries"], line, toast))
+    page.locator("#toast").get_by_role("button", name="Undo").click()
+    page.wait_for_selector('[data-screen] .log-ent[data-entry="L2"]')
+    CHECK("Undo puts chicken back deep-equal at its place and drops its removed line; its row comes back on the Lunch tab",
+          stored(page) == before and [r["id"] for r in ents(page)] == ["L1", "L2"], (stored(page).get("removed"), ents(page)))
+    # the phone's storage is full: the save fails, so chicken stays in the log, and its row must stay shown with it
+    rm.click()
+    page.wait_for_timeout(450)
+    was = page.evaluate(ROW_SHOWN_JS, "L2")
+    page.evaluate("""() => { window.__setItem = Storage.prototype.setItem;
+        Storage.prototype.setItem = function () { throw new DOMException('full', 'QuotaExceededError'); }; }""")
+    rm.click()
+    failed = wait_toast(page, "Could not save")
+    page.wait_for_timeout(600)                                  # the fold's time, and the row's way back, are over
+    shown = page.evaluate(ROW_SHOWN_JS, "L2")
+    CHECK("when the save fails (storage full), 'Remove' takes nothing out and says so; chicken's row stays as it was, whole and "
+          "under the finger, and the line above the list still counts it",
+          stored(page) == before and "storage Pantry has on this phone is full" in failed and was["opacity"] == "1"
+          and shown == was and [r["id"] for r in ents(page)] == ["L1", "L2"] and summary(page).startswith("In lunch: 2 foods"),
+          (was, shown, failed, summary(page)))
+    page.evaluate("() => { Storage.prototype.setItem = window.__setItem; }")
+    rm.click()
+    page.wait_for_timeout(450)
+    rm.click()
+    page.wait_for_function("() => !document.querySelector('.log-ent[data-entry=\"L2\"]')")
+    CHECK("once the storage has room, the same row's − and 'Remove' take chicken out",
+          [e["id"] for e in stored(page)["entries"]] == ["L1", "D1", "L0"] and [r["id"] for r in ents(page)] == ["L1"], ents(page))
+    ctx.close()
+
+
+# ── 20. the meal's tab follows the log both ways, without a reload ──
+def check_meal_follows(browser, errors):
+    ctx, page = A.phone(browser, errors, "meal-follows", text=1.0)
+    A.open_today(page, URL)
+    day = TODAY.isoformat()
+    add_entries(page, [entry(1, RICE, "2026-10-01", "lunch", "100 g", 100),
+                       {"id": "L1", "date": day, "meal": "lunch", "foodId": CHICKEN, "amount": "350 g", "grams": 350,
+                        "totals": totals(page, CHICKEN, 350)}])
+    go(page, "add", "lunch")
+    page.evaluate("() => { window.__same = 1; }")             # gone after a reload
+    tab(page, "Frequent")
+    row_button(page, RICE, "plus").click()
+    wait_toast(page, "100 g of Indian Basmati Rice added to lunch")
+    tab(page, "Lunch")
+    logged = [r["name"] for r in ents(page)]
+    page.evaluate("""() => Pantry.change(d => { d.entries = d.entries.filter(e => e.id !== 'L1');
+        (d.removed = d.removed || []).push({ id: 'L1', at: new Date().toISOString() }); }, { dirty: false })""")
+    synced = [r["name"] for r in ents(page)]
+    other = ctx.new_page()
+    A.watch(other, errors, "meal-follows-other")
+    other.goto(URL)
+    other.wait_for_selector('[data-screen="today"]')
+    other.evaluate("([day, id]) => Pantry.change(d => { d.entries.push({ id: 'O1', date: day, meal: 'lunch', foodId: id, amount: '5 g', "
+                   "grams: 5, totals: { kcal: 30.8 } }); })", [day, BUTTER])
+    try:
+        page.wait_for_function("() => [...document.querySelectorAll('.log-ent')].some(r => r.dataset.entry === 'O1')", timeout=5000)
+    except Exception:  # noqa: BLE001 - Playwright's TimeoutError; the check reports it
+        pass
+    tabbed = [r["name"] for r in ents(page)]
+    CHECK("the Lunch tab follows the log without a reload: a + on Frequent shows there (chicken, rice), a removal that arrives "
+          "(a sync) leaves (rice), an entry saved in another browser tab shows (rice, butter)",
+          logged == ["Chicken Breast Raw", "Indian Basmati Rice"] and synced == ["Indian Basmati Rice"]
+          and tabbed == ["Indian Basmati Rice", "Original Spreadable Butter"] and page.evaluate("window.__same") == 1,
+          (logged, synced, tabbed))
+    ctx.close()
+
+
+# ── 21. a tap on a food opens it and never logs; the + logs exactly one ──
+def check_tap_opens(browser, errors):
+    ctx, page = A.phone(browser, errors, "tap-opens", text=1.0)
+    A.open_today(page, URL)
+    add_entries(page, [entry(i, CHICKEN, f"2026-10-0{i}", "dinner", "350 g", 350) for i in range(1, 4)]
+                + [{"id": "D1", "date": TODAY.isoformat(), "meal": "dinner", "foodId": TZATZIKI, "amount": "125 g", "grams": 125,
+                    "totals": {"kcal": 112.5}}])
+    go_frequent(page, "dinner")
+    before = stored(page)
+    want = {".log-food": CHICKEN, ".log-mark": TZATZIKI, ".name": CHICKEN, ".k": CHICKEN}
+    names = {CHICKEN: "Chicken Breast Raw", TZATZIKI: "Classic Tzatziki Dip"}
+    seen = {}
+    for part, food in want.items():
+        finger_tap(page, f"[data-screen] .log-row[data-id={json.dumps(food)}] {part}")
+        seen[part] = (page.locator(".log-sheet .log-name").inner_text() if sheet(page).count() else None, ticked(page))
+        close_sheet(page)
+    CHECK("a finger's tap on a row's drawing, on its check, on its name or on its kcal opens that food's gram sheet; nothing is "
+          "ticked and no entry changes", all(seen[p] == (names[f], []) for p, f in want.items()) and stored(page) == before, seen)
+    ids = {e["id"] for e in before["entries"]}
+    finger_tap(page, f'[data-screen] .log-row[data-id={json.dumps(CHICKEN)}] [data-act="plus"]')
+    wait_toast(page, "350 g of Chicken Breast Raw added to dinner")
+    settle(page)
+    new = new_entries(page, ids)
+    CHECK("a finger's tap on + logs exactly one entry at once (350 g of chicken) and opens nothing",
+          len(new) == 1 and new[0]["foodId"] == CHICKEN and new[0]["amount"] == "350 g" and sheet(page).count() == 0, new)
+    ctx.close()
+
+
+# ── 22. the gram sheet opens without the keyboard; its controls work without it; the amount brings it, selected ──
+def check_sheet_no_keyboard(browser, errors):
+    ctx, page = A.phone(browser, errors, "sheet-no-keyboard", text=1.0)
+    A.open_today(page, URL)
+    add_entries(page, [entry(1, CHICKEN, "2026-10-01", "dinner", "350 g", 350), entry(2, CHICKEN, "2026-10-02", "dinner", "375 g", 375)])
+    go(page, "add", "dinner")
+    finger_tap(page, f'[data-screen] .log-row[data-id={json.dumps(CHICKEN)}] .name')
+    sheet(page).wait_for()
+    grams = page.get_by_label("Grams")
+    opened, shown = page.evaluate(FOCUS_JS), grams.input_value()
+    page.locator(".log-chip", has_text="350 g").click()
+    page.get_by_role("radio", name="Lunch").check()
+    page.locator(".log-more").click()
+    after = page.evaluate(FOCUS_JS)
+    CHECK("the gram sheet opens with no text field focused (the sheet holds the focus: no keyboard) and the amount showing (375, "
+          "the latest of a tie); a chip (350 g), a meal radio and All nutrients work and still focus no field",
+          not opened["field"] and opened["inSheet"] and shown == "375" and grams.input_value() == "350" and not after["field"]
+          and page.locator(".log-nutr").is_visible(), (opened, shown, after, grams.input_value()))
+    n = len(stored(page)["entries"])
+    page.get_by_role("button", name="Add to lunch").click()
+    page.wait_for_selector('[data-screen="today"]')
+    e = stored(page)["entries"][-1]
+    CHECK("Add logs the chip's amount with no keyboard ever up: 350 g of chicken at lunch",
+          len(stored(page)["entries"]) == n + 1 and e["amount"] == "350 g" and e["grams"] == 350 and e["meal"] == "lunch", e)
+    go(page, "food", CHICKEN, "dinner")
+    by_route = page.evaluate(FOCUS_JS)
+    finger_tap(page, ".log-sheet input[name=amount]")
+    sel = page.evaluate("() => { const i = document.activeElement; return [i.name, i.value, i.selectionStart, i.selectionEnd]; }")
+    page.keyboard.type("200")
+    typed = grams.input_value()
+    page.keyboard.press("Enter")
+    page.wait_for_selector('[data-screen="today"]')
+    e = stored(page)["entries"][-1]
+    CHECK("opened by its route it focuses no field either; a tap on the amount focuses it selected, typing 200 replaces it "
+          "(not '375200'), Enter logs 200 g",
+          not by_route["field"] and sel == ["amount", "375", 0, 3] and typed == "200" and e["amount"] == "200 g" and e["grams"] == 200,
+          (by_route, sel, typed, e))
+    # A phone may drop the caret where the finger landed once the field has the focus, before the tap's click: typing 2
+    # after "350" then gives "3502". Headless Chromium keeps the selection, so the page plays that phone: every click on
+    # the amount first puts the caret at its end, as the browser's own step before the page hears the click.
+    go(page, "food", CHICKEN, "dinner")
+    page.evaluate(CARET_JS)
+    finger_tap(page, ".log-sheet input[name=amount]")
+    tapped = page.evaluate(SEL_JS)
+    page.keyboard.type("2")
+    typed = grams.input_value()
+    finger_tap(page, ".log-sheet input[name=amount]")
+    again = page.evaluate(SEL_JS)
+    n = len(tapped[1])
+    CHECK("on a phone that puts the caret where the finger lands after the focus, a tap on the amount still leaves it all "
+          "selected and typing 2 replaces it (not '3502'); a second tap in the field keeps the caret where the phone put it",
+          n > 0 and tapped == ["amount", tapped[1], 0, n] and typed == "2" and again == ["amount", "2", 1, 1], (tapped, typed, again))
+    ctx.close()
+
+
+# ── 23. ticking several starts with a long press; a scroll or a stopped fling starts nothing ──
+# what the browser made of a finger since the last reset: its moves, a pointercancel (it took the touch), a scroll
+DRIFT_JS = """() => { window.__drift = { moves: 0, cancel: 0, scroll: 0 };
+  if (window.__driftWatch) return;
+  window.__driftWatch = true;
+  for (const [type, key] of [['pointermove', 'moves'], ['pointercancel', 'cancel'], ['scroll', 'scroll']])
+    addEventListener(type, () => { window.__drift[key]++; }, { capture: true, passive: true }); }"""
+
+
+def check_long_press(browser, errors):
+    ctx, page = A.phone(browser, errors, "long-press", text=1.0)
+    A.open_today(page, URL)
+    page.evaluate(MANY_FOODS_JS, None)                 # 30 foods, each logged once: they can be ticked, My foods scrolls
+    go(page, "add", "dinner")
+    tab(page, "My foods")
+    before = stored(page)
+    long_press(page, '[data-screen] .log-row[data-id="test-food-12"] .name')
+    held = {"ticked": ticked(page), "sheet": sheet(page).count(), "same": stored(page) == before,
+            "selected": page.evaluate("() => getSelection().toString()"),
+            "bar": page.locator('[data-screen] [data-act="add-ticked"]').inner_text()}
+    CHECK("a long press (700 ms) on a row ticks it, and the finger lifting opens nothing: no sheet, no entry, no text selected; "
+          "the bar offers 'Add 1 to dinner'",
+          held == {"ticked": ["test-food-12"], "sheet": 0, "same": True, "selected": "", "bar": "Add 1 to dinner"}, held)
+    menu = page.evaluate("""() => { const el = document.querySelector('[data-screen] .log-row[data-id="test-food-20"] .name');
+        const ev = new MouseEvent('contextmenu', { bubbles: true, cancelable: true }); el.dispatchEvent(ev);
+        return { prevented: ev.defaultPrevented, select: getComputedStyle(el.closest('.log-row')).userSelect }; }""")
+    CHECK("a phone's long press (its contextmenu event) brings no browser menu over a row, and rows take no text selection",
+          menu == {"prevented": True, "select": "none"} and ticked(page) == ["test-food-12"], menu)
+    page.locator('[data-screen] [data-act="untick"]').click()
+    x, y = finger_at(page, '[data-screen] .log-row[data-id="test-food-25"] .name')
+    top = page.evaluate("scrollY")
+    touch(page, x, y, 800, moves=[(0, -12 * i, 30) for i in range(1, 11)])
+    settle(page)
+    moved = page.evaluate("scrollY") - top
+    CHECK("a finger that scrolls the list 120 px and then rests 800 ms ticks nothing and opens nothing",
+          moved > 40 and ticked(page) == [] and sheet(page).count() == 0, (moved, ticked(page), sheet(page).count()))
+    # A finger that drifts 12 px sideways, then rests: too little for the browser to take it for a scroll (no
+    # pointercancel, no scroll; Chromium waits for about 15 px), so only the 10 px rule tells it from a press. One that
+    # wobbles 6 px is still a press.
+    x, y = finger_at(page, '[data-screen] .log-row[data-id="test-food-22"] .name')
+    page.evaluate(DRIFT_JS)
+    touch(page, x, y, 800, moves=[(2 * i, 0, 30) for i in range(1, 7)])
+    settle(page)
+    drift = dict(page.evaluate("() => window.__drift"), ticked=ticked(page))
+    close_sheet(page)                                  # headless Chromium sends a click after the rest; a phone may not
+    CHECK("a finger that drifts 12 px sideways without scrolling (the browser keeps the touch) and rests 800 ms ticks nothing",
+          drift["moves"] > 0 and drift["cancel"] == 0 and drift["scroll"] == 0 and drift["ticked"] == [], drift)
+    if drift["ticked"]:
+        page.locator('[data-screen] [data-act="untick"]').click()
+    x, y = finger_at(page, '[data-screen] .log-row[data-id="test-food-23"] .name')
+    page.evaluate(DRIFT_JS)
+    touch(page, x, y, 800, moves=[(2 * i, 0, 30) for i in range(1, 4)])
+    settle(page)
+    wobble = dict(page.evaluate("() => window.__drift"), ticked=ticked(page), sheet=sheet(page).count())
+    CHECK("a finger that wobbles 6 px while it rests 800 ms still ticks its row, and lifting it opens nothing",
+          wobble["moves"] > 0 and wobble["cancel"] == 0 and wobble["ticked"] == ["test-food-23"] and wobble["sheet"] == 0, wobble)
+    if wobble["ticked"]:
+        page.locator('[data-screen] [data-act="untick"]').click()
+    close_sheet(page)
+    # The list flings until the finger lands on it, then the finger rests 800 ms. On the phone the touch stops the fling,
+    # so no scroll comes after the finger is down, and only the time since the last scroll tells it from a press. Three
+    # tries: the finger must land on a row under 100 ms after the fling's last scroll, which a slow run can miss.
+    for _ in range(3):
+        flung = fling_rest(page)
+        if flung["landed"]:
+            break
+    CHECK("a finger that lands on the flinging list (stopping it: the last scroll came under 100 ms before it, none after) "
+          "and rests 800 ms ticks nothing", flung["landed"] and flung["ticked"] == [], flung)
+    # the page scrolls under a finger that rests on a row (moving nothing itself): no tick when the 500 ms are up
+    x, y = finger_at(page, '[data-screen] .log-row[data-id="test-food-15"] .name')
+    top = page.evaluate("scrollY")
+    cdp = page.context.new_cdp_session(page)
+    cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": x, "y": y}]})
+    page.wait_for_timeout(200)
+    page.evaluate("() => scrollBy(0, 40)")
+    page.wait_for_timeout(700)
+    cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+    cdp.detach()
+    settle(page)
+    rested = {"moved": page.evaluate("scrollY") - top, "ticked": ticked(page)}
+    close_sheet(page)
+    CHECK("a finger resting on a row while the page scrolls 40 px under it, then on for 900 ms in all, ticks nothing",
+          rested == {"moved": 40, "ticked": []}, rested)
+    ctx.close()
+
+
+# The list scrolls 3 px a frame for 12 frames and comes to rest; the next frame, its last scroll event has fired (a frame
+# runs its scroll events before its callbacks) and the finger lands at once, then rests 800 ms. Returns the row it landed
+# on, how many ms after the last scroll it landed, the scrolls after it, whether that is the stopped fling the check needs
+# (a row that can be ticked, under 100 ms, no scroll after: as on the phone) and what is ticked.
+FLING_JS = """() => new Promise(done => {
+  window.__scrolls = [];
+  if (!window.__flingWatch) {
+    window.__flingWatch = true;
+    addEventListener('scroll', e => window.__scrolls.push(e.timeStamp), { passive: true });
+  }
+  let n = 0;
+  const step = () => { if (n++ < 12) { scrollBy(0, 3); requestAnimationFrame(step); } else done(); };
+  requestAnimationFrame(step);
+})"""
+DOWN_JS = """() => { window.__down = null;
+  addEventListener('pointerdown', e => { const li = e.target.closest('.log-row');
+    window.__down = { t: e.timeStamp, row: li && li.hasAttribute('data-tick') ? li.dataset.id : null }; }, { capture: true, once: true }); }"""
+
+
+def fling_rest(page):
+    page.evaluate("() => scrollTo(0, 400)")
+    page.wait_for_timeout(200)
+    page.evaluate(DOWN_JS)
+    cdp = page.context.new_cdp_session(page)
+    page.evaluate(FLING_JS)
+    cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": 180, "y": 450}]})
+    page.wait_for_timeout(800)
+    cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+    cdp.detach()
+    settle(page)
+    got = page.evaluate("""() => { const d = window.__down, s = window.__scrolls, last = s.filter(t => t <= d.t).pop();
+        return { row: d.row, ms: last === undefined ? null : Math.round(d.t - last), after: s.filter(t => t > d.t).length }; }""")
+    got["landed"] = bool(got["row"]) and got["ms"] is not None and got["ms"] < 100 and got["after"] == 0
+    got["ticked"] = ticked(page)
+    close_sheet(page)                                   # headless Chromium sends a click after any rest; a phone does not
+    if got["ticked"]:
+        page.locator('[data-screen] [data-act="untick"]').click()
+    return got
+
+
+# ── 24. a row's check scrolls under the sticky search and tabs, never over them ──
+UNDER_JS = """async () => {
+  const frame = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  // the tab's crossfade first: while it runs, its opacity makes the list a layer of its own and hides the fault
+  await Promise.all(document.getAnimations().filter(a => a.effect.getComputedTiming().iterations !== Infinity)
+    .map(a => a.finished.catch(() => {})));
+  const head = document.querySelector('[data-screen] .log-head');
+  scrollTo(0, 300); await frame();
+  const bottom = head.getBoundingClientRect().bottom;
+  const mark = [...document.querySelectorAll('[data-screen] .log-row .log-mark:not([hidden])')].find(m => m.getBoundingClientRect().top > bottom + 40);
+  const r0 = mark.getBoundingClientRect();
+  scrollBy(0, (r0.top + r0.bottom) / 2 - (bottom - 14)); await frame();
+  const r = mark.getBoundingClientRect(), h = head.getBoundingClientRect(), x = (r.left + r.right) / 2, y = (r.top + r.bottom) / 2;
+  const hit = document.elementFromPoint(x, y);
+  return { under: y > h.top && y < h.bottom, stuck: Math.round(h.top), onMark: mark.contains(hit), onHead: head.contains(hit),
+           hit: hit ? `${hit.tagName.toLowerCase()}.${hit.getAttribute('class') || ''}` : null };
+}"""
+
+
+def check_check_under(browser, errors):
+    ctx, page = A.phone(browser, errors, "check-under", text=1.0)
+    A.open_today(page, URL)
+    page.evaluate(MANY_FOODS_JS, "dinner")             # 30 foods in today's dinner: every Frequent row carries a check
+    go_frequent(page, "dinner")
+    got = page.evaluate(UNDER_JS)
+    CHECK("scrolled so a row's check lies under the sticky search and tabs, the check is painted under them: elementFromPoint "
+          "at its centre is the header, not the check", got["under"] and got["stuck"] == 0 and not got["onMark"] and got["onHead"], got)
+    ctx.close()
+
+
+# ── 25. 360 x 780 at text 1.0, light and dark: the four tabs on one line, the meal's rows, "Remove", the Add bar ──
+ENT_LINES_JS = """() => [...document.querySelectorAll('[data-screen] .log-ent .name, [data-screen] .log-ent .sub')].map(el => {
+  const s = getComputedStyle(el);
+  return { text: el.textContent, ok: s.whiteSpace === 'nowrap' && s.textOverflow === 'ellipsis'
+           && Math.round(el.getBoundingClientRect().height / parseFloat(s.lineHeight)) <= 1, cut: el.scrollWidth > el.clientWidth };
+})"""
+# where an entry's name and amount end against where its "Remove" begins (laid out even while hidden): clear is the room
+# between them, negative when "Remove" lies over the end of a line, where its ellipsis is drawn
+PILL_JS = """id => { const li = document.querySelector(`[data-screen] .log-ent[data-entry="${id}"]`);
+  const go = li.querySelector('.log-rm-go').getBoundingClientRect().left, name = li.querySelector('.name');
+  const ends = [...li.querySelectorAll('.name, .sub')].map(el => Math.round(el.getBoundingClientRect().right * 10) / 10);
+  return { go: Math.round(go * 10) / 10, ends, clear: Math.round((go - Math.max(...ends)) * 10) / 10, cut: name.scrollWidth > name.clientWidth }; }"""
+
+
+def check_meal_layout(browser, errors):
+    for scheme, canvas in (("dark", "rgb(14, 14, 14)"), ("light", "rgb(247, 247, 247)")):
+        ctx = browser.new_context(**A.PHONE, color_scheme=scheme)
+        ctx.clock.set_fixed_time(A.NOW)
+        page = ctx.new_page()
+        A.watch(page, errors, f"meal-layout-{scheme}")
+        A.set_text(page, 1.0)
+        A.open_today(page, URL)
+        doc = fixture_doc()
+        load(page, doc)
+        loaf = food_id(doc, LOAF_NAME)
+        add_entries(page, [{"id": "B2", "date": TODAY.isoformat(), "meal": "breakfast", "foodId": loaf, "amount": "85 g", "grams": 85,
+                            "totals": {"kcal": 230}}])          # synthetic: a long name in the meal's tab
+        where = f"360 x 780, text 1.0, {scheme}"
+        go(page, "add", "breakfast")
+        tabs = page.evaluate(TABS_JS)
+        CHECK(f"the four tabs Breakfast, Frequent, Recent, My foods sit on one row, each on one line ({where})",
+              [t["tab"] for t in tabs] == ["Breakfast", "Frequent", "Recent", "My foods"] and all(t["lines"] == 1 for t in tabs)
+              and len({t["top"] for t in tabs}) == 1, tabs)
+        A.fits(page, f"Breakfast tab with its entries ({where})")
+        lines = page.evaluate(ENT_LINES_JS)
+        CHECK(f"each entry's name and amount stay on one line and end in an ellipsis; the loaf's long name is cut ({where})",
+              lines and all(r["ok"] for r in lines) and any(r["cut"] for r in lines if r["text"] == LOAF_NAME), lines)
+        was = page.evaluate(PILL_JS, "B2")
+        page.locator('[data-screen] .log-ent[data-entry="B2"] [data-act="remove"]').click()
+        settle(page)
+        A.fits(page, f"Breakfast tab with 'Remove' showing ({where})")
+        bg = page.evaluate("getComputedStyle(document.body).backgroundColor")
+        CHECK(f"the {scheme} canvas renders behind the meal's tab ({bg})", bg == canvas and page.evaluate(ARMED_JS, "B2")["armed"], bg)
+        armed = page.evaluate(PILL_JS, "B2")
+        page.locator('[data-screen] .top .title').click()          # "Remove" turns back
+        page.wait_for_timeout(400)
+        calm = page.evaluate(PILL_JS, "B2")
+        CHECK(f"with 'Remove' showing, the loaf's name and amount end before it and the name still ends in an ellipsis, so "
+              f"'Remove' covers no letter or dot; when it turns back they have their whole width again ({where})",
+              armed["clear"] >= 4 and armed["cut"] and was["clear"] < 4 and calm["ends"] == was["ends"], (was, armed, calm))
+        tab(page, "Frequent")
+        tick(page, food_id(doc, "Washed White Potato"))
+        A.fits(page, f"Frequent with yesterday's row, a tick and the Add bar ({where})")
+        ctx.close()
+
+
+# ── 26. a quick double tap on a food row opens its sheet, and the second tap, landing on the sheet, does nothing ──
+# what each click lands on, seen from the window before anything on the page can stop it, with its event time
+TAPS_JS = """() => { window.__taps = []; if (window.__tapLog) return; window.__tapLog = true;
+  addEventListener('click', e => { const t = e.target instanceof Element ? e.target : document.body;
+    window.__taps.push({ t: e.timeStamp, on: t.closest('.log-sheet [type=submit]') ? 'add' : t.closest('.log-g') ? 'amount'
+      : t.closest('.log-row') ? 'row' : t.closest('.log-layer') ? 'sheet' : t.tagName.toLowerCase() }); }, true); }"""
+ROW_AT_JS = """([x, y]) => { const el = document.elementFromPoint(x, y);
+  return el && el.closest('[data-screen] .log-row [data-act="open"]') ? el.closest('.log-row').dataset.id : null; }"""
+
+
+def double_tap(page, x, y, hold_ms, gap_ms):
+    """Two quick taps of one finger at (x, y), each resting hold_ms, gap_ms apart: a finger tapping twice, or bouncing."""
+    cdp = page.context.new_cdp_session(page)
+    for i in range(2):
+        if i:
+            page.wait_for_timeout(gap_ms)
+        cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": x, "y": y}]})
+        page.wait_for_timeout(hold_ms)
+        cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+    cdp.detach()
+
+
+def check_double_tap(browser, errors):
+    ctx, page = A.phone(browser, errors, "double-tap", text=1.0)
+    A.open_today(page, URL)
+    page.evaluate(MANY_FOODS_JS, None)                 # 30 foods on lunch's Frequent: rows reach the bottom of the screen
+    go(page, "add", "lunch")
+    finger_tap(page, '[data-screen] .log-row[data-id="test-food-10"] .name')
+    sheet(page).wait_for()
+    spots = page.evaluate("""() => Object.fromEntries([['add', '.log-sheet [type=submit]'], ['amount', '.log-sheet input[name=amount]']]
+        .map(([k, s]) => { const r = document.querySelector(s).getBoundingClientRect(); return [k, r.bottom - 10]; }))""")   # low in each:
+    # the second tap comes while the sheet ends its rise, a few px short of where it settles
+    close_sheet(page)
+    before = stored(page)
+    x, seen = 150, {}
+    for spot in ("add", "amount"):
+        y = spots[spot]
+        food = page.evaluate(ROW_AT_JS, [x, y])          # the row under the place the risen sheet puts Add, then the amount
+        page.evaluate(TAPS_JS)
+        double_tap(page, x, y, 50, 150)
+        page.wait_for_timeout(500)
+        settle(page)
+        taps = page.evaluate("window.__taps")
+        seen[spot] = {"row": food, "on": [t["on"] for t in taps], "gap": round(taps[-1]["t"] - taps[0]["t"]) if len(taps) == 2 else None,
+                      "sheet": page.locator(".log-sheet .log-name").inner_text() if sheet(page).count() else None,
+                      "field": page.evaluate(FOCUS_JS)["field"], "same": stored(page) == before,
+                      "screen": page.evaluate("document.querySelector('[data-screen]').dataset.screen")}
+        if spot == "add":
+            close_sheet(page)
+    ok = all(s["row"] and s["on"] == ["row", k] and s["gap"] < 350 and s["sheet"] == f"Test Food {s['row'].split('-')[-1]}"
+             and not s["field"] and s["same"] and s["screen"] == "add" for k, s in seen.items())
+    CHECK("a quick double tap on a food row (two 50 ms taps, 150 ms apart) opens its gram sheet and logs nothing: the second tap, "
+          "landing on the sheet's Add, does not log the food, and landing on the amount, brings no keyboard", ok, seen)
+    page.wait_for_timeout(400)
+    page.touchscreen.tap(x, spots["add"])               # a deliberate tap on Add, once the double tap is over, logs
+    added = screen_within(page, "today") and len(stored(page)["entries"]) == len(before["entries"]) + 1
+    CHECK("a tap on Add a moment later logs the food as ever (one entry, on to Today)", added, len(stored(page)["entries"]))
+    ctx.close()
+
+
 def main():
     global URL
     srv, site, URL = A.start_site()
@@ -1131,7 +1766,11 @@ def main():
                              ("meal line", check_meal_line), ("ticks", check_ticks), ("ticks meet", check_ticks_meet),
                              ("yesterday", check_yesterday),
                              ("instant", check_instant), ("sheet keys", check_sheet_keys), ("comfort layout", check_comfort_layout),
-                             ("pull close", check_pull_close)):
+                             ("pull close", check_pull_close), ("meal tab", check_meal_tab), ("take out", check_take_out),
+                             ("meal follows", check_meal_follows), ("tap opens", check_tap_opens),
+                             ("sheet no keyboard", check_sheet_no_keyboard), ("long press", check_long_press),
+                             ("check under", check_check_under), ("meal layout", check_meal_layout),
+                             ("double tap", check_double_tap)):
                 A.guarded(f"{name} scenario", fn, browser, errors)
             browser.close()
         CHECK("no console errors or page errors", not errors, "\n".join(errors[:10]))
