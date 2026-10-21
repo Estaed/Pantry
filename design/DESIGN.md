@@ -57,3 +57,7 @@ not named here follows the base.
 - 2026-10-21, after a day on the phone: the ring keeps no slot for a meal not yet logged (the track stays whole and
   a meal takes room once logged; this ends A3's fixed quarters); the eaten list splits by meal; a meal's list opens
   on what is already in that meal; light, dark, system and dynamic (dark after sunset) themes in Settings.
+- 2026-10-21, evening, on the phone: the ring becomes one arc for the day like MyNetDiary's ("o durum barındaki
+  öğünleri kaldıralım sadece 1 tane bar olsun mynetdiary gibi"), ending round 8's G3 alternating meal arcs; the macro
+  deviation marks go ("ne işe yarıyor anlamadım, gereksiz gibi"). Read across (hypothesis): on Today he wants one
+  reading per element, the MyNetDiary one he knows; detail that needs decoding is cut.

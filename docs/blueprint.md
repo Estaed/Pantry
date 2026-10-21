@@ -124,7 +124,7 @@ order on scan: his foods → catalogue → Open Food Facts → typed from the la
 - New product: his foods → Coles/Woolworths catalogue → Open Food Facts → label typed once.
   Rejected: label photo read by a model (an API key in a public client; maybe v1.3).
 - App repo `Pantry` private with Pages, public when open-sourced; at v1.2 Calisthenics moves in.
-- UI English; design as picked in `design/DESIGN.md` (corners, G3 ring, B1 strip, W3 waves, style C; the ring and over tone as changed on 2026-10-21 below).
+- UI English; design as picked in `design/DESIGN.md` (corners, B1 strip, W3 waves, style C; the ring and over tone as changed on 2026-10-21 below).
 
 ## Decisions (2026-10-21, Tarık)
 - The prototype is a starting point, not a contract: a change that makes daily use faster or more
@@ -138,6 +138,8 @@ order on scan: his foods → catalogue → Open Food Facts → typed from the la
 - Macros read carbs, protein, fat everywhere. Rejected: protein first (carbs in the middle read oddly).
 - Over budget is the base `danger` red (picked on the real 19 Oct screen). Rejected: violet, raspberry, blue
   ("mor o kadar uyarıcı değil"). Within stays grey.
-- The ring keeps no slot for a meal not logged yet; logged meals take their share, the rest is one track.
+- The ring is one arc for the day, as in MyNetDiary: eaten / budget from 12 o'clock, the rest one track; over, a full
+  first lap and the excess as a second lap (Tarık, 2026-10-21: "sadece 1 tane bar olsun mynetdiary gibi"). Rejected:
+  per-meal arcs in alternating greys (G3), then per-meal arcs without quarters (both 2026-10-21).
   Rejected: round 5's fixed quarter per meal (the empty slots read as meals).
 - Theme chosen in Settings: dynamic (dark from sunset to sunrise), light, dark or system.

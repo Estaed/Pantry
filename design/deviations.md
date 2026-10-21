@@ -39,13 +39,14 @@
 
 ## Departures from the prototype, wave 4 (2026-10-21; from Tarık's first day on the phone)
 - **Over is the base `danger` red** (Tarık picked C of four tones on the real 19 Oct screen). Past the budget the
-  ring runs on as a second lap from 12 o'clock, as in MyNetDiary: the first lap's arcs and badges go to light
+  ring runs on as a second lap from 12 o'clock, as in MyNetDiary: the first lap and the badges go to light
   tints of the red (badge letters in ink), the second lap carries the strong red, deeper the more he is over
   (75 % of `danger` just over, full from 25 % over); the kcal number stays full `danger` for contrast.
-- **Ring without quarters**: one track, the logged meals' arcs end to end from 12 o'clock in meal order, tones
-  alternating in drawn order, each badge in its arc's tone; no letters on the ring.
-- **Macro strip**: one grey for the three bars; red only past target grams; under each bar a deviation mark (a
-  target tick, a bar to the side the share leans, 20 points a half) with its signed points over the tick.
+- **Ring is one arc for the day** (design: a quarter per meal), as in MyNetDiary: eaten / budget from 12 o'clock in
+  ink, the rest one track; over, a closed first lap in the light over tint under the second lap. Corner badges dark
+  when the meal has entries, light when empty; no letters on the ring.
+- **Macro strip**: one grey for the three bars; red only past target grams (a deviation mark under each bar was
+  tried and removed the same day: "gereksiz gibi").
 - **Eaten by meal**: a tab per meal (name over kcal) over one page per meal in a sideways snap pager; a trash at
   each row's end, then Delete (red outline) with Undo; an empty meal says so and offers "Add to <meal>". The +
   and Scan add to the meal shown; Scan floats like the +. The pages are as tall as the longest meal, so a swipe
