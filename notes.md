@@ -135,4 +135,7 @@ No stock screen in v1: the weekly Discord list covers stock (Tarık, 2026-10-20)
 - 2026-10-20: adding to the Coles/Woolworths trolley; no official API, browser automation is fragile.
 - 2026-10-20: auto-checkout with a virtual card; saves one tap, adds the riskiest step. Payment stays with Tarık.
 - 2026-10-20: merge with the workout app (v1.2, Tarık); body weight comes with it, not in v1 (Tarık no longer weighs in).
+- 2026-10-21: the full Coles and Woolworths catalogue (95 Coles product pages behind the bot check, 22 open Woolworths
+  lines in `.tmp/purchases/woolworths-review.json`): a later version, not a priority; scanning already works (Tarık
+  tried cacık and tuna). 68 products went to Pantry-Data's catalogue on 2026-10-21.
 - 2026-10-21: an APK (TWA or Capacitor): not now; the installed PWA already runs as an app. Revisit if the web barcode reader fails his five packs (Tarık).
