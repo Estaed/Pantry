@@ -53,6 +53,8 @@
                                    opts.screens (screen changes it survives, default 1: the one its action caused).
                                    A swipe sideways or down dismisses it. A new toast replaces the shown one.
      Pantry.haptic(kind)           a short vibration: 'tap' (logged), 'undo', 'delete', 'scan'; silent where unsupported.
+     Pantry.removeEntry(id)        takes an entry out: a doc.removed line, the 'delete' pulse and a "Deleted <food>"
+                                   toast whose Undo puts it back deep-equal; returns the entry; throws when it is gone.
      Pantry.MACROS                 ['carbs', 'protein', 'fat']: the order every screen shows the macros in (Tarık).
      Routes take positional args; an undefined or null arg is an empty segment and arrives as undefined.
      An unknown route opens Today with no args.
@@ -580,6 +582,39 @@
     try { if (navigator.vibrate) navigator.vibrate(PULSE[kind] || PULSE.tap); } catch (e) { /* no vibration here */ }
   }
 
+  // Takes an entry out of the log with a way back: { id, at } joins doc.removed so sync never brings it back, and the
+  // toast's Undo puts the same entry back at its index and drops its own removed line (Blueprint → Screens and seams).
+  function removeEntry(id) {
+    let index = -1, removed = null;
+    const at = new Date().toISOString();
+    change(d => {
+      index = d.entries.findIndex(x => x.id === id);
+      if (index < 0) throw new Error('This entry is not in your log any more.');
+      removed = d.entries.splice(index, 1)[0];
+      if (!Array.isArray(d.removed)) d.removed = [];
+      d.removed.push({ id, at });
+    });
+    const food = doc.foods.find(f => f.id === removed.foodId);
+    haptic('delete');
+    toast(`Deleted ${food ? food.name : 'the entry'}`, {
+      action: 'Undo', drawing: window.PantryDrawing ? window.PantryDrawing(food, 32) : '',
+      onAction() {
+        haptic('undo');
+        try {
+          change(d => {
+            if (Array.isArray(d.removed)) {
+              const i = d.removed.findIndex(r => r.id === id && r.at === at);
+              if (i >= 0) d.removed.splice(i, 1);
+              if (!d.removed.length) delete d.removed;
+            }
+            if (!d.entries.some(x => x.id === id)) d.entries.splice(Math.min(index, d.entries.length), 0, structuredClone(removed));
+          });
+        } catch (x) { toast(x.message); }
+      },
+    });
+    return removed;
+  }
+
   function css(text) {
     const style = document.createElement('style');
     style.textContent = text;
@@ -613,7 +648,7 @@
     today, dayLabel, mealNow, usualAmounts, totals, sum, fmt, esc, icon,
     MACROS: Object.freeze(['carbs', 'protein', 'fat']),
     view(name, def) { views[name] = def; },
-    go, back, home, css, toast, haptic,
+    go, back, home, css, toast, haptic, removeEntry,
   });
 
   document.addEventListener('DOMContentLoaded', () => {

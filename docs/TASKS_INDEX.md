@@ -21,23 +21,15 @@ Ran overnight 2026-10-21 (Workflow, phone not on the cable): `reports/otopilot-2
 - [x] Task-09: Today in colour and motion: over budget at a glance, swipe the ring between days
 - [x] Task-10: Barcode catalogue from his Coles and Woolworths purchases
 
+## Wave 4
+From Tarık's first day on the phone with wave 3 (2026-10-21). Three lanes, files disjoint, run at once with the
+Workflow while he is present; the phone is on the cable for the use check (Samsung Internet).
+
+- [ ] Task-11: A meal's list opens on that meal; a tap on a food opens it, + logs, the keyboard only from the amount
+- [ ] Task-12: Today at a glance: whole ring, macro bars against target, eaten by meal with easy delete, red when over
+- [ ] Task-13: Light, dark, system or dynamic (dark after sunset) theme in Settings
+
 ## Later waves (draft)
-- Wave 3 (being planned, 2026-10-21; history already uploaded to `Pantry-Data`). Sources:
-  `reports/2026-10-21-qol-research.md`, `reports/2026-10-21-woolworths-research.md`, and Tarık's list
-  after his first day on the phone:
-  - Over budget changes the screen: today the only sign is a word; it should be seen at a glance.
-  - Status colour change: the screen changes colour once over budget (as MyNetDiary does), in the
-    design's own tones, not literal green and red (Tarık, 2026-10-21).
-  - Macro order carbs, protein, fat everywhere (carbs in the middle reads oddly).
-  - The "59×" use counts beside the gram chips are unclear: drop or explain them.
-  - The toast can be swiped away; today he has to wait it out.
-  - Swiping the ring left or right moves to the previous or next day.
-  - Settings counts every day: MyNetDiary days plus Pantry days ("460 (+10)"), not "0 days".
-  - Adding a food the way MyNetDiary does (tick several, amount selected, chips without counts): Task-08.
-    Scanning the MyNetDiary way waits for his five-pack trial (After v1 if the reader holds).
-  - Motion and feel picks from the comfort report. Stay in the meal: multi-select logs several foods
-    from the list; a single food's Save still returns to Today.
-  - Coles and Woolworths barcode catalogue from his receipts (main loop reads them in his Opera).
-- After wave 3: a week of real use against the acceptance in Blueprint; a look at MyNetDiary's design and
+- After wave 4: a week of real use against the acceptance in Blueprint; a look at MyNetDiary's design and
   motion on his phone for ideas (Tarık, 2026-10-21: design and animation, not features; later, with the phone).
 - v1.1: stock spike (receipts vs log vs kitchen), then stock and Hermes' weekly Discord list.

@@ -41,13 +41,13 @@ API = [("doc", "function", 0), ("change", "function", 1), ("subscribe", "functio
        ("mealNow", "function", 0), ("usualAmounts", "function", 2), ("totals", "function", 2), ("sum", "function", 1),
        ("fmt", "function", 1), ("esc", "function", 1), ("icon", "function", 1), ("MACROS", "object", None),
        ("view", "function", 2), ("go", "function", 1), ("back", "function", 0), ("home", "function", 0),
-       ("css", "function", 1), ("toast", "function", 1), ("haptic", "function", 0)]
+       ("css", "function", 1), ("toast", "function", 1), ("haptic", "function", 0), ("removeEntry", "function", 1)]
 SIGNATURES = ["Pantry.doc()", "Pantry.change(fn, opts)", "Pantry.subscribe(fn)", "Pantry.dirty()", "Pantry.changes()",
               "Pantry.markClean(upTo)", "Pantry.syncState()", "Pantry.setSyncState(patch)", "Pantry.problem()", "Pantry.starter",
               "Pantry.today()", "Pantry.mealNow()", "Pantry.usualAmounts(foodId, meal)", "Pantry.dayLabel(date)",
               "Pantry.totals(food, grams)", "Pantry.sum(entries)", "Pantry.fmt(n, digits)", "Pantry.esc(text)", "Pantry.icon(name)",
               "Pantry.view(name, def)", "Pantry.go(name, ...args)", "Pantry.back()", "Pantry.home()", "Pantry.css(text)",
-              "Pantry.toast(text, opts)", "Pantry.haptic(kind)", "Pantry.MACROS"]
+              "Pantry.toast(text, opts)", "Pantry.haptic(kind)", "Pantry.removeEntry(id)", "Pantry.MACROS"]
 
 STAGE_JS = """() => {
   const host = document.getElementById('stage');

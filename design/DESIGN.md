@@ -51,3 +51,9 @@ not named here follows the base.
 - 2026-10-20, round 8 (`design/yonler-6.html`): picked G3 ("şimdilik"): meals alternate dark and
   light grey on the ring with their initial (B, L, D, S) on each segment; macro values inside the
   bars. The waving day strip stays.
+- 2026-10-21, over tone (`.tmp/taste-over/`, the real Today on 19 Oct): picked C, the base `danger` red, over
+  violet (now), raspberry and blue ("mor o kadar uyarıcı değil", "C güzel bence"). Read across (hypothesis): for a
+  warning he wants the plain warning colour, though he refused literal green-for-within; within stays grey.
+- 2026-10-21, after a day on the phone: the ring keeps no slot for a meal not yet logged (the track stays whole and
+  a meal takes room once logged; this ends A3's fixed quarters); the eaten list splits by meal; a meal's list opens
+  on what is already in that meal; light, dark, system and dynamic (dark after sunset) themes in Settings.

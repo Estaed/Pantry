@@ -6,9 +6,8 @@
    keeps MyNetDiary's values. An amount with no single number to scale ("a bowl") stays as logged and only the
    meal can change. Moving changes only the meal: id, date, amount and totals stay. Save writes only what he
    changed, so a change made elsewhere while the screen is open is kept, and says it in a toast ("Saved, 200 g") with
-   the food's drawing and Undo, which puts the stored entry back exactly as it was. Delete removes
-   the entry, appends { id, at } to doc.removed and offers Undo in a toast, which puts the same entry back at
-   the same index and drops that line. Save and Delete return with Pantry.go('today', date). */
+   the food's drawing and Undo, which puts the stored entry back exactly as it was. Delete is
+   Pantry.removeEntry (a doc.removed line, Undo in a toast). Save and Delete return with Pantry.go('today', date). */
 (() => {
   'use strict';
   const P = window.Pantry;
@@ -265,20 +264,8 @@
     });
 
     form.querySelector('[data-act="delete"]').addEventListener('click', () => {
-      let index = -1, removed = null;
-      const at = new Date().toISOString();
       shown.busy = true;
-      try {
-        P.change(d => {
-          index = d.entries.findIndex(x => x.id === entry.id);
-          if (index < 0) throw new Error('This entry is not in your log any more.');
-          removed = d.entries.splice(index, 1)[0];
-          if (!Array.isArray(d.removed)) d.removed = [];
-          d.removed.push({ id: entry.id, at });
-        });
-      } catch (x) { if (shown) shown.busy = false; fail(x.message); return; }
-      P.haptic('delete');
-      P.toast(`Deleted ${food ? food.name : 'the entry'}`, { action: 'Undo', drawing: art(food), onAction: () => undo(removed, index, at) });
+      try { P.removeEntry(entry.id); } catch (x) { if (shown) shown.busy = false; fail(x.message); return; }
       P.go('today', entry.date);
     });
 
@@ -296,21 +283,6 @@
         const i = d.entries.findIndex(x => x.id === before.id);
         if (i < 0) throw new Error('This entry is not in your log any more, so it could not be put back.');
         d.entries[i] = structuredClone(before);
-      });
-    } catch (x) { P.toast(x.message); }
-  }
-
-  // Undo a delete: the same entry back at the same index, and its own removed line gone.
-  function undo(entry, index, at) {
-    P.haptic('undo');
-    try {
-      P.change(d => {
-        if (Array.isArray(d.removed)) {
-          const i = d.removed.findIndex(r => r.id === entry.id && r.at === at);
-          if (i >= 0) d.removed.splice(i, 1);
-          if (!d.removed.length) delete d.removed;
-        }
-        if (!d.entries.some(x => x.id === entry.id)) d.entries.splice(Math.min(index, d.entries.length), 0, structuredClone(entry));
       });
     } catch (x) { P.toast(x.message); }
   }
