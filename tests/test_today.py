@@ -1,9 +1,10 @@
 """Checks for Task-02, Today: day strip, meals in the corners, the ring, the macro strip, the eaten list; for Task-09:
-the budget status tones, days switched in place, the ring swipe, and the motion that shows what changed; and for
-Task-12: one whole ring with the meals end to end in alternating tones, over in the base danger red, one grey for the
-macro bars with a deviation mark and its points under each, one page per meal with two-tap delete (a double tap's second
-tap held) that keeps its page across the meal clock, the floating + and Scan clear of the last row, and no page
-scrollbar.
+the budget status tones, days switched in place, the ring swipe, and the motion that shows what changed; for Task-12:
+over in the base danger red with a second lap, one grey for the macro bars, one page per meal with two-tap delete (a
+double tap's second tap held) that keeps its page across the meal clock, the floating + and Scan clear of the last
+row, and no page scrollbar; and for Tarik's day on the phone (2026-10-21): one arc on the ring as in MyNetDiary (no arc
+per meal; over, a closed first lap under the second), badges dark for a logged meal and light for an empty one, and
+nothing under the macro bars but their labels.
 
 Run from the repo root: python tests/test_today.py [scenario ...]   (exit 0 = no FAIL; names as in SCENARIOS run only
 those). Reuses the gate's server and phone from
@@ -19,6 +20,7 @@ import datetime
 import json
 import math
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -55,11 +57,29 @@ ANGLES_JS = """const angles = p => {
   for (let k = 1; k < pts.length; k++) { let d = ang(pts[k]) - ang(pts[k - 1]); while (d <= 0) d += 360; end += d; }
   return [start, end];
 };"""
-ARCS_JS = "() => {" + ANGLES_JS + """
-  return Object.fromEntries([...document.querySelectorAll('[data-screen="today"] .today-seg')].map(p => [p.dataset.meal, angles(p)])); }"""
-# The track pieces: [over tint or not, start, end] each.
-TRACKS_JS = "() => {" + ANGLES_JS + """
-  return [...document.querySelectorAll('[data-screen="today"] .today-track')].map(p => [p.classList.contains('today-full'), ...angles(p)]); }"""
+# Every piece of the drawn ring: its path's [start, end] and the stretches its dash pattern shows ([start, end] each, in
+# degrees along the path, from the browser's own path length; the whole path when it has no dash); how many paths the
+# ring holds in all, whether the frame is over, and the letters on the ring.
+RING_JS = "() => {" + ANGLES_JS + """
+  const shown = p => {
+    const [a, b] = angles(p), total = p.getTotalLength(), dash = getComputedStyle(p).strokeDasharray;
+    const at = x => a + (b - a) * Math.min(x, total) / total;
+    if (!dash || dash === 'none') return [[a, b]];
+    let d = dash.split(/[ ,]+/).map(parseFloat);
+    if (d.length % 2) d = d.concat(d);
+    if (!d.some(x => x > 0)) return [];
+    const out = [];
+    for (let pos = 0, i = 0; pos < total; i = (i + 1) % d.length) {
+      if (i % 2 === 0 && d[i] > 0) out.push([at(pos), at(pos + d[i])]);
+      pos += d[i];
+    }
+    return out;
+  };
+  const s = document.querySelector('[data-screen="today"]'), svg = s.querySelector('.today-ring svg');
+  const of = c => [...svg.querySelectorAll('path.' + c)].map(p => ({ path: angles(p), shown: shown(p) }));
+  return { arcs: of('today-arc'), tracks: of('today-track'), laps: of('today-lap'), paths: svg.querySelectorAll('path').length,
+           over: s.querySelector('.today-frame').classList.contains('today-over'),
+           letters: [...s.querySelectorAll('.today-ring span')].filter(x => /^[BLDS]$/.test(x.textContent.trim())).length }; }"""
 
 # The second lap over budget: its [start, end], its tone and the tokens it is measured against, as sRGB.
 LAP_JS = "() => {" + ANGLES_JS + """
@@ -145,15 +165,31 @@ INK_JS = """const ink = (el, skip) => {
            lines: new Set(rects.map(x => Math.round(x.top))).size, size };
 };"""
 
-# Each macro label (its name and grams; the deviation mark over them and its points are check_marks') against its bar
-# and its neighbours; the gap the labels keep is one em of their text (0.75rem).
+# Each macro label (its name and grams) against its bar and its neighbours; the gap the labels keep is one em of their
+# text (0.75rem).
 LABELS_JS = "() => {" + INK_JS + """
   const q = s => [...document.querySelectorAll('[data-screen="today"] ' + s)];
   const row = document.querySelector('[data-screen="today"] .today-labs').getBoundingClientRect();
   return { sep: 0.75 * parseFloat(getComputedStyle(document.documentElement).fontSize), row: [row.left, row.right],
            bars: q('.today-bar').map(b => [b.getBoundingClientRect().left, b.getBoundingClientRect().right]),
-           labels: q('.today-labs > div').map(el => ink(el, '.today-dev')) };
+           labels: q('.today-labs > div').map(el => ink(el)) };
 }"""
+
+# What lies under each macro bar: the visible words of its column in order, every drawn element in it (class names),
+# and how far under the bars its label's box starts.
+UNDER_BARS_JS = """() => {
+  const s = document.querySelector('[data-screen="today"]'), bars = s.querySelector('.today-bars').getBoundingClientRect();
+  const shows = el => getComputedStyle(el).visibility === 'visible';
+  return [...s.querySelectorAll('.today-labs > div')].map(col => {
+    const words = [], walk = document.createTreeWalker(col, NodeFilter.SHOW_TEXT);
+    for (let n; (n = walk.nextNode());) if (n.textContent.trim() && shows(n.parentElement)) words.push(n.textContent.trim());
+    const drawn = [...col.querySelectorAll('*')].filter(el => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && shows(el); });
+    const lab = col.querySelector('.today-lab');
+    return { words: words.join(' '), drawn: drawn.map(el => el.className || el.tagName.toLowerCase()),
+             gap: lab ? lab.getBoundingClientRect().top - bars.bottom : null };
+  });
+}"""
+UNDER_OK = {"today-lab", "today-lpct", "today-lpn", "today-g", "span"}
 
 # The floating + and Scan (as in MyNetDiary, design/deviations.md): [+ size, + to the screen's right edge, gap to Scan,
 # Scan's left edge], and whether the + shows its icon.
@@ -201,20 +237,33 @@ def fixture_days():
     return days
 
 
-def end_to_end(kcals):
-    """The ring rule worked by hand (Blueprint, 2026-10-21): each logged meal's arc is kcal / budget x 360 degrees, end
-    to end in meal order from 12 o'clock; the ring stops at a full turn."""
-    end, out = 0.0, {}
-    for meal, k in zip(MEALS, kcals):
-        if k and end < 360:
-            s, end = end, min(360.0, end + k / BUDGET * 360)
-            out[meal] = (s, end)
-    return out
+def turn(kcal):
+    """The ring rule worked by hand (Tarik, 2026-10-21, as MyNetDiary): one arc of eaten / budget of a turn from 12
+    o'clock, a full turn at most."""
+    return min(360.0, kcal / BUDGET * 360)
 
 
-def near(got, want, tol=0.5):
-    """Two {meal: (start, end)} maps alike within tol degrees."""
-    return set(got) == set(want) and all(abs(got[m][0] - want[m][0]) <= tol and abs(got[m][1] - want[m][1]) <= tol for m in want)
+def one_arc(r, end):
+    """Within budget: one arc from 12 o'clock to `end` degrees, one track from there back to the top, nothing else
+    drawn, the frame not over (0.5 deg)."""
+    arcs, tracks = r["arcs"], r["tracks"]
+    return (len(arcs) == 1 and abs(arcs[0]["path"][0]) <= 0.5 and abs(arcs[0]["path"][1] - end) <= 0.5
+            and len(tracks) == 1 and abs(tracks[0]["path"][0] - end) <= 0.5 and abs(tracks[0]["path"][1] - 360) <= 0.5
+            and not r["laps"] and r["paths"] == 2 and not r["over"])
+
+
+def closed(piece):
+    """A piece drawn all the way round: its path from 12 o'clock back to it, its dash showing every degree (no gap)."""
+    return (abs(piece["path"][0]) <= 0.5 and abs(piece["path"][1] - 360) <= 0.5 and len(piece["shown"]) == 1
+            and abs(piece["shown"][0][0] - piece["path"][0]) <= 0.05 and abs(piece["shown"][0][1] - piece["path"][1]) <= 0.05)
+
+
+def full_first_lap(r, excess):
+    """Over budget: the first lap is one closed arc (no gap at 12 o'clock) with no track, and the second lap runs on it
+    from 12 o'clock for excess / budget of a turn; nothing else drawn; the frame is over."""
+    laps = r["laps"]
+    return (len(r["arcs"]) == 1 and closed(r["arcs"][0]) and not r["tracks"] and len(laps) == 1
+            and abs(laps[0]["path"][0]) <= 0.5 and abs(laps[0]["path"][1] - turn(excess)) <= 0.5 and r["paths"] == 2 and r["over"])
 
 
 def show(page, date=None):
@@ -346,70 +395,65 @@ def check_day(page, days):
 
 
 def ring_state(page):
-    """The drawn ring: {meal: (start, end)}, the track pieces, whether the frame is over, the letters on the ring."""
-    return {"arcs": page.evaluate(ARCS_JS), "tracks": page.evaluate(TRACKS_JS), "laps": page.evaluate(LAP_JS)["laps"],
-            "over": page.evaluate("() => document.querySelector('[data-screen=\"today\"] .today-frame').classList.contains('today-over')"),
-            "letters": page.evaluate("() => [...document.querySelectorAll('[data-screen=\"today\"] .today-ring span')].filter(s => /^[BLDS]$/.test(s.textContent.trim())).length")}
+    """The drawn ring (RING_JS)."""
+    return page.evaluate(RING_JS)
 
 
-# The tone of each drawn arc in drawn order (meal order is drawn order) and of each corner badge, as sRGB.
-TONE_JS = """() => {
+# Each corner badge's fill and letter colour, and the tokens they are measured against, as sRGB.
+BADGES_JS = """() => {
   const cv = document.createElement('canvas'); cv.width = cv.height = 1;
   const g = cv.getContext('2d', { willReadFrequently: true });
   const rgb = c => { g.clearRect(0, 0, 1, 1); g.fillStyle = c; g.fillRect(0, 0, 1, 1); return [...g.getImageData(0, 0, 1, 1).data].slice(0, 3); };
   const s = document.querySelector('[data-screen="today"]');
-  return { arcs: [...s.querySelectorAll('.today-seg')].map(p => [p.dataset.meal, rgb(getComputedStyle(p).stroke)]),
-           badges: Object.fromEntries([...s.querySelectorAll('.today-corner')].map(c =>
-             [c.dataset.meal, rgb(getComputedStyle(c.querySelector('.today-sw')).backgroundColor)])) }; }"""
+  const probe = v => { const i = document.createElement('i'); i.style.color = v; s.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return rgb(c); };
+  return { badges: Object.fromEntries([...s.querySelectorAll('.today-corner')].map(c => { const sw = getComputedStyle(c.querySelector('.today-sw'));
+             return [c.dataset.meal, { fill: rgb(sw.backgroundColor), letter: rgb(sw.color) }]; })),
+           ink: probe('var(--ink)'), canvas: probe('var(--canvas)'), danger: probe('var(--danger)') }; }"""
 
 
-def tones_ok(t):
-    """Arcs side by side differ in tone and every other one shares it (dark, light, dark: OKLab distance), each corner
-    badge has its own arc's tone, and a badge with no arc the light one (the second arc's)."""
-    arcs, badges = t["arcs"], t["badges"]
-    drawn = dict(arcs)
-    alternate = (all(delta(a[1], b[1]) > 0.1 for a, b in zip(arcs, arcs[1:]))
-                 and all(delta(a[1], c[1]) < 0.01 for a, c in zip(arcs, arcs[2:])))
-    own = all(delta(badges[m], c) < 0.01 for m, c in arcs)
-    rest = len(arcs) < 2 or all(delta(c, arcs[1][1]) < 0.01 for m, c in badges.items() if m not in drawn)
-    return alternate and own and rest
-
-
-def whole_ring(r, want):
-    """The arcs are `want`, end to end with no overlap, and the rest is one unbroken track from the last end to the top."""
-    arcs, last = r["arcs"], max(e for _, e in want.values())
-    order = sorted(arcs.values())
-    return (near(arcs, want) and all(a[1] <= c[0] + 0.01 for a, c in zip(order, order[1:]))
-            and len(r["tracks"]) == 1 and not r["tracks"][0][0] and abs(r["tracks"][0][1] - last) <= 0.5
-            and abs(r["tracks"][0][2] - 360) <= 0.5 and not r["over"])
+def badge_tones(t, logged, over):
+    """The badges of the logged meals share one tone and those of the empty meals another, the logged one farther from
+    the canvas (the dark tone, OKLab); within budget both grey, over both tints of danger with the letters in ink.
+    Returns (ok, the logged tone, the empty tone)."""
+    b = t["badges"]
+    dark, light = [b[m]["fill"] for m in MEALS if m in logged], [b[m]["fill"] for m in MEALS if m not in logged]
+    same = all(delta(c, dark[0]) < 0.01 for c in dark) and all(delta(c, light[0]) < 0.01 for c in light)
+    apart = not dark or not light or delta(dark[0], t["canvas"]) > delta(light[0], t["canvas"]) + 0.05
+    if over:
+        hue = all(chroma(c) >= TONED and hue_gap(c, t["danger"]) <= 20 for c in dark + light)
+        hue = hue and all(delta(b[m]["letter"], t["ink"]) < 0.01 for m in MEALS)
+    else:
+        hue = all(chroma(c) < NEUTRAL for c in dark + light)
+    return same and apart and hue, dark[0] if dark else None, light[0] if light else None
 
 
 def check_ring(page, days):
     show(page, "2026-08-08")
-    want = end_to_end([days["2026-08-08"]["meals"][m] for m in MEALS])
+    aug8 = sum(days["2026-08-08"]["meals"].values())
     r = ring_state(page)
-    check("8 Aug ring, measured from the drawn arcs: breakfast 0..145, lunch ..203, dinner ..299, snacks ..323 end to end "
-          "from 12 o'clock, then one track back to the top (0.5 deg)",
-          abs(want["snacks"][1] - 323.3) < 0.5 and whole_ring(r, want), (want, r))
+    check(f"8 Aug ring, measured from the drawn SVG: one arc from 12 o'clock to {turn(aug8):.1f} deg ({aug8:,.0f} / 2,200 of "
+          "a turn), not one per meal, and one track from there back to the top (0.5 deg)",
+          abs(turn(aug8) - 323.4) < 0.5 and one_arc(r, turn(aug8)), r)
     check("the ring carries no meal letters (the corner badges do)", r["letters"] == 0
           and texts(page, ".today-sw") == ["B", "L", "D", "S"], (r["letters"], texts(page, ".today-sw")))
+    ok, aug_dark, _ = badge_tones(page.evaluate(BADGES_JS), MEALS, False)
+    within = {"8 Aug": ok and aug_dark is not None and delta(aug_dark, page.evaluate(BADGES_JS)["ink"]) < 0.01}
 
     show(page, "2026-10-19")
+    oct19 = sum(days["2026-10-19"]["meals"].values())
     r = ring_state(page)
-    want = end_to_end([days["2026-10-19"]["meals"][m] for m in MEALS])
-    closed = lambda r: len(r["tracks"]) == 1 and r["tracks"][0][0] and abs(r["tracks"][0][2] - r["tracks"][0][1] - 360) <= 0.5  # noqa: E731
-    check("19 Oct is 92 over: breakfast 0..161.7 and dinner on from it, stopped at the top; a closed track in the over tint "
-          "under them; the centre says '92 kcal over'",
-          near(r["arcs"], want) and abs(want["breakfast"][1] - 161.7) < 0.1 and abs(want["dinner"][1] - 360) < 0.01 and r["over"]
-          and closed(r) and text(page, '[data-test="kcal-left"]') == "92" and text(page, ".today-lbl") == "kcal over", r)
+    check(f"19 Oct is {oct19 - BUDGET:,.0f} over: the first lap is one closed arc, drawn all the way round with no gap at 12 "
+          f"o'clock and no track, and the second lap runs on it for 15.1 deg ({oct19 - BUDGET:,.0f} / 2,200 of a turn); "
+          "the centre says '92 kcal over'",
+          round(oct19) == 2292 and full_first_lap(r, oct19 - BUDGET) and text(page, '[data-test="kcal-left"]') == "92"
+          and text(page, ".today-lbl") == "kcal over", r)
+    laps = page.evaluate(LAP_JS)["laps"]
     check("19 Oct's 92 over runs on as a second lap from the top: 0..15.1 deg (92 / 2,200 of a turn)",
-          len(r["laps"]) == 1 and abs(r["laps"][0][0]) <= 0.5 and abs(r["laps"][0][1] - 92 / BUDGET * 360) <= 0.5, r["laps"])
-    tones = page.evaluate(TONE_JS)
-    check("19 Oct (breakfast and dinner, lunch skipped): the two arcs side by side are the full over tone and its light "
-          "tint, never one tone cut by a gap; each corner badge has its arc's tone, the meals with no arc the light one",
-          [m for m, _ in tones["arcs"]] == ["breakfast", "dinner"] and tones_ok(tones), tones)
+          len(laps) == 1 and abs(laps[0][0]) <= 0.5 and abs(laps[0][1] - 92 / BUDGET * 360) <= 0.5, laps)
+    ok, oct_dark, oct_light = badge_tones(page.evaluate(BADGES_JS), ("breakfast", "dinner"), True)
+    over = {"19 Oct": ok and oct_light is not None}
 
-    # breakfast alone, then dinner, then lunch logged after dinner (it moves dinner on), then over budget
+    # one day built up: nothing, breakfast 300, dinner 900, lunch 200 after dinner, then snacks 1,000 (2,400: over)
     def log(entry_id, meal, kcal):
         page.evaluate("""([id, meal, kcal]) => Pantry.change(d => { d.entries.push(
             { id, date: '2026-07-01', meal, foodId: 'x', amount: '1', grams: null, totals: { kcal } }); })""", [entry_id, meal, kcal])
@@ -417,40 +461,43 @@ def check_ring(page, days):
         return ring_state(page)
     show(page, "2026-07-01")
     empty = ring_state(page)
-    check("nothing logged: no arc, the whole ring one track", empty["arcs"] == {} and len(empty["tracks"]) == 1
-          and abs(empty["tracks"][0][1]) <= 0.5 and abs(empty["tracks"][0][2] - 360) <= 0.5, empty)
-    only = log("tt-b", "breakfast", 300)
-    check("only breakfast logged (300): one breakfast arc 0..49.1 and one unbroken track 49.1..360, no slot for lunch, dinner or snacks",
-          whole_ring(only, end_to_end([300, 0, 0, 0])), only)
-    two = log("tt-d", "dinner", 900)
-    check("breakfast and dinner logged: two arcs end to end (dinner from 49.1 to 196.4) and one track",
-          whole_ring(two, end_to_end([300, 0, 900, 0])), two)
-    two_tones = page.evaluate(TONE_JS)
-    check("breakfast and dinner within budget: dark then light grey side by side; each badge has its arc's tone, lunch's "
-          "and snacks' the light one", [m for m, _ in two_tones["arcs"]] == ["breakfast", "dinner"] and tones_ok(two_tones), two_tones)
-    three = log("tt-l", "lunch", 200)
-    check("lunch logged after dinner takes its place in meal order and moves dinner's arc on (81.8..229.1); no overlap",
-          whole_ring(three, end_to_end([300, 200, 900, 0])) and abs(three["arcs"]["dinner"][0] - 81.8) < 0.5, three)
-    three_tones = page.evaluate(TONE_JS)
-    check("lunch between them: breakfast dark, lunch light, dinner dark again (its arc and its badge change tone)",
-          [m for m, _ in three_tones["arcs"]] == MEALS[:3] and tones_ok(three_tones)
-          and delta(three_tones["badges"]["dinner"], two_tones["badges"]["dinner"]) > 0.1, three_tones)
-    over = log("tt-s", "snacks", 1000)
-    check("over budget (2,400): the arcs fill the ring and stop at the top, the track is the closed over-tint ring, the frame is over",
-          near(over["arcs"], end_to_end([300, 200, 900, 1000])) and abs(over["arcs"]["snacks"][1] - 360) < 0.5 and over["over"]
-          and closed(over), over)
+    check("nothing logged: no arc, the whole ring one track drawn all the way round (no gap at 12 o'clock)",
+          not empty["arcs"] and len(empty["tracks"]) == 1 and closed(empty["tracks"][0]) and empty["paths"] == 1 and not empty["over"], empty)
+    ok, _, empty_light = badge_tones(page.evaluate(BADGES_JS), (), False)
+    within["nothing logged"] = ok and empty_light is not None
+    built = {"breakfast 300": log("tt-b", "breakfast", 300)}
+    built["+ dinner 900"] = two = log("tt-d", "dinner", 900)
+    ok, two_dark, two_light = badge_tones(page.evaluate(BADGES_JS), ("breakfast", "dinner"), False)
+    within["breakfast and dinner"] = ok and delta(two_dark, aug_dark) < 0.01 and delta(two_light, empty_light) < 0.01
+    built["+ lunch 200"] = log("tt-l", "lunch", 200)
+    check("breakfast 300 logged, then dinner 900, then lunch 200 after dinner: one arc 0..49.1, then 0..196.4, then "
+          "0..229.1, never one arc per meal, and one track from its end to the top",
+          one_arc(built["breakfast 300"], turn(300)) and one_arc(built["+ dinner 900"], turn(1200))
+          and one_arc(built["+ lunch 200"], turn(1400)), built)
+    full = log("tt-s", "snacks", 1000)
+    check("over budget (2,400): the first lap one closed arc with no gap and no track, the second lap 0..32.7 deg on it, "
+          "the frame over", full_first_lap(full, 200), full)
+    ok, full_dark, _ = badge_tones(page.evaluate(BADGES_JS), MEALS, True)
+    over["2,400, every meal logged"] = ok and oct_dark is not None and delta(full_dark, oct_dark) < 0.01
+    check("within budget a logged meal's badge has the dark grey (ink) and an empty one the light grey: 8 Aug all four "
+          "dark, nothing logged all four light, breakfast and dinner alone dark with lunch and snacks light",
+          all(within.values()), within)
+    check("over budget the badges keep that rule in light tints of danger, letters in ink: 19 Oct breakfast and dinner in "
+          "the darker tint, lunch and snacks (empty) in the lighter one; at 2,400 all four logged, all four the darker tint",
+          all(over.values()), over)
     check_lap(page, log, two)
     page.evaluate("() => Pantry.change(d => { d.entries = d.entries.filter(e => !e.id.startsWith('tt-')); })")
 
 
 def check_lap(page, log, within):
     """Past the budget the ring runs on as a second lap from 12 o'clock (Tarik, 2026-10-21, MyNetDiary's 19 Oct):
-    excess / budget x 360 degrees, a whole lap at most; within budget no lap, and the gap from the last arc's end to
-    the top is what is left. The lap's red deepens with the excess, full `danger` from 25 % over (app/today.js HOT).
+    excess / budget x 360 degrees, a whole lap at most; within budget no lap, and the gap from the arc's end to the top
+    is what is left. The lap's red deepens with the excess, full `danger` from 25 % over (app/today.js HOT).
     The page holds 2,400 kcal on 1 Jul (300 + 200 + 900 + 1,000) when this runs."""
     left = (BUDGET - 1200) / BUDGET * 360
-    check("within budget (1,200 of 2,200): no second lap, and the track from dinner's end to the top is the 1,000 left "
-          "(196.4..360)", not within["laps"] and abs(within["tracks"][0][2] - within["tracks"][0][1] - left) <= 0.5, within)
+    track = within["tracks"][0]["path"] if len(within["tracks"]) == 1 else [0, 0]
+    check("within budget (1,200 of 2,200): no second lap, and the track from the arc's end to the top is the 1,000 left "
+          "(196.4..360)", not within["laps"] and abs(track[1] - track[0] - left) <= 0.5 and abs(track[1] - 360) <= 0.5, within)
     seen = {}
     for extra, total in ((0, 2400), (20, 2420), (330, 2750), (550, 3300), (1540, 4840)):
         if extra:
@@ -690,6 +737,7 @@ def check_fit(browser, url, doc, errors):
             if scale == 1.0 and size[0] == 360:
                 check(f"{label}: as drawn, each macro label is one line of name and one of grams, starting where its bar starts",
                       all(lab["lines"] == 2 and abs(lab["left"] - bar[0]) <= 4.5 for lab, bar in zip(ink, bars)), ink)
+            under_bars(page, label)
             fab = page.evaluate(FAB_JS)
             check(f"{label}: the + (56 px) floats 20 px from the right edge with Scan 10 px to its left", FAB_OK(fab), fab)
             cut = page.evaluate(CUT_JS)
@@ -703,7 +751,20 @@ def check_fit(browser, url, doc, errors):
         A.fits(page, label)
         clear(page, label)
         centre(page, label, size[0] == 360 and scale <= 1.5)
+        under_bars(page, label)
         ctx.close()
+
+
+def under_bars(page, label):
+    """Under the macro bars only their labels (Tarik, 2026-10-21: the deviation marks were "gereksiz"): each column says
+    its name, its percentage when the bar is too narrow for it, and the grams eaten / target, nothing else is drawn in
+    it, and its label starts 4 px under the bars, as in design/screens.html."""
+    cols = page.evaluate(UNDER_BARS_JS)
+    names = ["Carbs", "Protein", "Fat"]
+    said = [re.fullmatch(rf"{n}( \d+%)? [\d,]+ / [\d,]+ g", c["words"]) for n, c in zip(names, cols)]
+    check(f"{label}: under each macro bar only its label, name over grams eaten / target, 4 px under the bars; no mark, "
+          "no points", len(cols) == 3 and all(said) and all(set(c["drawn"]) <= UNDER_OK for c in cols)
+          and all(c["gap"] is not None and abs(c["gap"] - 4) <= 0.5 for c in cols), cols)
 
 
 def check_text_and_theme(page, url):
@@ -815,7 +876,7 @@ TONES_JS = """() => {
   }));
   const num = s.querySelector('.today-frame [data-test="kcal-left"]');
   const track = s.querySelector('.today-track');
-  return { ring: [...s.querySelectorAll('.today-seg')].map(p => rgb(cs(p).stroke)), num: rgb(cs(num).color),
+  return { ring: [...s.querySelectorAll('.today-arc')].map(p => rgb(cs(p).stroke)), num: rgb(cs(num).color),
            sw: [...s.querySelectorAll('.today-sw')].map(e => rgb(cs(e).backgroundColor)),
            bars: [...s.querySelectorAll('.today-bar')].map(e => rgb(cs(e).backgroundColor)),
            track: track ? rgb(cs(track).stroke) : null,
@@ -852,18 +913,17 @@ def check_status(browser, url, doc, errors):
         page.screenshot(path=str(ROOT / ".tmp" / f"today-over-{scheme}.png"))
         A.fits(page, f"Today over budget, {scheme}, 360 px, text 1.0")
         tone, red, violet = over["num"], over["danger"], over["violet"]
-        # over, the first lap's arcs and badges are light tints of the token (so the second lap, check_lap, reads on
-        # top): the same hue, so they are measured by hue against danger and by distance from violet
+        # over, the first lap and the badges are light tints of the token (so the second lap, check_lap, reads on top):
+        # the same hue, so they are measured by hue against danger and by distance from violet
         reddish = lambda c: chroma(c) >= TONED and hue_gap(c, red) <= 20 and delta(c, violet) > 0.1  # noqa: E731
         check(f"{scheme}: 2,200.4 kcal reads '0 kcal left' and stays within: the ring grey, the number the orange answer",
               within["words"] == ["0", "kcal left"] and within["ring"] and all(chroma(c) < NEUTRAL for c in within["ring"])
               and delta(within["num"], within["accent"]) < 0.01 and all(chroma(c) < NEUTRAL for c in within["sw"]),
               {"words": within["words"], "ring": within["ring"], "num": within["num"], "accent": within["accent"]})
-        check(f"{scheme}: 2,200.6 kcal reads '1 kcal over': the number is var(--danger), the ring and its badges are light "
-              "tints of it under the second lap, nothing is chart-5 violet",
-              over["words"] == ["1", "kcal over"] and delta(tone, red) < 0.01 and over["ring"]
-              and delta(over["ring"][0], red) > 0.05 and all(reddish(c) for c in over["ring"] + over["sw"])
-              and over["track"] and chroma(over["track"]) >= 0.03 and hue_gap(over["track"], red) <= 20,
+        check(f"{scheme}: 2,200.6 kcal reads '1 kcal over': the number is var(--danger), the ring (its one arc, the whole "
+              "first lap, no track) and its badges are light tints of it under the second lap, nothing is chart-5 violet",
+              over["words"] == ["1", "kcal over"] and delta(tone, red) < 0.01 and len(over["ring"]) == 1
+              and delta(over["ring"][0], red) > 0.05 and all(reddish(c) for c in over["ring"] + over["sw"]) and over["track"] is None,
               {"words": over["words"], "num": tone, "ring": over["ring"], "sw": over["sw"], "track": over["track"], "danger": red})
         check(f"{scheme}: within and over differ on the ring and the badges",
               delta(within["ring"][0], over["ring"][0]) > 0.1 and delta(within["sw"][0], over["sw"][0]) > 0.1,
@@ -924,14 +984,20 @@ def ring_swipe(page, dx, start=".today-ring"):
 
 
 def corner_flick(page):
-    """A quick mouse flick to the left that starts and ends on the Lunch corner."""
+    """A quick mouse flick to the left that starts and ends on the Lunch corner: 30 px in 40 ms of page time. The
+    events' timeStamp follows the page clock (measured), so the clock is paused and stepped 10 ms between them: sent in
+    real time the flick took 50 of the 60 ms a 30 px flick may take, and failed whenever the machine was busy."""
     box = page.locator(f'{SCREEN} .today-corner[data-meal="lunch"]').bounding_box()
     x, y = box["x"] + box["width"] - 4, box["y"] + box["height"] / 2
+    page.clock.pause_at(A.NOW + datetime.timedelta(seconds=1))
     page.mouse.move(x, y)
     page.mouse.down()
     for i in range(1, 4):
+        page.clock.run_for(10)
         page.mouse.move(x - 10 * i, y)
+    page.clock.run_for(10)
     page.mouse.up()
+    page.clock.resume()
 
 
 def check_swipe(page):
@@ -1160,12 +1226,10 @@ STATE_JS = """() => {
   const ghost = k => st(s.querySelector(`.today-ghost[data-k="${k}"]`));
   const liq = s.querySelector('.today-day[data-day="2026-10-20"] .today-liq');
   const macs = [0, 1, 2].map(i => ({ g: st(s.querySelectorAll('.today-g > span:first-child')[i]), gGhost: ghost('g' + i),
-                                     pct: st(s.querySelectorAll('.today-pct')[i]), pctGhost: ghost('pct' + i),
-                                     dn: st(s.querySelectorAll('.today-labs > div')[i].querySelector('.today-devn')), dnGhost: ghost('dn' + i) }));
+                                     pct: st(s.querySelectorAll('.today-pct')[i]), pctGhost: ghost('pct' + i) }));
   return { motion: s.dataset.motion || null, macs, num: st(s.querySelector('.today-frame [data-test="kcal-left"]')), numGhost: ghost('num'),
            ck: st(s.querySelector('.today-corner[data-meal="dinner"] .today-ck')), tot: st(s.querySelector('.today-tot')), totGhost: ghost('tot'),
            bars: [...s.querySelectorAll('.today-bar')].map(b => parseFloat(b.style.flexGrow)), ghosts: s.querySelectorAll('.today-ghost').length,
-           devs: [...s.querySelectorAll('.today-devbar')].map(b => b.getAttribute('style')),
            fill: liq ? parseFloat(liq.style.height) : null, over: s.querySelector('.today-frame').classList.contains('today-over') };
 }"""
 STEP = 16
@@ -1178,7 +1242,7 @@ def sample(page, ms=1100, at=None):
         if at and t in at:
             page.evaluate(at[t])
         s = page.evaluate(STATE_JS)
-        s["t"], s["arcs"] = t, page.evaluate(ARCS_JS)
+        s["t"], s["ring"] = t, page.evaluate(RING_JS)
         out.append(s)
         page.clock.run_for(STEP)
     return out
@@ -1217,11 +1281,28 @@ def macro_shown(entries):
     return [f"{half(g):,} /" for g in grams], [f"{half(k / sum(kcal) * 100)}%" for k in kcal]
 
 
-def dev_points(entries):
-    """The points each deviation mark writes for these entries, worked out here against the 45 / 20 / 35 % targets."""
-    grams = [sum(e["totals"].get(k, 0) for e in entries) for k in ("carbs", "protein", "fat")]
-    kcal = [g * per for g, per in zip(grams, (4, 4, 9))]
-    return [points(k / sum(kcal) * 100 - t) for k, t in zip(kcal, (45, 20, 35))]
+def arc_runs(frames, start, end):
+    """The one arc through a motion's frames, read from the drawn SVG: in every frame exactly one arc, from 12 o'clock;
+    in the first frame it ends where it ended before (`start`), in the last at `end`; its end moves one way only, through
+    more than five distinct frames, and never more than a quarter of the way in one frame; and what its dash shows (the
+    gaps at its ends) never moves more than 1.5 times as far as its end does in that frame, so neither the arc nor a
+    gap jumps. Returns (ok, the ends frame by frame, the first bad frame pair or None)."""
+    arcs = [f["ring"]["arcs"] for f in frames]
+    if not all(len(a) == 1 and abs(a[0]["path"][0]) <= 0.5 and len(a[0]["shown"]) == 1 for a in arcs):
+        return False, [len(a) for a in arcs], "not one arc from 12 o'clock with one shown stretch in every frame"
+    ends = [a[0]["path"][1] for a in arcs]
+    sign = 1 if end >= start else -1
+    bad = None
+    for k in range(1, len(arcs)):
+        step = abs(ends[k] - ends[k - 1])
+        moved = max(abs(x - y) for x, y in zip(arcs[k][0]["shown"][0], arcs[k - 1][0]["shown"][0]))
+        if sign * (ends[k] - ends[k - 1]) < -0.01 or step > 0.25 * abs(end - start) + 0.01 or moved > 1.5 * step + 0.05:
+            bad = {"frames": [frames[k - 1]["t"], frames[k]["t"]], "ends": [ends[k - 1], ends[k]],
+                   "shown": [arcs[k - 1][0]["shown"][0], arcs[k][0]["shown"][0]]}
+            break
+    ok = (abs(ends[0] - start) <= 0.05 and abs(ends[-1] - end) <= 0.05 and bad is None
+          and len({round(e, 1) for e in ends}) > 5)
+    return ok, [round(e, 1) for e in ends[:14]], bad
 
 
 def macros_still(s):
@@ -1241,26 +1322,20 @@ def check_motion(browser, url, doc, errors):
     page.evaluate("d => Pantry.change(() => d, { dirty: false })", doc)
     page.clock.pause_at(A.NOW + datetime.timedelta(seconds=30))
     show(page)
-    before = (page.evaluate(ARCS_JS), page.evaluate(STATE_JS))
+    before = page.evaluate(RING_JS)
 
     page.evaluate(RETURN_JS, 1000)
     first = page.evaluate(STATE_JS)
-    first_arcs = page.evaluate(ARCS_JS)
     fits = page.evaluate(A.FIT_JS)
     run = sample(page)
     end = run[-1]
-    final_arcs = end["arcs"]
-    dinner = [s["arcs"].get("dinner") for s in run]
-    grown = [d for d in dinner if d]
-    check("back after logging dinner: the dinner arc grows from its old end (its own start, where breakfast ends at 213.4 deg) "
-          "to the top (360), never back",
-          "dinner" not in first_arcs and grown and all(abs(d[0] - final_arcs["dinner"][0]) < 0.01 for d in grown)
-          and abs(final_arcs["dinner"][0] - 1304 / BUDGET * 360) < 0.5
-          and all(b[1] >= a[1] - 0.01 for a, b in zip(grown, grown[1:])) and abs(final_arcs["dinner"][1] - 360) < 0.5
-          and len({round(d[1], 1) for d in grown}) > 3, [None if d is None else [round(x, 1) for x in d] for d in dinner[:12]])
-    check("only what changed moves: breakfast's arc stays at 0..213.4 in every frame, no other meal gets an arc",
-          all(s["arcs"].get("breakfast") == before[0]["breakfast"] and set(s["arcs"]) <= {"breakfast", "dinner"} for s in run),
-          before[0])
+    final_arcs = end["ring"]["arcs"]
+    ok, ends, bad = arc_runs(run, turn(1304), 360)
+    check("back after logging dinner: the one arc grows from its old end (213.4 deg, the 1,304 kcal of breakfast) to the "
+          "top (360) and closes there, from 12 o'clock in every frame, never a second arc, never back, no frame where it "
+          "or a gap at its ends jumps",
+          len(before["arcs"]) == 1 and abs(before["arcs"][0]["path"][1] - turn(1304)) <= 0.05 and ok and closed(final_arcs[0]),
+          {"ends": ends, "bad": bad})
     check("numbers never count up: kcal-left holds its new value (104) in every frame while the old one (896) leaves as a ghost",
           first["num"]["text"] == "104" and first["numGhost"] and first["numGhost"]["text"] == "896"
           and all(s["num"]["text"] == "104" for s in run) and first["num"]["opacity"] == 0, first)
@@ -1278,18 +1353,9 @@ def check_motion(browser, url, doc, errors):
           and [m["g"]["text"] for m in macs] == new_g and [m["pct"]["text"] for m in macs] == new_p
           and all(swapped(old_g[i], new_g[i], m["g"], m["gGhost"]) and swapped(old_p[i], new_p[i], m["pct"], m["pctGhost"])
                   for i, m in enumerate(macs)), macs)
-    old_d, new_d = dev_points(today), dev_points(today + [{"totals": DINNER}])
-    dn_swapped = lambda old, new, m: (m["dn"] is not None and m["dn"]["text"] == new and (  # noqa: E731
-        m["dn"]["opacity"] == 0 and (m["dnGhost"] or {}).get("text") == (old or None) if old != new else still(m["dn"]) and m["dnGhost"] is None))
-    check(f"the deviation points ({' / '.join(map(repr, old_d))} to {' / '.join(map(repr, new_d))}) swap with them, never "
-          "jump: a changed one holds its new value hidden in the first frame while its old value leaves as a ghost (none "
-          "when it had none); an unchanged one stays still; at the end all are still",
-          old_d != new_d and any(a == b for a, b in zip(old_d, new_d))
-          and all(dn_swapped(old_d[i], new_d[i], m) for i, m in enumerate(macs))
-          and all(still(m["dn"]) and m["dnGhost"] is None for m in end["macs"]), (old_d, new_d, [(m["dn"], m["dnGhost"]) for m in macs]))
     bars_end = settled_at(run, lambda s: s["bars"] == end["bars"])
     times = {
-        "arc": settled_at(run, lambda s: s["arcs"] == final_arcs),
+        "arc": settled_at(run, lambda s: s["ring"]["arcs"] == final_arcs),
         "bars": bars_end,
         "tank": settled_at(run, lambda s: s["fill"] == end["fill"]),
         "corner": settled_at(run, lambda s: still(s["ck"])),
@@ -1302,10 +1368,6 @@ def check_motion(browser, url, doc, errors):
           "number finishes last, after every grey",
           first["bars"] != end["bars"] and first["fill"] < end["fill"] and None not in times.values()
           and times["macro numbers"] > times["bars"] and all(times["kcal left"] > v for v in greys) and 0 < times["arc"], times)
-    devs_end = settled_at(run, lambda s: s["devs"] == end["devs"])
-    check("the deviation marks move from their old values to their new ones with the bars and land when the bars do",
-          first["devs"] != end["devs"] and devs_end is not None and times["bars"] is not None and devs_end <= times["bars"] + STEP
-          and len({s["devs"][1] for s in run}) > 3, (first["devs"], end["devs"], devs_end, times["bars"]))
     flip = settled_at(run, lambda s: s["over"])
     check("the over tone lands with the kcal-left number: grey until its old value has left, then over",
           not first["over"] and end["over"] and flip is not None and times["kcal left"] - 300 <= flip < times["kcal left"]
@@ -1316,26 +1378,24 @@ def check_motion(browser, url, doc, errors):
     check("at 360 px and text 1.0 the moving screen has no horizontal scroll and nothing past the edge",
           fits["scroll"] <= 0 and not fits["bad"], fits)
 
-    # Undo plays the same change back: the arc shrinks from its end to its start, the old number returns
+    # Undo plays the same change back: the arc shrinks from the top to its old end, the old number returns
     page.evaluate(UNDO_JS)
     undo = sample(page)
-    shrink = [s["arcs"].get("dinner") for s in undo]
-    left = [d for d in shrink if d]
-    check("Undo plays the change back: the dinner arc shrinks toward its start, 104 over turns back into 896 left, "
-          f"{new_g[0][:-2]} g of carbs back into {old_g[0][:-2]}",
-          undo[0]["motion"] == "change" and left and all(b[1] <= a[1] + 0.01 for a, b in zip(left, left[1:]))
-          and "dinner" not in undo[-1]["arcs"] and (undo[0]["numGhost"] or {}).get("text") == "104" and undo[-1]["num"]["text"] == "896"
+    ok, ends, bad = arc_runs(undo, 360, turn(1304))
+    check("Undo plays the change back: the one arc opens at the top and shrinks to 213.4 deg with no jump, 104 over turns "
+          f"back into 896 left, {new_g[0][:-2]} g of carbs back into {old_g[0][:-2]}",
+          undo[0]["motion"] == "change" and ok and (undo[0]["numGhost"] or {}).get("text") == "104" and undo[-1]["num"]["text"] == "896"
           and (undo[0]["macs"][0]["gGhost"] or {}).get("text") == new_g[0] and undo[-1]["macs"][0]["g"]["text"] == old_g[0]
-          and undo[-1]["motion"] is None and not undo[-1]["over"],
-          ([None if d is None else round(d[1], 1) for d in shrink[:10]], undo[0], undo[-1]))
+          and undo[-1]["motion"] is None and not undo[-1]["over"] and undo[-1]["ring"]["arcs"] == before["arcs"],
+          {"ends": ends, "bad": bad, "first": undo[0], "last": undo[-1]})
 
     # a sync announcement right after the return, and another one in the middle, change nothing in the motion
     page.evaluate("k => { (" + RETURN_JS + ")(k); Pantry.setSyncState({ lastError: 'Sync failed. Saved on this phone; it will try again.' }); }", 1000)
     again = sample(page, at={208: "Pantry.setSyncState({ lastSync: '2026-10-20T00:00:00.000Z' })"})
-    ends = [s["arcs"].get("dinner", [0, 0])[1] for s in again]
+    ends = [s["ring"]["arcs"][0]["path"][1] if s["ring"]["arcs"] else 0 for s in again]
     replay = {
         "kcal left": settled_at(again, lambda s: still(s["num"]) and s["numGhost"] is None),
-        "arc": settled_at(again, lambda s: s["arcs"] == final_arcs),
+        "arc": settled_at(again, lambda s: s["ring"]["arcs"] == final_arcs),
     }
     check("a Pantry.setSyncState right after the return (a banner: a full redraw) and one at 208 ms do not replay it: "
           "the arc never goes back, everything lands when it did without them",
@@ -1355,20 +1415,22 @@ def check_motion(browser, url, doc, errors):
     page.evaluate(UNDO_JS)
     show(page, "2026-10-19")
     page.clock.run_for(2000)
-    pick = lambda s, a: {"arcs": a, "bars": s["bars"], "over": s["over"], "num": s["num"]["text"]}  # noqa: E731
-    want = pick(page.evaluate(STATE_JS), page.evaluate(ARCS_JS))
+    pick = lambda s, r: {"ring": r, "bars": s["bars"], "over": s["over"], "num": s["num"]["text"]}  # noqa: E731
+    want = pick(page.evaluate(STATE_JS), page.evaluate(RING_JS))
     show(page)
     page.clock.run_for(2000)
     page.evaluate(RETURN_JS, 1000)
     page.clock.run_for(208)
     page.click(f'{SCREEN} [data-day="2026-10-19"]')   # in place, as his tap on the strip
     page.clock.run_for(2000)
-    got = pick(page.evaluate(STATE_JS), page.evaluate(ARCS_JS))
-    check("a day picked 208 ms into the change shows that day's own arcs, bars, tone and number once it settles",
+    got = pick(page.evaluate(STATE_JS), page.evaluate(RING_JS))
+    check("a day picked 208 ms into the change shows that day's own ring, bars, tone and number once it settles",
           got == want, (got, want))
 
-    # reduced motion: the chart is drawn at once, the numbers only fade
+    # reduced motion: the chart is drawn at once, the numbers only fade. Today is drawn last first (19 Oct was), so the
+    # return is a change of the same day and a change motion runs
     page.evaluate(UNDO_JS)
+    show(page)
     page.clock.run_for(2000)
     page.emulate_media(reduced_motion="reduce")
     page.evaluate(RETURN_JS, 1000)
@@ -1376,78 +1438,16 @@ def check_motion(browser, url, doc, errors):
     moved = [s["t"] for s in calm_run if any(e and "translate" in e["transform"] and not e["transform"].endswith("(0%)")
                                              for e in (s["num"], s["numGhost"], s["tot"], s["totGhost"], s["ck"],
                                                        *[x for m in s["macs"] for x in m.values()]))]
-    check("with reduced motion nothing moves: the arcs, bars and tank are at their new values from the first frame, "
-          "the numbers only fade, and it is over within fast + base (320 ms)",
-          calm_run[0]["arcs"] == final_arcs and calm_run[0]["bars"] == end["bars"] and calm_run[0]["fill"] == end["fill"]
-          and not moved and settled_at(calm_run, lambda s: s["motion"] is None) <= 320 + STEP, (moved, calm_run[0]["arcs"]))
+    check("with reduced motion nothing moves: a change motion runs, yet the arc, bars and tank are at their new values "
+          "from the first frame, the numbers only fade, and it is over within fast + base (320 ms)",
+          calm_run[0]["motion"] == "change" and (calm_run[0]["numGhost"] or {}).get("text") == "896"
+          and calm_run[0]["ring"]["arcs"] == final_arcs and calm_run[0]["bars"] == end["bars"] and calm_run[0]["fill"] == end["fill"]
+          and not moved and settled_at(calm_run, lambda s: s["motion"] is None) <= 320 + STEP, (moved, calm_run[0]["ring"]["arcs"]))
     page.emulate_media(reduced_motion="no-preference")
     ctx.close()
 
 
-# ── Task-12: the deviation marks, the meal pages, the floating + and Scan, the page scrollbar ──
-
-# Each macro's deviation mark: whether it shows, its centre and half width, the target tick's centre, the bar from it,
-# its label column, what it says, and the points written over it (their ink, as text).
-MARKS_JS = "() => {" + INK_JS + """
- return [...document.querySelectorAll('[data-screen="today"] .today-labs > div')].map(col => {
-  const dev = col.querySelector('.today-dev'), r = el => (el ? el.getBoundingClientRect() : null);
-  const d = r(dev), t = r(dev && dev.querySelector('.today-devtick')), b = r(dev && dev.querySelector('.today-devbar')), c = r(col);
-  const n = dev && dev.querySelector('.today-devn'), nb = n && n.textContent ? ink(n) : null;
-  return { visible: !!dev && getComputedStyle(dev).visibility === 'visible' && d.width > 0 && d.height > 0,
-           mid: d && d.left + d.width / 2, half: d && d.width / 2, edges: d && [d.left, d.right], top: d && d.top, tick: t && t.left + t.width / 2,
-           bar: b && [b.left, b.right], col: c && [c.left, c.right], said: dev && dev.getAttribute('aria-label'),
-           points: n ? n.textContent : null, pbox: nb && [nb.left, nb.right, r(n).bottom], size: nb && nb.size };
- }); }"""
-SPAN = 20          # points of share for half the mark's scale (app/today.js DEV_SPAN)
-
-
-def points(d):
-    """The points a mark writes for a deviation: rounded half up as the app's numbers are, signed, none on target."""
-    if d is None:
-        return None
-    off = math.floor(d + 0.5)
-    return "" if off == 0 else f"{'+' if off > 0 else '−'}{abs(off)}"
-
-
-def marks_ok(marks, devs):
-    """Every mark shows inside its label column, its tick at its centre, and its bar runs from the tick toward the side
-    the share leans, min(|deviation|, 20) / 20 of the half long (1 px). Over the scale (never on it, where the bar runs)
-    its points are written centred on the tick, inside the column, at 11 px at least; none on target or unlogged."""
-    bad = []
-    for m, d in zip(marks, devs):
-        reach = 0 if d is None else math.copysign(min(abs(d), SPAN) / SPAN * m["half"], d)
-        want = sorted([m["mid"], m["mid"] + reach])
-        said = points(d)
-        written = m["points"] == said if said is None else (m["points"] or "") == said
-        placed = not said or (m["pbox"] is not None and abs((m["pbox"][0] + m["pbox"][1]) / 2 - m["tick"]) <= 1
-                              and m["pbox"][2] <= m["top"] + 0.5 and m["pbox"][0] >= m["col"][0] - 0.5
-                              and m["pbox"][1] <= m["col"][1] + 0.5 and m["size"] >= 11)
-        if not (m["visible"] and abs(m["tick"] - m["mid"]) <= 1 and m["edges"][0] >= m["col"][0] - 0.5 and m["edges"][1] <= m["col"][1] + 0.5
-                and abs(m["bar"][0] - want[0]) <= 1 and abs(m["bar"][1] - want[1]) <= 1 and written and placed):
-            bad.append({"mark": m, "deviation": d, "want": want, "points": said})
-    return len(marks) == len(devs) and not bad, bad
-
-
-def check_marks(page, days):
-    for day, words in (("2026-08-08", ["Carbs: 9 points under its 45% target", "Protein: 30 points over its 20% target",
-                                       "Fat: 20 points under its 35% target"]), ("2026-10-20", None)):
-        d = days[day]
-        kc = [d["c"] * 4, d["p"] * 4, d["f"] * 9]
-        devs = [k / sum(kc) * 100 - t for k, t in zip(kc, (45, 20, 35))]
-        show(page, day)
-        marks = page.evaluate(MARKS_JS)
-        ok, bad = marks_ok(marks, devs)
-        said = [m["said"] for m in marks]
-        check(f"{day}: under each macro bar its deviation mark shows how far its share is from its target share "
-              f"({', '.join(f'{x:+.1f}' for x in devs)} points: a bar from the target tick, right when above, left when below, "
-              f"and over the tick the points, {' / '.join(repr(points(x)) for x in devs)})",
-              ok and (words is None or said == words), bad or said)
-    show(page, "2026-10-18")
-    marks = page.evaluate(MARKS_JS)
-    ok, bad = marks_ok(marks, [None] * 3)
-    check("a day with nothing logged draws each mark's target tick alone (no bar, no points, nothing said)",
-          ok and all(m["said"] is None for m in marks), bad or marks)
-
+# ── Task-12: the meal pages, the floating + and Scan, the page scrollbar ──
 
 PAGES_JS = """() => { const s = document.querySelector('[data-screen="today"]'), pg = s.querySelector('.today-pages');
   const add = s.querySelector('[data-act="add"]');
@@ -1827,7 +1827,6 @@ def main():
                 A.open_today(page, url)
                 page.evaluate("d => Pantry.change(() => d, { dirty: false })", doc)
                 for name, fn, args in (("8 Aug", check_day, (page, days)), ("ring", check_ring, (page, days)),
-                                       ("deviation mark", check_marks, (page, days)),
                                        ("strip", check_strip, (page, url)), ("waves", check_waves, (page,)),
                                        ("routes", check_routes, (page,)), ("live", check_live, (page,)),
                                        ("banner", check_banner, (page,)), ("dates", check_dates, (page,)),

@@ -9,20 +9,18 @@
    (each macro's width is its share of carbs x 4 + protein x 4 + fat x 9); what was eaten, one page per meal; the
    floating + and Scan.
 
-   Ring (Blueprint, Decisions 2026-10-21): one whole track. A logged meal's arc is its kcal / budget x 360 degrees; the
-   arcs sit end to end in meal order from 12 o'clock, clockwise, so logging lunch after dinner moves dinner's arc on.
-   The rest of the ring stays one unbroken track: it reads as what is left, and a meal not logged yet has no slot. Over
-   budget the ring is full: the arcs stop at 12 o'clock, a meal that would start past it draws none, and a closed track
-   in the over tint lies under them. The excess then runs on from 12 o'clock as a second lap over the first, as in
-   MyNetDiary (Tarik, 2026-10-21: "bar dolduktan sonra ... ilerlesin 2. katman gibi"): excess / budget x 360 degrees,
-   a whole lap at most. Over, the first lap's arcs take light tints of the over tone and the second lap the strong
-   one, which deepens with the excess ("ne kadar ilerlersem fazladan o kadar kırmızılaşsın"): 75 % of `danger` just
-   over, the full red from HOT (25 %) over. 25 % is a takeaway on a normal day (about 550 kcal on 2,200); a slip of a
-   snack (19 Oct: 92 over, 4 %) stays the lighter red. Each arc's path holds its exact angles; the gap between neighbours is the dash
-   pattern. The arcs carry no letters (a small arc cannot hold one): the corner badges do. The arcs alternate dark and
-   light grey in the order they are drawn (round 8, G3), so two arcs side by side never share a tone when a meal between
-   them is not logged (breakfast and dinner alone: dark, then light); each corner badge takes its meal's arc tone, and a
-   meal with no arc the light one.
+   Ring (Blueprint, Decisions 2026-10-21): one arc on one track, as in MyNetDiary (Tarik, 2026-10-21: "sadece 1 tane
+   bar olsun mynetdiary gibi"); the meals have no arcs of their own. Within budget the arc runs clockwise from 12
+   o'clock over eaten / budget of the circle, in the dark grey, and the rest of the ring is the track: the gap is what
+   is left. Over budget the arc is the whole first lap, one closed ring in the light tint of the over tone, and the
+   excess runs on from 12 o'clock as a second lap over it (Tarik, 2026-10-21: "bar dolduktan sonra ... ilerlesin 2.
+   katman gibi"): excess / budget x 360 degrees, a whole lap at most, in the strong over tone, which deepens with the
+   excess ("ne kadar ilerlersem fazladan o kadar kırmızılaşsın"): 75 % of `danger` just over, the full red from HOT
+   (25 %) over. 25 % is a takeaway on a normal day (about 550 kcal on 2,200); a slip of a snack (19 Oct: 92 over, 4 %)
+   stays the lighter red. Each piece's path holds its exact angles; the gaps between pieces are their dash patterns,
+   and they narrow as the arc or the track runs short, so the ring closes at 12 o'clock (and opens again) without a
+   jump. The ring carries no letters: the corner badges do, in the dark tone for a meal with entries and the light one
+   for a meal with none, within and over alike (over: light tints of the over tone, the letters in ink).
 
    Budget status (Blueprint, Decisions 2026-10-21): within budget the screen keeps its calm greys with the orange answer.
    Once the kcal eaten, rounded as shown, passes the budget, the ring, its badges, the kcal-left number (then "kcal
@@ -32,10 +30,9 @@
 
    Macro strip: the three bars share one grey (chart-neutral) with gaps between them. A bar turns to the over tone on
    its own when its grams, rounded as shown, pass its target grams (shares always add up to 100 %, so one is nearly
-   always past its target share). Under each bar, its deviation mark (.today-dev): a target tick at the centre of a
-   short scale and a bar from it, right when the macro's share of the kcal is above its target share, left when below,
-   one half of the scale for 20 points (farther is drawn as 20), and over the tick the distance in points (.today-devn:
-   "+4", "−9"; none on target), so a small miss reads at a glance too; a day with nothing logged draws the tick alone.
+   always past its target share). Under each bar its label alone: the name (with the percentage when the bar is too
+   narrow for it) over the grams eaten / target. No mark of the share's distance from its target (Tarik, 2026-10-21:
+   "gereksiz gibi").
 
    What he ate (.today-eaten): a tab per meal (its name and kcal) over one page per meal in a sideways scroller that
    snaps one meal at a time, so the strip, the ring swipe, the toast and the phone's edge-back gesture are left alone.
@@ -55,14 +52,14 @@
    `state.day` (null for today); later switches replace it, and a switch back to the day under it pops it, so Back
    returns to the day shown before the first switch. This file never changes location.hash.
 
-   Motion (base Motion, tokens.css): coming back to a day whose drawn values changed (a log, an edit, an Undo), the arcs
-   that changed move from their old ends, the bars and the day's tank move to their new values, the corner kcal and the
-   eaten total swap, each bar's percentage, grams and deviation points swap after their bar, and the kcal-left number
-   swaps last; the over tone lands with it. What changed is found by comparing the values drawn last, so a redraw for
-   another reason never replays it. Numbers never count up. Reduced motion: the chart is drawn at once and the numbers
-   only crossfade. A day switch fades the content in; a ring swipe brings it from the side it was pushed to. Every frame
-   is computed from performance.now() in requestAnimationFrame, so the page clock drives it; data-motion on the screen
-   names the motion while one runs.
+   Motion (base Motion, tokens.css): coming back to a day whose drawn values changed (a log, an edit, an Undo), the arc
+   grows or shrinks from its old end to its new one and the second lap from its old length, the bars and the day's tank
+   move to their new values, the corner kcal and the eaten total swap, each bar's percentage and grams swap after their
+   bar, and the kcal-left number swaps last; the over tone lands with it. What changed is found by comparing the values
+   drawn last, so a redraw for another reason never replays it. Numbers never count up. Reduced motion: the chart is
+   drawn at once and the numbers only crossfade. A day switch fades the content in; a ring swipe brings it from the side
+   it was pushed to. Every frame is computed from performance.now() in requestAnimationFrame, so the page clock drives
+   it; data-motion on the screen names the motion while one runs.
 
    layout() places the ring between the corners so no meal name or kcal touches the ring's box and no drawing touches
    the ring, and keeps the centre's words inside the ring, at any text size and width. Gate hooks: data-test="kcal-left"; .top .eyebrow; eaten rows .fr with
@@ -81,7 +78,6 @@
   const CORNER = ['today-tl', 'today-tr', 'today-br', 'today-bl'];
   const TURN = 360;                                   // degrees clockwise from 12 o'clock: back at the top, the ring is full
   const SIZE = 196, MID = 98, RADIUS = 87, OUTER = 94, GAP = 2.5;   // ring geometry in its viewBox (px at 100 % text)
-  const DEV_SPAN = 20;                                // points of share a half of the deviation mark's scale stands for
   const DAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const MONTH = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const MACRO = { carbs: ['Carbs', 4, 45], protein: ['Protein', 4, 20], fat: ['Fat', 9, 35] };   // name, kcal per g, target % unset
@@ -106,7 +102,7 @@
     @supports (color: light-dark(white, black)) {
       [data-screen="today"] { --today-l3: light-dark(var(--surface-1), var(--surface-3)); --today-l3-line: light-dark(var(--hairline), var(--hairline-strong)); }
     }
-    /* over: the first lap and its badges in light tints (a badge's letter in ink on both), so the second lap reads on top */
+    /* over: the first lap and the badges in light tints (a badge's letter in ink on both), so the second lap reads on top */
     .today-frame.today-over {
       --today-c1: color-mix(in oklab, var(--today-over) 55%, var(--canvas)); --today-c3: color-mix(in oklab, var(--today-over) 32%, var(--canvas));
       --today-cn: var(--today-over); }
@@ -162,11 +158,11 @@
     .today-frame { position: relative; margin: 8px 20px 0; height: calc(12.25rem + 50px); touch-action: pan-y; }
     .today-ring { position: absolute; left: 50%; top: 25px; width: min(12.25rem, 100%); aspect-ratio: 1; transform: translateX(-50%); }
     .today-ring > svg { display: block; width: 100%; height: 100%; overflow: visible; }
-    .today-track, .today-seg, .today-lap { fill: none; stroke-width: 14px; stroke-linecap: butt; }
+    .today-track, .today-arc, .today-lap { fill: none; stroke-width: 14px; stroke-linecap: butt; }
     .today-track { stroke: var(--surface-3); }
-    .today-track.today-full { stroke: color-mix(in oklab, var(--today-over) 28%, var(--canvas)); }
-    .today-s1 { stroke: var(--today-c1); }
-    .today-s3 { stroke: var(--today-c3); }
+    /* the arc in the dark tone within budget; over, the first lap in the light tint under the second lap */
+    .today-arc { stroke: var(--today-c1); }
+    .today-over .today-arc { stroke: var(--today-c3); }
     .today-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; }
     /* sized to the ring by layout(): --today-nfit shrinks the number alone, --today-cfit all three lines */
     .today-num, .today-gnum { font-size: calc(2.75rem * var(--today-nfit, 1) * var(--today-cfit, 1)); line-height: 1; letter-spacing: -0.034em; color: var(--today-cn); }
@@ -208,15 +204,6 @@
     .today-bar.today-bo { background: var(--today-over); color: var(--canvas); }
     .today-pct, .today-gpct { padding: 0 8px; }
     .today-bar.today-none { background: var(--surface-3); }
-    /* the deviation mark: a short scale, the target tick at its centre, a bar from it toward the side the share leans,
-       the points over the tick (above the scale, so the bar never runs into them); as wide as its label up to 3rem, so
-       it never widens or moves a label. translate (not transform) centres the points, so a swap's transform adds to it */
-    .today-dev { position: relative; display: block; width: 100%; max-width: 3rem; height: 12px; margin-top: calc(0.6875rem * 1.25 + 6px); }
-    .today-dev::before { content: ''; position: absolute; left: 0; right: 0; top: 5px; height: 2px; border-radius: 1px; background: var(--surface-3); }
-    .today-devtick { position: absolute; left: calc(50% - 1px); top: 0; width: 2px; height: 12px; border-radius: 1px; background: var(--ink-subtle); }
-    .today-devbar { position: absolute; top: 3px; height: 6px; border-radius: 3px; background: var(--ink); }
-    .today-devn, .today-gdn { position: absolute; left: 50%; translate: -50% 0; font: 700 0.6875rem/1.25 var(--font-figure); font-style: normal; color: var(--ink-muted); white-space: nowrap; }
-    .today-devn { bottom: calc(100% + 2px); }
     /* a hidden percentage keeps its box inside its bar or label, so nothing hidden reaches past the screen's edge */
     .today-bar.today-out .today-pct { position: absolute; left: 0; max-width: 100%; visibility: hidden; }
     .today-lpct { position: absolute; left: 0; top: 0; max-width: 100%; visibility: hidden; color: var(--ink); font-family: var(--font-figure); font-weight: 700; }
@@ -299,32 +286,20 @@
   const drawing = (food, size) => (window.PantryDrawing ? window.PantryDrawing(food || { name: '' }, size) : '');
 
   // ── the ring ──
-  // [start, end] in degrees per meal, end to end from 12 o'clock in meal order: null when nothing was eaten, or when the
-  // meals before it already filled the ring (over budget); the arc that fills it stops at a full turn.
-  function arcs(kcals, budget) {
-    let end = 0;
-    return kcals.map(k => {
-      if (!(k > 0) || end >= TURN) return null;
-      const s = end;
-      end = Math.min(TURN, s + k / budget * TURN);
-      return [s, end];
-    });
-  }
+  // The arc's end in degrees from 12 o'clock: eaten / budget of a turn, a full turn at most (0: nothing eaten).
+  const arcEnd = (kcal, budget) => (kcal > 0 ? Math.min(TURN, kcal / budget * TURN) : 0);
 
   const f2 = v => v.toFixed(2);
   const pt = a => { const r = a * Math.PI / 180; return [MID + RADIUS * Math.sin(r), MID - RADIUS * Math.cos(r)]; };
-  // One subpath; past half a turn it is drawn as two arcs, so a full circle stays one dashable line.
+  // One subpath of equal arcs of at most 90 degrees, so a full circle stays one dashable line. An SVG arc near half a
+  // turn is ill-conditioned once its end points are rounded: drawn as two halves, 359 degrees bulged to a radius of
+  // 87.4 and ran 1.5 px longer than its dash (measured in Chromium); quarter arcs stay on the circle.
   function arc(a0, a1) {
-    const [x0, y0] = pt(a0);
-    const to = a => { const [x, y] = pt(a); return `A${RADIUS} ${RADIUS} 0 0 1 ${f2(x)} ${f2(y)}`; };
-    return `M${f2(x0)} ${f2(y0)}${a1 - a0 > 180 ? to((a0 + a1) / 2) : ''}${to(a1)}`;
-  }
-
-  // Each meal's tone, dark (1) or light (3): the arcs alternate in the order they are drawn from 12 o'clock, so two
-  // neighbours never share one; a meal with no arc is light. Its corner badge takes the same tone.
-  function tonesOf(spans) {
-    let n = 0;
-    return spans.map(sp => (sp && sp[1] > sp[0] ? (n++ % 2 ? 3 : 1) : 3));
+    const n = Math.max(1, Math.ceil((a1 - a0) / 90 - 1e-9));
+    const at = a => { const [x, y] = pt(a); return `${f2(x)} ${f2(y)}`; };
+    let d = `M${at(a0)}`;
+    for (let k = 1; k <= n; k += 1) d += `A${RADIUS} ${RADIUS} 0 0 1 ${at(a0 + (a1 - a0) * k / n)}`;
+    return d;
   }
 
   // The second lap over budget: { deg, heat }, its length from 12 o'clock (a whole lap at most) and its share of
@@ -336,43 +311,42 @@
     return { deg: Math.min(TURN, excess * TURN), heat: 75 + 25 * Math.min(1, excess / HOT) };
   }
 
-  // The track and the meals' arcs as SVG; the motion draws its frames with it too. Within budget the track is the one
-  // stretch from the last arc's end back to 12 o'clock (the whole ring when nothing is logged); over budget it is the
-  // closed ring in the over tint under the arcs, and the second lap lies on them. Every piece but a whole ring leaves
-  // half a gap at each of its ends.
-  // `tone` is tonesOf() of the drawing the arcs are going to (a motion's frame has arcs too short to count yet).
-  function ringParts(spans, over, tone, lap) {
-    const gap = RADIUS * GAP * Math.PI / 180;
-    const dash = (s, e) => {
-      const len = RADIUS * (e - s) * Math.PI / 180, shown = len - 2 * gap > 2 ? len - 2 * gap : Math.min(len, 2);
-      return ` stroke-dasharray="0 ${f2((len - shown) / 2)} ${f2(shown)} ${f2(len + 1)}"`;
+  // The ring as SVG; the motion draws its frames with it too. The arc runs from 12 o'clock to `deg`, the track from there
+  // back to the top (the whole ring when nothing is eaten); over budget `deg` is a full turn, so the arc is the closed
+  // first lap, and the second lap lies on it. A piece shows as a dash that leaves `g` px at each end: GAP degrees beside
+  // a long neighbour, narrowing with the shorter of the arc and the track, so the ring closes at 12 o'clock and opens
+  // again with no jump; a piece is never shown shorter than 2 px (a small arc still shows) unless it is shorter itself.
+  // A piece under 0.05 degrees (under a tenth of a pixel) is not drawn.
+  function ringParts(deg, over, lap) {
+    const len = d => RADIUS * d * Math.PI / 180;
+    const dash = (d, g) => {
+      const l = len(d), shown = Math.max(l - 2 * g, Math.min(l, 2));
+      return shown > l - 0.005 ? '' : ` stroke-dasharray="0 ${f2((l - shown) / 2)} ${f2(shown)} ${f2(l + 1)}"`;
     };
-    const last = Math.max(0, ...spans.map(sp => (sp ? sp[1] : 0)));
-    let paths = over || last <= 0.05 ? `<path class="today-track${over ? ' today-full' : ''}" d="${arc(0, TURN)}"/>`
-      : TURN - last > 0.05 ? `<path class="today-track" d="${arc(last, TURN)}"${dash(last, TURN)}/>` : '';
-    spans.forEach((sp, i) => {
-      if (!sp || !(sp[1] > sp[0])) return;
-      paths += `<path class="today-seg today-s${tone[i]}" data-meal="${MEALS[i]}" d="${arc(sp[0], sp[1])}"${dash(sp[0], sp[1])}/>`;
-    });
+    const end = deg < 0.05 ? 0 : TURN - deg < 0.05 ? TURN : deg;
+    const g = Math.min(len(GAP), len(Math.min(end, TURN - end)) / 4);
+    let paths = end < TURN ? `<path class="today-track" d="${arc(end, TURN)}"${dash(TURN - end, g)}/>` : '';
+    if (end > 0) paths += `<path class="today-arc" d="${arc(0, end)}"${dash(end, g)}/>`;
     if (over && lap && lap.deg >= 0.05) {
       paths += `<path class="today-lap" data-heat="${lap.heat.toFixed(1)}" style="stroke: color-mix(in oklab, var(--danger) ${lap.heat.toFixed(1)}%, var(--canvas))"`
-        + ` d="${arc(0, lap.deg)}"${dash(0, lap.deg)}/>`;
+        + ` d="${arc(0, lap.deg)}"${dash(lap.deg, len(GAP))}/>`;
     }
     return paths;
   }
 
-  function ring(spans, eaten, budget, over, tone, lap) {
+  function ring(deg, eaten, budget, over, lap) {
     const left = budget - eaten;
-    return `<div class="today-ring"><svg viewBox="0 0 ${SIZE} ${SIZE}" role="img" aria-label="${P.fmt(eaten)} of ${P.fmt(budget)} kcal">${ringParts(spans, over, tone, lap)}</svg>
+    return `<div class="today-ring"><svg viewBox="0 0 ${SIZE} ${SIZE}" role="img" aria-label="${P.fmt(eaten)} of ${P.fmt(budget)} kcal">${ringParts(deg, over, lap)}</svg>
       <div class="today-center"><span class="today-num disp" data-test="kcal-left">${P.fmt(Math.abs(left))}</span>
         <span class="today-lbl">${left < 0 ? 'kcal over' : 'kcal left'}</span>
         <span class="today-tot">${tot(eaten, budget)}</span></div></div>`;
   }
   const tot = (eaten, budget) => `<b>${P.fmt(eaten)}</b> / ${P.fmt(budget)}`;
 
-  function corner(i, list, kcal, foods, tone) {
+  // A meal's corner; its badge in the dark tone (1) when the meal has entries, the light one (3) when it has none.
+  function corner(i, list, kcal, foods) {
     const meal = MEALS[i], right = i === 1 || i === 2;
-    const sw = `<i class="today-sw today-t${tone}" aria-hidden="true">${NAME[meal][0]}</i>`;
+    const sw = `<i class="today-sw today-t${list.length ? 1 : 3}" aria-hidden="true">${NAME[meal][0]}</i>`;
     const label = `<span class="today-cn">${right ? '' : sw}<span>${NAME[meal]}</span>${right ? sw : ''}</span>`;
     const open = `<button class="today-corner ${CORNER[i]}" type="button" data-meal="${meal}"`;
     if (!list.length) return `${open} aria-label="Add to ${meal}">${label}<span class="today-addm" aria-hidden="true">${P.icon('plus')}</span></button>`;
@@ -384,20 +358,8 @@
       + `<span class="today-fs" aria-hidden="true">${art}</span></button>`;
   }
 
-  // The deviation mark's bar for a share `d` points from its target (null: nothing logged, no bar), as its inline style.
-  const devStyle = d => {
-    const x = d === null ? 0 : Math.max(-50, Math.min(50, d / DEV_SPAN * 50));
-    return `left:${f2(50 + Math.min(0, x))}%;width:${f2(Math.abs(x))}%`;
-  };
-  // The points the mark shows over its tick, rounded as its words say them: "+4", "−9", "" on target, null unlogged.
-  const devText = d => {
-    if (d === null) return null;
-    const off = Math.round(d);
-    return off ? `${off > 0 ? '+' : '−'}${Math.abs(off)}` : '';
-  };
-
   // The macro strip, and what the motion compares: each bar's flex-grow, which bars are over their target, the grams
-  // eaten, the percentage each shows, each share's distance from its target share and the points its mark shows.
+  // eaten and the percentage each shows.
   function macros(entries, targets, budget) {
     const sum = P.sum(entries);
     const pcts = MACROS.map(([k, , , unset]) => targets[`${k}Pct`] ?? unset);
@@ -408,8 +370,6 @@
     const grow = total ? kcal.map(k => k / total * 100) : pcts;
     const gram = MACROS.map(([k]) => (sum[k] === undefined ? (entries.length ? '–' : '0') : P.fmt(sum[k])));
     const pct = grow.map(g => (total ? Math.round(g) : null));
-    const dev = grow.map((g, i) => (total ? g - pcts[i] : null));
-    const dn = dev.map(devText);
     const bars = MACROS.map((_, i) => {
       if (!total) return `<span class="today-bar today-none" style="flex-grow:${grow[i]}"></span>`;
       return `<span class="today-bar${over[i] ? ' today-bo' : ''}" style="flex-grow:${grow[i]}">`
@@ -417,19 +377,14 @@
     }).join('');
     const labels = MACROS.map(([, name], i) => {
       const under = total ? `<span class="today-lpct"> <span class="today-lpn">${pct[i]}%</span></span>` : '';
-      const off = dev[i] === null ? null : Math.round(dev[i]);
-      const said = off === null ? ' aria-hidden="true"'
-        : ` role="img" aria-label="${name}: ${off ? `${Math.abs(off)} points ${off > 0 ? 'over' : 'under'} its` : 'on its'} ${pcts[i]}% target"`;
-      const points = dn[i] === null ? '' : `<i class="today-devn">${dn[i]}</i>`;
-      return `<div><span class="today-dev"${said}>${points}<i class="today-devtick"></i><i class="today-devbar" style="${devStyle(dev[i])}"></i></span>`
-        + `<span class="today-lab">${name}${under}</span>`
+      return `<div><span class="today-lab">${name}${under}</span>`
         + `<span class="today-g"><span>${gram[i]} /</span> <span>${P.fmt(goal[i])} g</span></span></div>`;
     }).join('');
     const names = MACROS.map(([, name]) => name.toLowerCase());
     const html = `<section class="today-mac" aria-label="Calories from ${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}">
       <div class="today-mh"><h2 class="eyebrow">Calories from</h2><span class="today-fig">target ${pcts.join(' / ')}%</span></div>
       <div class="today-bars">${bars}</div><div class="today-labs">${labels}</div></section>`;
-    return { html, grow, over, gram, pct, dev, dn };
+    return { html, grow, over, gram, pct };
   }
 
   function strip(days, kcalOn, now, date, budget) {
@@ -538,10 +493,9 @@
 
     const perMeal = MEALS.map(m => entries.filter(e => e.meal === m));
     const mealKcal = perMeal.map(list => list.reduce((a, e) => a + e.totals.kcal, 0));
-    const eaten = Math.round(mealKcal.reduce((a, b) => a + b, 0));
+    const total = mealKcal.reduce((a, b) => a + b, 0), eaten = Math.round(total);
     const over = eaten > budget;
-    const spans = arcs(mealKcal, budget);
-    const tone = tonesOf(spans), lap = lapOf(eaten, budget);
+    const deg = arcEnd(total, budget), lap = lapOf(eaten, budget);
     const mac = macros(entries, doc.settings.targets, budget);
     const pick = pickPage(date, isToday, perMeal, entries, clock), shown = pick.meal;
     page = MEALS.indexOf(shown);
@@ -567,14 +521,14 @@
     }).join('');
     const scale = Math.max(2750, 1.25 * budget), dayKcal = kcalOn.get(date);
     const snap = {
-      date, first: false, over, spans, tone, lap, grow: mac.grow, barOver: mac.over, gram: mac.gram, pct: mac.pct, dev: mac.dev, dn: mac.dn,
+      date, first: false, over, deg, lap, grow: mac.grow, barOver: mac.over, gram: mac.gram, pct: mac.pct,
       num: P.fmt(Math.abs(budget - eaten)), lbl: eaten > budget ? 'kcal over' : 'kcal left', tot: tot(eaten, budget),
       ck: perMeal.map((list, i) => (list.length ? P.fmt(mealKcal[i]) : null)),
       cell: dayKcal === undefined ? null : { fill: dayKcal > 0 ? Math.min(100, dayKcal / scale * 100) : 0, over: dayKcal > 0 && Math.round(dayKcal) > budget },
     };
 
     put(`${head}${strip(days, kcalOn, now, date, budget)}${banner}
-      <div class="today-frame${over ? ' today-over' : ''}">${ring(spans, eaten, budget, over, tone, lap)}${MEALS.map((m, i) => corner(i, perMeal[i], mealKcal[i], foods, tone[i])).join('')}</div>
+      <div class="today-frame${over ? ' today-over' : ''}">${ring(deg, eaten, budget, over, lap)}${MEALS.map((m, i) => corner(i, perMeal[i], mealKcal[i], foods)).join('')}</div>
       ${mac.html}
       <section class="sec today-eaten" aria-label="${isToday ? 'Eaten today' : 'Eaten that day'}">
         <div class="today-tabs" role="tablist">${tabs}</div><div class="today-pages">${mealPages}</div></section>
@@ -900,26 +854,23 @@
   }
 
   const sameList = (a, b, d) => a.length === b.length && a.every((x, i) => Math.abs(x - b[i]) <= d);
-  const sameSpan = (a, b) => (!a && !b) || (!!a && !!b && sameList(a, b, 0.01));
-  const devOf = d => (d === null ? 0 : d);     // no reading draws the mark at its target
-  const sameDev = (a, b) => sameList(a.map(devOf), b.map(devOf), 0.01);
   function differs(a, b) {
     if (a.first || b.first || a.date !== b.date) return false;
     const lapDeg = s => (s.lap ? s.lap.deg : 0);
-    return a.over !== b.over || !a.spans.every((s, i) => sameSpan(s, b.spans[i])) || Math.abs(lapDeg(a) - lapDeg(b)) > 0.01 || !sameList(a.grow, b.grow, 0.01) || !sameDev(a.dev, b.dev)
+    return a.over !== b.over || Math.abs(a.deg - b.deg) > 0.01 || Math.abs(lapDeg(a) - lapDeg(b)) > 0.01 || !sameList(a.grow, b.grow, 0.01)
       || a.barOver.some((o, i) => o !== b.barOver[i]) || a.num !== b.num || a.lbl !== b.lbl || a.tot !== b.tot
       || a.ck.some((c, i) => c !== b.ck[i]) || a.gram.some((g, i) => g !== b.gram[i]) || a.pct.some((x, i) => x !== b.pct[i])
       || (!!a.cell && !!b.cell && (Math.abs(a.cell.fill - b.cell.fill) > 0.01 || a.cell.over !== b.cell.over));
   }
 
   // The macro numbers a swap can change: [the bar or label column, the number in it].
-  const MAC_PART = { pct: ['.today-bar', '.today-pct'], lpct: ['.today-labs > div', '.today-lpn'], g: ['.today-labs > div', '.today-g > span'],
-    dn: ['.today-labs > div', '.today-devn'] };
+  const MAC_PART = { pct: ['.today-bar', '.today-pct'], lpct: ['.today-labs > div', '.today-lpn'], g: ['.today-labs > div', '.today-g > span'] };
 
-  // What changed between two drawings of the same day, as one motion. The greys go first: the arcs that changed run
-  // from their old ends and the bars move (chart, 40 ms apart), the day's tank follows, the corner kcal and the eaten
-  // total swap in the middle, each bar's percentage, grams and deviation points swap after their bar (base barsIn: at
-  // 60 % of chart, 40 ms apart); the kcal-left number swaps last, 120 ms after the greys, and the over tone lands with it.
+  // What changed between two drawings of the same day, as one motion. The greys go first: the arc runs from its old end
+  // to its new one, the second lap from its old length, and the bars move (chart, 40 ms apart), the day's tank follows,
+  // the corner kcal and the eaten total swap in the middle, each bar's percentage and grams swap after their bar (base
+  // barsIn: at 60 % of chart, 40 ms apart); the kcal-left number swaps last, 120 ms after the greys, and the over tone
+  // lands with it.
   function change(from, to) {
     const T = tokens(), rm = reduced();
     const chart = rm ? 0 : T.chart, stagger = rm ? 0 : T.stagger;
@@ -929,14 +880,13 @@
     const greys = Math.max(chart + 2 * stagger, atTot + swapLen, atMac(MACROS.length - 1) + swapLen);
     const atNum = rm ? 0 : greys + 120 - swapLen;
     const flipAt = atNum + T.fast;
-    const ringMoves = !from.spans.every((s, i) => sameSpan(s, to.spans[i]));
-    // the second lap runs from its old length and tone to its new ones with the arcs; from or to nothing, from 0
+    const ringMoves = Math.abs(from.deg - to.deg) > 0.01;
+    const degAt = p => lerp(from.deg, to.deg, p);
+    // the second lap runs from its old length and tone to its new ones with the arc; from or to nothing, from 0
     const lapA = from.lap || { deg: 0, heat: to.lap ? to.lap.heat : 0 }, lapB = to.lap || { deg: 0, heat: lapA.heat };
     const lapMoves = Math.abs(lapA.deg - lapB.deg) > 0.01 || Math.abs(lapA.heat - lapB.heat) > 0.01;
     const lapAt = p => ({ deg: lerp(lapA.deg, lapB.deg, p), heat: lerp(lapA.heat, lapB.heat, p) });
     const barsMove = !sameList(from.grow, to.grow, 0.01);
-    const devMoves = !sameDev(from.dev, to.dev);
-    const devAt = (t, i) => (devMoves ? lerp(devOf(from.dev[i]), devOf(to.dev[i]), bar(t, i)) : devOf(to.dev[i]));
     const fillMoves = !!(from.cell && to.cell) && Math.abs(from.cell.fill - to.cell.fill) > 0.01;
     const tones = from.over !== to.over || from.barOver.some((o, i) => o !== to.barOver[i])
       || !!(from.cell && to.cell && from.cell.over !== to.cell.over);
@@ -947,28 +897,14 @@
     from.ck.forEach((c, i) => { if (c !== to.ck[i]) swaps.push({ k: 'ck', i, at: atCk, old: c, now: to.ck[i] }); });
     MACROS.forEach((_, i) => {
       if (from.gram[i] !== to.gram[i]) swaps.push({ k: 'g', i, at: atMac(i), old: `${from.gram[i]} /` });
-      if (from.dn[i] !== to.dn[i]) swaps.push({ k: 'dn', i, at: atMac(i), old: from.dn[i] || null });
       if (from.pct[i] === to.pct[i]) return;
       const old = from.pct[i] === null ? null : `${from.pct[i]}%`;
       swaps.push({ k: 'pct', i, at: atMac(i), old }, { k: 'lpct', i, at: atMac(i), old });
     });
     const key = s => (s.i === undefined ? s.k : `${s.k}${s.i}`);
     const ends = [swaps.length ? Math.max(...swaps.map(s => s.at + swapLen)) : 0, ringMoves || lapMoves || fillMoves ? chart : 0,
-      barsMove || devMoves ? chart + 2 * stagger : 0, tones ? flipAt : 0];
+      barsMove ? chart + 2 * stagger : 0, tones ? flipAt : 0];
     const end = Math.max(...ends);
-    // the arcs take the tones of the drawing they go to (its badges already show them); one going away keeps its own
-    const tone = to.tone.map((t, i) => (to.spans[i] ? t : from.tone[i]));
-    // where a span grows from or shrinks to when the meal had nothing: its own start
-    const pair = to.spans.map((s, i) => {
-      const a = from.spans[i];
-      if (!a && !s) return null;
-      return [a || [s[0], s[0]], s || [a[0], a[0]]];
-    });
-    // a frame draws no arc shorter than 0.05 degrees (under a tenth of a pixel)
-    const spansAt = p => pair.map(x => {
-      const sp = x && [lerp(x[0][0], x[1][0], p), lerp(x[0][1], x[1][1], p)];
-      return sp && sp[1] - sp[0] >= 0.05 ? sp : null;
-    });
     const bar = (t, i) => (chart ? T.enter(clamp((t - i * stagger) / chart)) : 1);
     const chartAt = t => (chart ? T.enter(clamp(t / chart)) : 1);
     const q = s => root.querySelector(s);
@@ -1052,15 +988,14 @@
       const over = flipped ? to.over : from.over;
       if (tones) frame.classList.toggle('today-over', over);
       if (ringMoves || lapMoves || from.over !== to.over) {
-        frame.querySelector('.today-ring > svg').innerHTML = done ? ringParts(to.spans, over, to.tone, to.lap)
-          : ringParts(spansAt(chartAt(t)), over, tone, lapAt(chartAt(t)));
+        frame.querySelector('.today-ring > svg').innerHTML = done ? ringParts(to.deg, over, to.lap)
+          : ringParts(degAt(chartAt(t)), over, lapAt(chartAt(t)));
       }
       const bars = root.querySelectorAll('.today-bar');
       bars.forEach((b, i) => {
         if (barsMove) b.style.flexGrow = String(done ? to.grow[i] : lerp(from.grow[i], to.grow[i], bar(t, i)));
         if (tones) b.classList.toggle('today-bo', flipped ? to.barOver[i] : from.barOver[i]);
       });
-      if (devMoves) root.querySelectorAll('.today-devbar').forEach((b, i) => { b.setAttribute('style', devStyle(done ? to.dev[i] : devAt(t, i))); });
       const cell = to.cell && q(`.today-day[data-day="${to.date}"]`);
       if (cell) {
         const liq = cell.querySelector('.today-liq');
@@ -1076,15 +1011,13 @@
       clear() {
         swaps.forEach(s => { const r = realOf(s); if (r) r.style.removeProperty('transform'); });
         if (barsMove) root.querySelectorAll('.today-bar').forEach((b, i) => { b.style.flexGrow = String(to.grow[i]); });
-        if (devMoves) root.querySelectorAll('.today-devbar').forEach((b, i) => { b.setAttribute('style', devStyle(to.dev[i])); });
       },
       // what is on screen at t, for a change that arrives before this one has landed
       at(t) {
         const p = chartAt(t);
-        return { ...to, over: t >= flipAt ? to.over : from.over, spans: ringMoves ? spansAt(p) : to.spans,
+        return { ...to, over: t >= flipAt ? to.over : from.over, deg: ringMoves ? degAt(p) : to.deg,
           lap: lapMoves && p < 1 ? lapAt(p) : to.lap,
           grow: barsMove ? to.grow.map((g, i) => lerp(from.grow[i], g, bar(t, i))) : to.grow,
-          dev: devMoves ? to.dev.map((_, i) => devAt(t, i)) : to.dev,
           cell: to.cell && from.cell ? { ...to.cell, fill: lerp(from.cell.fill, to.cell.fill, p) } : to.cell };
       },
     };
