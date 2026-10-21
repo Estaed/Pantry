@@ -1,4 +1,5 @@
 # Task-12: Today reads at a glance: whole ring, eaten by meal, red when over
+**Status: DONE** — verified 2026-10-21, eye check pending: 6
 > **Execution:** agent `ultracode`
 > *Why:* after a day on the phone Tarık found the ring's empty slots confusing, the macro bars' colours meaningless, the eaten list hard to scan and edit, and the violet over tone not alarming enough.
 

@@ -288,6 +288,7 @@ def check_copies(browser, url, errors, doc):
         # the gram sheet's Add returns to Today with the sheet open; its rise ended long before (Codex review, 2026-10-21)
         go(page, "add", "dinner", DAY)
         stage_gone(page)
+        page.get_by_role("tab", name="Frequent").click()   # dinner has an entry, so its own tab opens first (Task-11)
         page.locator('[data-screen="add"] .log-open').first.click()
         page.wait_for_timeout(1000)
         seen["return to Today from the gram sheet"] = page.evaluate(COPIES_JS, {"go": ["today", DAY]})
@@ -486,6 +487,9 @@ def check_guard(browser, url, errors, doc):
     # A list row's +, 200 ms after the tap that opened the list, logs nothing; 400 ms after, it acts.
     screen = probe(page, "add", "dinner", DAY)
     finger.tap(screen.locator('[data-t="go"]'), 30)
+    # dinner has an entry, so its own tab opens first (Task-11); a mouse click, which the tap guard never holds
+    page.wait_for_selector('#app > [data-screen="add"] .log-tabs')
+    page.locator('#app > [data-screen="add"]').get_by_role("tab", name="Frequent").click()
     page.wait_for_selector('#app > [data-screen="add"] [data-act="plus"]')
     plus = page.locator('#app > [data-screen="add"] [data-act="plus"]').first
     count = len(A.stored(page)["entries"])

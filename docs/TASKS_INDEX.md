@@ -25,9 +25,9 @@ Ran overnight 2026-10-21 (Workflow, phone not on the cable): `reports/otopilot-2
 From Tarık's first day on the phone with wave 3 (2026-10-21). Three lanes, files disjoint, run at once with the
 Workflow while he is present; the phone is on the cable for the use check (Samsung Internet).
 
-- [ ] Task-11: A meal's list opens on that meal; a tap on a food opens it, + logs, the keyboard only from the amount
-- [ ] Task-12: Today at a glance: whole ring, macro bars against target, eaten by meal with easy delete, red when over
-- [ ] Task-13: Light, dark, system or dynamic (dark after sunset) theme in Settings
+- [x] Task-11: A meal's list opens on that meal; a tap on a food opens it, + logs, the keyboard only from the amount
+- [x] Task-12: Today at a glance: whole ring, macro bars against target, eaten by meal with easy delete, red when over
+- [x] Task-13: Light, dark, system or dynamic (dark after sunset) theme in Settings
 
 ## Later waves (draft)
 - After wave 4: a week of real use against the acceptance in Blueprint; a look at MyNetDiary's design and

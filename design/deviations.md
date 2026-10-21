@@ -13,13 +13,13 @@
   order. Revisit after v1 if the day behind it is missed.
 
 ## Departures from the prototype, wave 3 (2026-10-21; builders' proposals, Tarık keeps or drops)
-- **Over tone is the base `chart-5` violet**: ring, corner swatches, kcal-left number, the day's tank and any
-  macro bar past its target. The warm status tokens sit within ΔE 0.05–0.08 of the orange accent and would
-  read as it. Today's own strip cell shows over too, and over wins over the shown day's orange fill.
+- **Over tone** (wave 3 had `chart-5` violet; superseded in wave 4, below): ring, corner swatches, kcal-left
+  number, the day's tank and any macro bar past its target. Today's own strip cell shows over too, and over wins
+  over the shown day's orange fill.
 - **Today**: a past day has a "Today" action left of the gear; tapping a strip day switches in place (the
   strip moves only when the shown day leaves it); the whole ring area takes the day swipe.
 - **Meal list**: "In dinner: 2 foods, 1,422 kcal" under the title; a food's drawing is its tick (filled
-  circle with a check when ticked); a grey check badge on a food already in that meal; a sticky "Add N to
+  circle with a check when ticked; replaced in wave 4 by a long press); a grey check badge on a food already in that meal; a sticky "Add N to
   <meal>" bar with a clear button; the + turns into a check for the 4 s its toast shows; a "Same as
   yesterday's <meal>" row naming its foods.
 - **Gram sheet**: chips without use counts, plus a "<grams> pack" chip when the food has a pack; the amount
@@ -36,3 +36,27 @@
   "mynetdiarydeki gibi ... gün gün akıcı bir şekilde kaydırmak istiyorum").
 - **Screen motion** follows Tarik Base v6 → Motion (push in from the right, back reverses, Today crossfades);
   the prototype is static.
+
+## Departures from the prototype, wave 4 (2026-10-21; from Tarık's first day on the phone)
+- **Over is the base `danger` red** (Tarık picked C of four tones on the real 19 Oct screen). Past the budget the
+  ring runs on as a second lap from 12 o'clock, as in MyNetDiary: the first lap's arcs and badges go to light
+  tints of the red (badge letters in ink), the second lap carries the strong red, deeper the more he is over
+  (75 % of `danger` just over, full from 25 % over); the kcal number stays full `danger` for contrast.
+- **Ring without quarters**: one track, the logged meals' arcs end to end from 12 o'clock in meal order, tones
+  alternating in drawn order, each badge in its arc's tone; no letters on the ring.
+- **Macro strip**: one grey for the three bars; red only past target grams; under each bar a deviation mark (a
+  target tick, a bar to the side the share leans, 20 points a half) with its signed points over the tick.
+- **Eaten by meal**: a tab per meal (name over kcal) over one page per meal in a sideways snap pager; a trash at
+  each row's end, then Delete (red outline) with Undo; an empty meal says so and offers "Add to <meal>". The +
+  and Scan add to the meal shown; Scan floats like the +. The pages are as tall as the longest meal, so a swipe
+  never changes height under the thumb. No page scrollbar on any screen.
+- **Meal list opens on the meal**: a first tab named after it ("Lunch") listing its entries with a − then
+  "Remove" (ink pill) on each; Frequent opens when the meal is empty. A tap on a food opens its gram sheet and
+  never ticks or logs; only + logs; ticking several starts with a long press. "Same as yesterday's <meal>" sits on
+  Frequent and only its + copies. The list keeps its tab in history.
+- **Gram sheet opens without the keyboard**: a tap on the amount focuses and selects it (it seemed tied to Samsung
+  Internet's dead back key); a quick second tap on the rising sheet is held for 350 ms.
+- **Settings has a Theme group of four choices, second** (design *9* has a "Follow phone theme" toggle as the
+  Data list's last row): Dynamic (dark from Darwin's sunset to sunrise), Light, Dark and System in one segmented
+  control, two by two where four do not fit, with a line saying what the pick does; after Targets so it shows
+  without scrolling (Tarık, 2026-10-21: "ayarlara ekle dinamik, açık, kapalı, sistem").

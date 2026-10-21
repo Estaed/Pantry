@@ -1,4 +1,5 @@
 # Task-11: A meal's list opens on that meal, and tapping a food never logs by surprise
+**Status: DONE** — verified 2026-10-21, eye check pending: 5
 > **Execution:** agent `ultracode`
 > *Why:* after a day on the phone Tarık could not find how to take a wrongly logged food out of a meal, a tap on a food's drawing ticked it when he meant to open it, and a check mark floated over the search box.
 

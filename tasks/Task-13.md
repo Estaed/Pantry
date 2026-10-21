@@ -1,4 +1,5 @@
 # Task-13: Light, dark, system or dynamic theme, chosen in Settings
+**Status: DONE** — verified 2026-10-21, eye check pending: 4
 > **Execution:** agent `ultracode`
 > *Why:* Tarık wants to pick the theme himself, including one that goes dark when the evening comes.
 
