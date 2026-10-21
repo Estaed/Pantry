@@ -17,6 +17,13 @@ Tarık glances at Today on his Galaxy S24 (360 px, text 1.0, installed app in Sa
   This replaces round 5's fixed quarters (design/DESIGN.md → Taste record, 2026-10-21). Over budget keeps working.
 - **Over is red.** The over tone becomes the base `danger` token in place of `chart-5` violet, everywhere Task-09
   used it (Tarık picked C of four tones on the real 19 Oct screen, 2026-10-21). Within stays grey.
+- **Past the budget the ring keeps going, a second lap.** As in MyNetDiary (his screenshots, 2026-10-21: 19 Oct,
+  2,292 of 2,200, the ring full and the 92 over running on from the top over it; 15 Oct, 51 left, a gap between the
+  ring's end and its start): within budget the unfilled part shows as that gap; once over, the ring is full and the
+  excess runs on from the start as a second layer over the first, so 92 over is a short arc and 1,100 over half a
+  lap. The more he is over, the redder it gets: the over tone deepens with the excess, from a light red just over to
+  the full `danger` red well over (the builder sets the scale and says why). Tarık, 2026-10-21: "bar dolduktan sonra
+  kalori alımı devam ediyorsa bar ilerlesin 2. katman gibi", "ne kadar ilerlersem fazladan o kadar kırmızılaşsın".
 - **The macro bars mean something.** The three bars share one grey (with gaps, so they do not merge); how far each
   macro's share is from its target share is drawn on the screen, readable at a glance (not only in an attribute);
   red keeps its meaning: a macro turns the over tone only when its grams pass its daily target grams, as today, since
@@ -43,6 +50,7 @@ Today is the screen he opens most; each of these made him stop and think (or hun
 ## Acceptance
 - [ ] With only breakfast logged, the ring shows one breakfast arc and one unbroken track for the rest (no gap or slot for lunch, dinner or snacks); with breakfast and dinner logged, two arcs and one track; arcs never overlap; over budget still fills the ring and turns it red.
 - [ ] Every element Task-09 drew in the over tone now uses `--danger`; none uses `--chart-5`.
+- [ ] Over budget, the ring is full and a second-lap arc from the start covers excess ÷ budget of the circle (92 over 2,200: about 15°; 1,100 over: 180°; more than a whole second lap stays full); within budget the gap between the filled end and the start equals what is left; the over colour at 10 % over is lighter than at 50 % over, and reaches the full `danger` red by the builder's stated point.
 - [ ] The three macro bars share one grey; a macro whose grams pass its target grams is in the over tone and no other is; each bar's distance from its target share is drawn as a visible mark a test can locate (the builder names it).
 - [ ] The eaten section has one page per meal with its kcal; a sideways swipe moves one meal; tapping a meal's name opens its page; an empty meal's page says so and offers Add for that meal; a row opens `entry <id>`.
 - [ ] An entry can be removed from its meal page in at most two deliberate steps through `Pantry.removeEntry` (a `doc.removed` line; Undo restores it deep-equal and drops that line); a sideways swipe meant to change meal never removes anything; back from Edit entry, and after a delete, the same meal page shows.
