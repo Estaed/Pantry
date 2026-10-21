@@ -37,12 +37,12 @@
 
    layout() places the ring between the corners so no meal name or kcal touches the ring's box and no drawing touches
    the ring, and keeps the centre's words inside the ring, at any text size and width. Gate hooks: data-test="kcal-left"; .top .eyebrow; eaten rows .fr with
-   .name/.sub; one .banner; the buttons "Add food" (the bottom button's accessible name is "Add food to <meal>",
-   its text "Add to <meal>") and "Scan a barcode".
+   .name/.sub; one .banner; the buttons "Add food" (the floating +, accessible name "Add food to <meal>" or "Add food to this day") and
+   "Scan a barcode".
 
    First launch differs from design/screens.html (First launch) only to keep those hooks: the gate opens an empty log,
    reads "2,200" from kcal-left and taps "Add food" and "Scan a barcode" there, so the sentence starts with
-   "2,200 kcal left today." and the bottom bar (Add to <meal>, Scan) stands in for the secondary "Scan a product"
+   "2,200 kcal left today." and the floating + and Scan stand in for the secondary "Scan a product"
    button. Once the gate's first-launch steps move, this screen can follow the design exactly. */
 (() => {
   'use strict';
@@ -78,7 +78,12 @@
     .today-t1 { background: var(--today-c1); color: var(--canvas); }
     .today-t3 { background: var(--today-c3); color: var(--ink); }
 
-    .today-days { --today-side: 14px; display: flex; gap: 5px; padding: 12px var(--today-side) 0; touch-action: pan-y; }
+    .today-strip { overflow: hidden; }
+    .today-days { --today-side: 14px; position: relative; display: flex; gap: 5px; padding: 12px var(--today-side) 0; touch-action: pan-y; }
+    /* while a finger drags the strip, the weeks before and after ride at its sides */
+    .today-peek { position: absolute; top: 12px; bottom: 0; width: 100%; box-sizing: border-box; display: flex; gap: 5px; padding: 0 var(--today-side); }
+    .today-peek-l { right: 100%; }
+    .today-peek-r { left: 100%; }
     /* a new week's days slide in by the strip's side margin at most, so none passes the screen's edge */
     .today-days.today-from-r > .today-day, .today-days.today-from-l > .today-day { animation: today-in var(--dur-base) var(--ease-enter); }
     .today-days.today-from-r { --today-dx: var(--today-side); }
@@ -195,14 +200,12 @@
     .today-empty p { margin: 8px 0 0; max-width: 22rem; font: 500 0.875rem/1.5 var(--font-sans); color: var(--ink-muted); }
     .today-empty p b { color: var(--primary-text); font-weight: 700; }
     .today-empty .btn { margin-top: 18px; }
-    /* base.css's section class .sec also matches the secondary button .btn.sec and gives it section margins */
-    [data-screen="today"] .bottom .btn.sec { margin: 0; }
-    /* Add to <meal> stays one line beside Scan, as drawn. When its words would wrap (large text, narrow phone) it drops
-       its + and narrows its padding; words that still wrap shrink by one factor, --today-afit, set by layout() */
-    [data-screen="today"] .bottom .btn { min-width: 0; }
-    .today-al { min-width: 0; font-size: calc(1em * var(--today-afit, 1)); }
-    [data-screen="today"] .bottom.today-narrow .btn { padding-left: 10px; padding-right: 10px; }
-    [data-screen="today"] .bottom.today-narrow .btn svg.i { display: none; }
+    /* Add and Scan float at the bottom right over the screen, as in MyNetDiary (design/deviations.md): a 56 px + with
+       Scan beside it; the band behind them lets the rows show through */
+    .today-fab { justify-content: flex-end; background: none; pointer-events: none; }
+    .today-fab > * { pointer-events: auto; }
+    .today-fab .btn { flex: none; width: 56px; height: 56px; min-height: 0; padding: 0; margin: 0; box-shadow: var(--shadow-3); }
+    .today-fab .btn svg.i { width: 26px; height: 26px; }
   `);
 
   // ── days: the phone's local calendar, never UTC ──
@@ -325,8 +328,12 @@
   }
 
   function strip(days, kcalOn, now, date, budget) {
+    return `<div class="today-strip"><nav class="today-days${slide ? ' ' + slide : ''}" aria-label="Days">${dayCells(days, kcalOn, now, date, budget)}</nav></div>`;
+  }
+
+  function dayCells(days, kcalOn, now, date, budget) {
     const scale = Math.max(2750, 1.25 * budget);
-    const cells = days.map(d => {
+    return days.map(d => {
       const kcal = kcalOn.get(d), isNow = d === now, over = kcal > 0 && Math.round(kcal) > budget;
       const diff = Math.round(kcal) - budget;
       const label = isNow ? 'today' : signed(diff);
@@ -339,7 +346,6 @@
         + `<span aria-hidden="true">${DAY[parse(d).getDay()]}</span><b aria-hidden="true">${Number(d.slice(8))}</b>`
         + `<em aria-hidden="true">${label}</em></button>`;
     }).join('');
-    return `<nav class="today-days${slide ? ' ' + slide : ''}" aria-label="Days">${cells}</nav>`;
   }
 
   function syncBanner(text) {
@@ -390,9 +396,8 @@
       + `<h1 class="title">${isToday ? 'Today' : short(date)}</h1></div>`
       + (isToday ? '' : '<button class="today-now" type="button" data-act="today">Today</button>')
       + `<button class="ibtn" type="button" data-act="settings" aria-label="Settings">${GEAR}</button></header>`;
-    const bottom = `<div class="bottom"><button class="btn${first ? ' sec' : ''}" type="button" data-act="add" data-for="${meal}"`
-      + ` aria-label="${add.replace('Add', 'Add food')}">${P.icon('plus')}<span class="today-al">${add}</span></button>`
-      + `<button class="ibtn box" type="button" data-act="scan" data-for="${meal}" aria-label="Scan a barcode">${P.icon('scan')}</button></div>`;
+    const bottom = `<div class="bottom today-fab"><button class="ibtn box" type="button" data-act="scan" data-for="${meal}" aria-label="Scan a barcode">${P.icon('scan')}</button>`
+      + `<button class="btn${first ? ' sec' : ''}" type="button" data-act="add" data-for="${meal}" aria-label="${add.replace('Add', 'Add food')}">${P.icon('plus')}</button></div>`;
 
     if (first) {
       put(`${head}${banner}<section class="today-empty">${window.PantryDrawing ? window.PantryDrawing.named('plate', 132) : ''}
@@ -500,26 +505,6 @@
     p.s.forEach((x, i) => { cols[i].style.marginLeft = `${x - (i ? p.s[i - 1] + p.w[i - 1] : 0)}px`; });
   }
 
-  // Add to <meal> on one line: without its + and with narrow padding when its words would wrap, then smaller words.
-  function fitAdd(bar) {
-    const label = bar.querySelector('.today-al');
-    if (!label) return;
-    bar.classList.remove('today-narrow');
-    bar.style.removeProperty('--today-afit');
-    const wraps = () => label.getBoundingClientRect().height > 1.5 * parseFloat(getComputedStyle(label).lineHeight);
-    if (!wraps()) return;
-    bar.classList.add('today-narrow');
-    if (!wraps()) return;
-    const btn = label.parentElement, s = getComputedStyle(btn);
-    const room = btn.clientWidth - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight);
-    label.style.whiteSpace = 'nowrap';
-    const need = label.getBoundingClientRect().width;
-    label.style.removeProperty('white-space');
-    let fit = Math.min(1, Math.floor(100 * room / need) / 100);
-    bar.style.setProperty('--today-afit', String(fit));
-    while (wraps() && fit > 0.5) { fit = Math.round(100 * fit - 2) / 100; bar.style.setProperty('--today-afit', String(fit)); }
-  }
-
   // The centre inside the ring's inner edge: the ring stops growing at the frame's width while rem text keeps growing.
   // The number shrinks first, down to twice the size of the words under it; then all three lines shrink together. A
   // shrunk line's farthest box corner lands at least that factor closer, so the first guess is never too small.
@@ -545,8 +530,8 @@
     if (!shrink('--today-nfit', 0.55)) shrink('--today-cfit', 0.3);
   }
 
-  // Fits Today to the text size and width: the strip's words in their days, the macro labels under their bars, Add on
-  // one line beside Scan, whole corner names, the centre inside the ring, and the lowest frame that keeps each corner's
+  // Fits Today to the text size and width: the strip's words in their days, the macro labels under their bars, whole
+  // corner names, the centre inside the ring, and the lowest frame that keeps each corner's
   // name and kcal off the ring's box and its drawings off the ring. A running motion is set aside while it measures.
   function layout() {
     if (!root || !root.isConnected) return;
@@ -576,8 +561,6 @@
       if (labels[i]) labels[i].classList.toggle('today-out', out);
     });
     if (labs) placeLabels(labs, bars);
-    const bar = root.querySelector('.bottom');
-    if (bar) fitAdd(bar);
     const frame = root.querySelector('.today-frame');
     if (!frame) return;
     const ringEl = frame.querySelector('.today-ring');
@@ -970,15 +953,15 @@
     switchTo(want || P.today(), 0, true);
   });
 
+  // A week on, drawn in place (the strip's glide moves it in); false when the strip cannot move.
   function shift(days) {
-    const date = shownDate(), now = P.today(), last = date > now ? date : now;
+    const last = lastEnd();
     let end = addDays(stripEnd, days);
     if (end > last) end = last;
-    if (end === stripEnd) return;
+    if (end === stripEnd) return false;
     stripEnd = end;
-    slide = days > 0 ? 'today-from-r' : 'today-from-l';
     draw();
-    slide = '';
+    return true;
   }
 
   function onClick(e) {
@@ -1011,7 +994,8 @@
   // The ring follows a drag that leans sideways past 10 px, eased to at most travel() (24 px, 20 at the 20 px margin),
   // 8 px toward a day that does not exist yet.
   function onMove(e) {
-    if (!touch || e.pointerId !== touch.id || touch.zone !== 'ring') return;
+    if (!touch || e.pointerId !== touch.id) return;
+    if (touch.zone === 'strip') { dragStrip(e); return; }
     const dx = e.clientX - touch.x;
     const frame = root.querySelector('.today-frame');
     if (!frame) return;
@@ -1033,7 +1017,13 @@
     touch = null;
     const sideways = Math.abs(dx) > 1.5 * Math.abs(dy);
     if (zone === 'strip') {
-      if (Math.abs(dx) >= 40 && sideways) { swallow = true; shift(dx < 0 ? 7 : -7); }
+      if (!side) return;
+      swallow = true;
+      const flick = sideways && (Math.abs(dx) >= 40 || (Math.abs(dx) >= 20 && Math.abs(dx) / dt >= 0.5));
+      const go = flick && (dx > 0 || stripEnd < lastEnd());
+      // going on, the next week is drawn at once (its days take taps while it glides in), from where the finger left it
+      const week = stripWeek(), from = go && shift(dx < 0 ? 7 : -7) ? pull - Math.sign(dx) * week : pull;
+      glide(from);
       return;
     }
     const swipe = sideways && (Math.abs(dx) >= 40 || (Math.abs(dx) >= 20 && Math.abs(dx) / dt >= 0.5));
@@ -1045,8 +1035,64 @@
   }
 
   function onCancel() {
-    if (touch && touch.side) settle(touch.pull);
+    if (touch && touch.side) { if (touch.zone === 'strip') glide(touch.pull); else settle(touch.pull); }
     touch = null;
+  }
+
+  // ── the strip follows the finger ──
+  // A drag that leans sideways past 10 px carries the week with it, the weeks before and after riding at its sides
+  // (made for the drag, inert). Let go past 40 px, or flicked, and that week is drawn and glides in from where the
+  // finger left it; otherwise the week glides back. Toward a week after today it gives 8 px at most.
+  const lastEnd = () => { const d = shownDate(), now = P.today(); return d > now ? d : now; };
+  const stripWeek = () => { const nav = root.querySelector('.today-days'); return nav ? nav.clientWidth : 0; };
+
+  function dragStrip(e) {
+    const nav = root.querySelector('.today-days');
+    if (!nav) return;
+    const dx = e.clientX - touch.x;
+    if (!touch.side) {
+      if (Math.abs(dx) <= 10 || !leansSideways(touch, e.clientX, e.clientY)) return;
+      touch.side = true;
+      finish();
+      peek(nav);
+    }
+    const w = nav.clientWidth, more = stripEnd < lastEnd();
+    touch.pull = dx < 0 && !more ? 8 * Math.tanh(dx / 96) : Math.max(-w, Math.min(w, dx));
+    nav.style.transform = `translateX(${f2(touch.pull)}px)`;
+  }
+
+  function peek(nav) {
+    if (nav.querySelector('.today-peek')) return;
+    const doc = P.doc(), now = P.today(), budget = doc.settings.targets.kcal;
+    // the week after ends where a shift would end it, never after the last day the strip may show
+    const ahead = addDays(stripEnd, 7), ends = [addDays(stripEnd, -7), ahead > lastEnd() ? lastEnd() : ahead];
+    const weeks = ends.map(end => Array.from({ length: 7 }, (_, i) => addDays(end, i - 6)));
+    const kcalOn = new Map(weeks.flat().map(d => [d, 0]));
+    for (const e of doc.entries) if (kcalOn.has(e.date)) kcalOn.set(e.date, kcalOn.get(e.date) + e.totals.kcal);
+    weeks.forEach((days, i) => {
+      const box = document.createElement('div');
+      box.className = `today-peek today-peek-${i ? 'r' : 'l'}`;
+      box.setAttribute('aria-hidden', 'true');
+      box.inert = true;
+      box.innerHTML = dayCells(days, kcalOn, now, shownDate(), budget);
+      nav.append(box);
+    });
+  }
+
+  // The strip from an offset back to its place (base, ease-standard), its neighbours riding along, then gone.
+  function glide(from) {
+    const T = tokens(), nav = root.querySelector('.today-days');
+    if (nav && from) peek(nav);
+    play({
+      kind: 'glide', end: reduced() || !from ? 0 : T.base,
+      apply(t) {
+        const n = root.querySelector('.today-days');
+        if (!n) return;
+        if (t >= T.base) { n.style.removeProperty('transform'); n.querySelectorAll('.today-peek').forEach(p => p.remove()); return; }
+        n.style.transform = `translateX(${f2(from * (1 - T.standard(clamp(t / T.base))))}px)`;
+      },
+      clear() { const n = root.querySelector('.today-days'); if (n) n.style.removeProperty('transform'); },
+    });
   }
 
   // A move made while the touch leans sideways is consumed. Left to Chrome on a pan-y area, a quick sideways swipe made

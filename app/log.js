@@ -966,6 +966,43 @@
     if (opener) opener.querySelector('.log-open').focus({ preventScroll: true });
   }
 
+  // A pull down that starts with the sheet scrolled to its top carries the sheet with the finger; let go past 96 px, or
+  // flicked down, and it slides away and closes, otherwise it settles back (base Motion: base out, ease-standard back).
+  function pullToClose(form, scroll, scrim) {
+    let pull = null;
+    form.addEventListener('touchstart', e => {
+      pull = e.touches.length === 1 && scroll.scrollTop <= 0 ? { y: e.touches[0].clientY, t: e.timeStamp, dy: 0, on: false } : null;
+    }, { passive: true });
+    form.addEventListener('touchmove', e => {
+      if (!pull) return;
+      const dy = e.touches[0].clientY - pull.y;
+      if (!pull.on) {
+        if (dy < -8) pull = null;                 // a scroll up: the sheet's own
+        if (!pull || dy < 8) return;
+        pull.on = true;
+        form.style.transition = scrim.style.transition = 'none';
+      }
+      if (e.cancelable) e.preventDefault();
+      pull.dy = Math.max(0, dy);
+      form.style.transform = `translateY(${pull.dy}px)`;
+      scrim.style.opacity = String(1 - Math.min(1, pull.dy / form.offsetHeight));
+    }, { passive: false });
+    const end = e => {
+      const p = pull;
+      pull = null;
+      if (!p || !p.on) return;
+      const away = p.dy > 96 || (p.dy > 24 && p.dy / Math.max(1, e.timeStamp - p.t) > 0.5);
+      form.style.transition = `transform var(--dur-base) ${away ? 'var(--ease-exit)' : 'var(--ease-standard)'}`;
+      scrim.style.transition = 'opacity var(--dur-base) var(--ease-standard)';
+      form.style.transform = away ? 'translateY(100%)' : '';
+      scrim.style.opacity = away ? '0' : '';
+      if (away) requestClose();
+      else setTimeout(() => { form.style.removeProperty('transition'); scrim.style.removeProperty('transition'); }, 220);
+    };
+    form.addEventListener('touchend', end);
+    form.addEventListener('touchcancel', end);
+  }
+
   function removeSheet(sheet) { sheet.layer.remove(); if (S && S.sheet === sheet) { S.sheet = null; S.main.inert = false; } }
 
   function buildSheet(doc, food) {
@@ -1054,6 +1091,7 @@
     }[r.error]);
 
     layer.querySelector('.log-scrim').addEventListener('click', requestClose);
+    pullToClose(form, layer.querySelector('.log-scroll'), layer.querySelector('.log-scrim'));
     input.addEventListener('focus', () => input.select());
     input.addEventListener('input', () => { touched = true; err.hidden = true; refresh(); });
     // Enter (the keyboard's done key) logs like the Add button; an amount that is not one is said and logs nothing

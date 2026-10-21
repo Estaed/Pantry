@@ -1082,6 +1082,42 @@ def check_comfort_layout(browser, errors):
         ctx.close()
 
 
+# ── 17. a pull down closes the sheet; the page never reloads ──
+def check_pull_close(browser, errors):
+    ctx, page = A.phone(browser, errors, "pull close", text=1.0)
+    A.open_today(page, URL)
+    add_entries(page, [entry(1, CHICKEN, "2026-10-01", "dinner", "350 g", 350)])
+    go(page, "add", "dinner")
+    CHECK("the installed app takes no pull-to-refresh: overscroll-behavior-y is none on html and body",
+          page.evaluate("[document.documentElement, document.body].map(e => getComputedStyle(e).overscrollBehaviorY)") == ["none", "none"])
+
+    def pull(dy):
+        top = sheet(page).bounding_box()["y"]
+        cdp = page.context.new_cdp_session(page)
+        cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": 180, "y": top + 30}]})
+        for i in range(1, 11):
+            cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": 180, "y": top + 30 + dy * i / 10}]})
+            page.wait_for_timeout(30)
+        held = page.evaluate("() => getComputedStyle(document.querySelector('.log-sheet')).transform")
+        cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+        cdp.detach()
+        page.wait_for_timeout(500)
+        return held
+
+    row_button(page, CHICKEN, "open").click()
+    sheet(page).wait_for()
+    page.wait_for_timeout(500)
+    held = pull(40)
+    CHECK("a short pull (40 px) moves the sheet with the finger, then it settles back and stays open",
+          held not in ("none", "") and sheet(page).count() == 1 and page.evaluate("location.hash") == "#/add/dinner", held)
+    n = len(stored(page)["entries"])
+    pull(240)
+    CHECK("a long pull (240 px) closes the sheet: no layer left, the list again, nothing logged",
+          page.locator(".log-layer").count() == 0 and page.evaluate("location.hash") == "#/add/dinner"
+          and len(stored(page)["entries"]) == n, page.locator(".log-layer").count())
+    ctx.close()
+
+
 def main():
     global URL
     srv, site, URL = A.start_site()
@@ -1094,7 +1130,8 @@ def main():
                              ("history", check_history), ("layout", check_layout), ("amounts", check_amounts),
                              ("meal line", check_meal_line), ("ticks", check_ticks), ("ticks meet", check_ticks_meet),
                              ("yesterday", check_yesterday),
-                             ("instant", check_instant), ("sheet keys", check_sheet_keys), ("comfort layout", check_comfort_layout)):
+                             ("instant", check_instant), ("sheet keys", check_sheet_keys), ("comfort layout", check_comfort_layout),
+                             ("pull close", check_pull_close)):
                 A.guarded(f"{name} scenario", fn, browser, errors)
             browser.close()
         CHECK("no console errors or page errors", not errors, "\n".join(errors[:10]))

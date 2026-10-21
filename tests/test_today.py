@@ -87,7 +87,7 @@ CENTER_JS = """() => {
               parseFloat(getComputedStyle(el).fontSize)]; }) };
 }"""
 
-STRIP_JS = """() => [...document.querySelectorAll('[data-screen="today"] .today-day')].map(d => {
+STRIP_JS = """() => [...document.querySelectorAll('[data-screen="today"] .today-days > .today-day')].map(d => {
   const liq = d.querySelector('.today-liq');
   return { day: d.dataset.day, name: d.querySelector('span').textContent, num: d.querySelector('b').textContent,
            label: d.querySelector('em').textContent, over: d.classList.contains('today-ov'), on: d.classList.contains('today-on'),
@@ -130,12 +130,14 @@ LABELS_JS = "() => {" + INK_JS + """
            labels: q('.today-labs > div').map(ink) };
 }"""
 
-# The bottom button's words: how many lines, whether its + shows, their size against 1rem.
-ADD_JS = "() => {" + INK_JS + """
-  const b = document.querySelector('[data-screen="today"] .bottom [data-act="add"]');
-  return { text: b.textContent, ...ink(b), plus: getComputedStyle(b.querySelector('svg')).display !== 'none',
-           rem: parseFloat(getComputedStyle(document.documentElement).fontSize) };
-}"""
+# The floating + and Scan (as in MyNetDiary, design/deviations.md): [+ size, + to the screen's right edge, gap to Scan,
+# Scan's left edge], and whether the + shows its icon.
+FAB_JS = """() => { const b = document.querySelector('[data-screen="today"] .bottom');
+  const add = b.querySelector('[data-act="add"]').getBoundingClientRect(), scan = b.querySelector('[data-act="scan"]').getBoundingClientRect();
+  return { box: [add.width, add.height], right: document.documentElement.clientWidth - add.right, gap: add.left - scan.right,
+           scanLeft: scan.left, icon: !!b.querySelector('[data-act="add"] svg'), text: b.querySelector('[data-act="add"]').textContent.trim() }; }"""
+FAB_OK = lambda f: (f["box"] == [56, 56] and abs(f["right"] - 20) <= 0.5 and abs(f["gap"] - 10) <= 0.5  # noqa: E731
+                    and f["scanLeft"] > 20 and f["icon"] and f["text"] == "")
 
 # Corner names cut short (an ellipsis): the laid-out words wider than the box that shows them.
 CUT_JS = """() => [...document.querySelectorAll('[data-screen="today"] .today-cn > span')].filter(s => {
@@ -281,10 +283,11 @@ def check_day(page, days):
     check("the macros read carbs, protein, fat: the labels, the targets and the strip's spoken name (Pantry.MACROS)",
           names == ["Carbs", "Protein", "Fat"] and label == "Calories from carbs, protein and fat"
           and page.evaluate("Pantry.MACROS.join()") == "carbs,protein,fat", (names, label))
-    check("a past day: eyebrow 'Saturday, 8 August', title '8 Aug', 'Eaten that day', 'Add to this day'",
+    add_name = lambda: page.locator(f'{SCREEN} [data-act="add"]').get_attribute("aria-label")  # noqa: E731
+    check("a past day: eyebrow 'Saturday, 8 August', title '8 Aug', 'Eaten that day', the + is 'Add food to this day'",
           text(page, ".top .eyebrow") == "Saturday, 8 August" and text(page, "h1") == "8 Aug"
-          and text(page, ".today-eaten .eyebrow") == "Eaten that day" and text(page, '[data-act="add"]') == "Add to this day",
-          (text(page, ".top .eyebrow"), text(page, "h1"), text(page, '[data-act="add"]')))
+          and text(page, ".today-eaten .eyebrow") == "Eaten that day" and add_name() == "Add food to this day",
+          (text(page, ".top .eyebrow"), text(page, "h1"), add_name()))
     rows = texts(page, ".fr .sub")
     check("a past day lists what was eaten in meal order", rows == ["Breakfast, 3 pieces", "Lunch, 1 servings", "Dinner, 1000 g",
                                                                      "Snacks, 1.5 slices"], rows)
@@ -418,9 +421,10 @@ def check_routes(page):
     check("on a past day, Add to this day opens add <the clock's meal> <date>, scan opens scan <meal> <date>, a row opens entry <id>, the gear settings",
           went == want, went)
     show(page)
-    check("on Today at 07:00 the bottom button says 'Add to breakfast' and is found as 'Add food'",
-          text(page, '[data-act="add"]') == "Add to breakfast" and page.get_by_role("button", name="Add food").count() == 1
-          and page.get_by_role("button", name="Scan a barcode").count() == 1, text(page, '[data-act="add"]'))
+    named = page.locator(f'{SCREEN} [data-act="add"]').get_attribute("aria-label")
+    check("on Today at 07:00 the + is 'Add food to breakfast' and is found as 'Add food'",
+          named == "Add food to breakfast" and page.get_by_role("button", name="Add food").count() == 1
+          and page.get_by_role("button", name="Scan a barcode").count() == 1, named)
     went = [tap_goes(page, '[data-act="add"]', None), tap_goes(page, '.today-corner[data-meal="lunch"]', None)]
     check("on Today the bottom button opens add breakfast 2026-10-20 and the Lunch corner add lunch 2026-10-20",
           went == ["#/add/breakfast/2026-10-20", "#/add/lunch/2026-10-20"], went)
@@ -461,12 +465,12 @@ def check_meal_clock(page):
     show(page)
     page.clock.set_fixed_time(datetime.datetime(2026, 10, 20, 12, 0, 0, tzinfo=A.DARWIN))
     page.evaluate("document.dispatchEvent(new Event('visibilitychange'))")
-    label = text(page, '[data-act="add"]')
+    label = page.locator(f'{SCREEN} [data-act="add"]').get_attribute("aria-label")
     went = [tap_goes(page, '[data-act="add"]', None), tap_goes(page, '[data-act="scan"]', None)]
     page.clock.set_fixed_time(A.NOW)
     page.evaluate("document.dispatchEvent(new Event('visibilitychange'))")
-    check("Today left open from 07:00 to 12:00: the bottom button says 'Add to lunch' and Add and Scan open lunch",
-          label == "Add to lunch" and went == ["#/add/lunch/2026-10-20", "#/scan/lunch/2026-10-20"], (label, went))
+    check("Today left open from 07:00 to 12:00: the + becomes 'Add food to lunch' and Add and Scan open lunch",
+          label == "Add food to lunch" and went == ["#/add/lunch/2026-10-20", "#/scan/lunch/2026-10-20"], (label, went))
 
 
 def check_banner(page):
@@ -525,11 +529,8 @@ def check_fit(browser, url, doc, errors):
             if scale == 1.0 and size[0] == 360:
                 check(f"{label}: as drawn, each macro label is one line of name and one of grams, starting where its bar starts",
                       all(lab["lines"] == 2 and abs(lab["left"] - bar[0]) <= 4.5 for lab, bar in zip(ink, bars)), ink)
-            add = page.evaluate(ADD_JS)
-            check(f"{label}: '{add['text']}' stays on one line beside Scan", add["lines"] == 1, add)
-            if size[0] == 360 and scale <= 1.5:
-                check(f"{label}: with room for it, the button keeps its + and its words at 1rem", add["plus"]
-                      and abs(add["size"] - add["rem"]) < 0.01, add)
+            fab = page.evaluate(FAB_JS)
+            check(f"{label}: the + (56 px) floats 20 px from the right edge with Scan 10 px to its left", FAB_OK(fab), fab)
             cut = page.evaluate(CUT_JS)
             check(f"{label}: every corner name shows whole, none cut short", not cut, cut)
         # nothing logged yet (every morning): the widest centre, 2,200 left
@@ -583,11 +584,8 @@ def check_first_launch(browser, url, errors):
           and page.get_by_role("button", name="Add food").count() == 1 and page.get_by_role("button", name="Scan a barcode").count() == 1
           and page.locator(f"{SCREEN} .today-frame").count() == 0, text(page, ".today-empty h2"))
     A.fits(page, "first launch, 150 % text")
-    bar = page.evaluate("""() => { const b = document.querySelector('[data-screen="today"] .bottom'), r = b.getBoundingClientRect(),
-        add = b.querySelector('[data-act="add"]').getBoundingClientRect(), scan = b.querySelector('[data-act="scan"]').getBoundingClientRect();
-        return [add.left - r.left, r.right - scan.right, scan.left - add.right]; }""")
-    check("first launch: Add and Scan fill the bottom bar edge to edge (20 px sides, 10 px apart)",
-          all(abs(a - b) <= 0.5 for a, b in zip(bar, (20, 20, 10))), bar)
+    fab = page.evaluate(FAB_JS)
+    check("first launch: the + floats 20 px from the right edge with Scan 10 px to its left", FAB_OK(fab), fab)
     page.locator(f'{SCREEN} [data-act="import"]').click()
     page.wait_for_function("location.hash === '#/settings'")
     check("Import MyNetDiary history opens settings", page.evaluate("location.hash") == "#/settings", page.evaluate("location.hash"))
@@ -897,26 +895,28 @@ def check_tap_after_swipe(browser, url, doc, errors):
           still_today and until(page, BACK_TO_JS, "16 Oct"), text(page, "h1"))
     show(page)
     strip_swipe(page, 160)
-    shifted = until(page, "() => !!document.querySelector('[data-screen=\"today\"] .today-day[data-day=\"2026-10-10\"]')")
+    # the week is drawn at once and glides in (200 ms); the tap comes as soon as it is in place
+    shifted = until(page, "() => !!document.querySelector('[data-screen=\"today\"] .today-days > .today-day[data-day=\"2026-10-10\"]')"
+                          " && !document.querySelector('[data-screen=\"today\"] .today-days').style.transform")
     touch_tap(page, '.today-day[data-day="2026-10-10"]')
     check("a swipe on the strip to the week before, then at once a finger tap on 10 Oct: 10 Oct",
           shifted and until(page, BACK_TO_JS, "10 Oct"), text(page, "h1"))
     ctx.close()
 
 
-# The ring's frame offset, and the strip's slide paused at its first frame (where it starts farthest out)
+# The ring's frame offset, and the strip's: its offset, the neighbour weeks riding with it, its clip
 OFFSET_JS = """() => { const f = document.querySelector('[data-screen="today"] .today-frame');
   const m = f.style.transform.match(/translateX\\((-?[\\d.]+)px\\)/); return m ? Number(m[1]) : 0; }"""
-SLIDE_JS = """at => { const nav = document.querySelector('[data-screen="today"] .today-days');
-  const slides = nav.getAnimations({ subtree: true }).filter(a => a.animationName === 'today-in');
-  slides.forEach(a => { a.pause(); a.currentTime = at; });
-  return { slides: slides.length, left: nav.querySelector('.today-day').getBoundingClientRect().left }; }"""
+STRIP_AT_JS = """() => { const nav = document.querySelector('[data-screen="today"] .today-days');
+  const m = nav.style.transform.match(/translateX\\((-?[\\d.]+)px\\)/);
+  return { offset: m ? Number(m[1]) : 0, peeks: nav.querySelectorAll('.today-peek').length,
+           clip: getComputedStyle(nav.parentElement).overflowX }; }"""
 
 
 def check_moving_edges(browser, url, doc, errors):
     """At 360 px and text 1.0, whatever Today moves sideways stays inside the screen: the ring held mid-drag either way,
-    the ring coming in after a swipe, the strip's days sliding in after a week swipe. Page clock paused: the frames are
-    read where they start, farthest out."""
+    the ring coming in after a swipe, the strip held mid-drag and gliding in after a week swipe (inside its clip). Page
+    clock paused: the frames are read where they start, farthest out."""
     ctx = browser.new_context(**A.PHONE)
     ctx.clock.install(time=A.NOW)
     page = ctx.new_page()
@@ -944,14 +944,29 @@ def check_moving_edges(browser, url, doc, errors):
         page.clock.run_for(1000)
         check(f"the ring coming in after a swipe to {day} starts off to the side, inside the screen: no horizontal scroll",
               text(page, "h1") == day and abs(start) > 15 and fit["scroll"] <= 0 and not fit["bad"], (text(page, "h1"), start, fit))
+    sx, sy = centre_of(page, ".today-days")
+    cdp = page.context.new_cdp_session(page)
+    cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": sx, "y": sy}]})
+    for i in range(1, 11):
+        cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": sx + 10 * i, "y": sy}]})
+    held, fit = page.evaluate(STRIP_AT_JS), page.evaluate(A.FIT_JS)
+    cdp.send("Input.dispatchTouchEvent", {"type": "touchCancel", "touchPoints": []})
+    cdp.detach()
+    page.clock.run_for(1000)
+    back = page.evaluate(STRIP_AT_JS)
+    check("the strip held 100 px into a drag follows the finger with the weeks before and after at its sides, "
+          "inside its clip: no horizontal scroll; let go short, it glides back",
+          held["offset"] >= 90 and held["peeks"] == 2 and held["clip"] == "hidden" and fit["scroll"] <= 0
+          and back["offset"] == 0 and back["peeks"] == 0, (held, back, fit))
     for dx, week in ((160, "the week before"), (-160, "the week after")):
         strip_swipe(page, dx)
-        first = page.evaluate(SLIDE_JS, 0)
-        fit = page.evaluate(A.FIT_JS)
-        last = page.evaluate(SLIDE_JS, 10000)
-        check(f"the strip's days sliding in for {week} start off to the side, inside the screen: no horizontal scroll",
-              first["slides"] > 0 and abs(first["left"] - last["left"]) >= 8 and fit["scroll"] <= 0 and not fit["bad"],
-              (first, last, fit))
+        first, fit = page.evaluate(STRIP_AT_JS), page.evaluate(A.FIT_JS)
+        page.clock.run_for(1000)
+        last = page.evaluate(STRIP_AT_JS)
+        check(f"after a swipe to {week} that week glides in from where the finger left it, inside the strip's clip: "
+              "no horizontal scroll, and nothing of the glide left once it ends",
+              abs(first["offset"]) >= 8 and first["peeks"] == 2 and fit["scroll"] <= 0
+              and last == {"offset": 0, "peeks": 0, "clip": "hidden"}, (first, last, fit))
     ctx.close()
 
 

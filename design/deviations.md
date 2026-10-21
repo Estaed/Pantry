@@ -28,5 +28,10 @@
 - **Toasts**: Edit entry's Save shows "Saved, <amount>" with the food's drawing and Undo, as Delete does; a
   + names the food ("350 g of Chicken Breast Raw added to dinner"), several foods get a combined drawing.
 - **Settings data row**: "Days logged / MyNetDiary (+ Pantry only) / <range> / 464 (+2)".
+- **Today's Add is a floating + at the bottom right** (base: a full-width primary button in the thumb zone), Scan
+  beside it, as in MyNetDiary (Tarık, 2026-10-21: "mynetdiarydeki gibi sağda +"). A 56 px ink square with the
+  floating shadow; its name stays "Add food to <meal>".
+- **The day strip follows the finger** with the weeks before and after at its sides, and glides on a week when
+  let go past 40 px (Tarık, 2026-10-21: the strip had no "akıcılık").
 - **Screen motion** follows Tarik Base v6 → Motion (push in from the right, back reverses, Today crossfades);
   the prototype is static.
