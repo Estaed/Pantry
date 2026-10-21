@@ -2,7 +2,7 @@
    The only file in app/ that touches localStorage. Features talk to everything through window.Pantry.
 
    Storage (localStorage)
-     'pantry.v1'    the data document: { version: 1, foods: [], entries: [], settings: { targets } }.
+     'pantry.v1'    the data document: { version: 1, foods: [], entries: [], settings: { targets, theme? } }.
                     Shapes: tasks/Task-00.md, Fixed. Seeded with the starter foods only while it is empty.
      'pantry.sync'  the sync feature's own object (repo, token, dirty flag, last sha). Never inside the document.
 
@@ -38,6 +38,13 @@
      Pantry.fmt(n, digits)         a number with thousands separators (en-AU), at most `digits` decimals (default 0).
      Pantry.esc(text)              text made safe for an HTML template.
      Pantry.icon(name)             a Lucide outline icon as inline SVG: back, plus, minus, scan, x, alert, check.
+
+   Theme (applied by core; no Pantry member)
+     settings.theme                'dynamic' (light by day, dark from Darwin's sunset to sunrise), 'light', 'dark' or
+                                   'system' (the phone's, live); absent or unknown reads 'system'. Core puts the theme
+                                   on <html data-theme> ('light' or 'dark', where a screen reads it), color-scheme and
+                                   the theme-color metas after every change, at each sunrise and sunset under Dynamic,
+                                   when the phone's own theme changes and when the app comes back to the foreground.
 
    Screens (hash routes '#/<name>/<arg>...'; '#/' is Today)
      Pantry.view(name, def)        registers a screen. def.render(root, ...args) fills a fresh <section>;
@@ -289,13 +296,80 @@
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const icon = name => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] || ''}</svg>`;
 
-  // ── theme: follows the phone; settings.theme 'light' or 'dark' overrides when present ──
+  // ── theme ─────────────────────────────────────────────────────────
+  // settings.theme: 'dynamic' (light by day, dark from Darwin's sunset to sunrise), 'light', 'dark' or 'system' (the
+  // phone's prefers-color-scheme, live); absent or unknown reads 'system', so an older document opens as it did.
+  // The browser's own colours follow the theme on screen, not the phone: every theme-color meta carries its canvas,
+  // and color-scheme says `only light` or `only dark`, so a browser's forced dark mode (Samsung Internet's, Chrome's
+  // Auto Dark) leaves Light light.
+  const THEMES = ['dynamic', 'light', 'dark', 'system'];
   const lightQuery = matchMedia('(prefers-color-scheme: light)');
+  const DAY_MS = 86400000;
+  // Darwin, as sunrisesunsettime.org places it for its published Darwin table (tests/test_theme.py checks against it).
+  const DARWIN = { lat: -12.46113, lon: 130.84185 };
+  const rad = Math.PI / 180;
+
+  // The sunrise and sunset around the solar noon of a UTC calendar day (whole days since 1970), in absolute time
+  // (ms since 1970). NOAA's solar calculator (after Meeus): the sun's upper edge on the horizon with refraction,
+  // zenith 90.833°. In Darwin that solar noon (about 12:47 local) falls on the same calendar day.
+  function sunOn(day) {
+    const { lat, lon } = DARWIN;
+    const jc = ((day + 0.5 - lon / 360) + 2440587.5 - 2451545) / 36525;   // Julian centuries at about solar noon
+    const L0 = (280.46646 + jc * (36000.76983 + jc * 0.0003032)) % 360;
+    const M = 357.52911 + jc * (35999.05029 - 0.0001537 * jc);
+    const e = 0.016708634 - jc * (0.000042037 + 0.0000001267 * jc);
+    const C = Math.sin(M * rad) * (1.914602 - jc * (0.004817 + 0.000014 * jc)) + Math.sin(2 * M * rad) * (0.019993 - 0.000101 * jc)
+      + Math.sin(3 * M * rad) * 0.000289;
+    const omega = (125.04 - 1934.136 * jc) * rad;
+    const longitude = (L0 + C - 0.00569 - 0.00478 * Math.sin(omega)) * rad;
+    const obliquity = (23 + (26 + (21.448 - jc * (46.815 + jc * (0.00059 - jc * 0.001813))) / 60) / 60 + 0.00256 * Math.cos(omega)) * rad;
+    const decl = Math.asin(Math.sin(obliquity) * Math.sin(longitude));
+    const y = Math.tan(obliquity / 2) ** 2;
+    const eqTime = 4 / rad * (y * Math.sin(2 * L0 * rad) - 2 * e * Math.sin(M * rad) + 4 * e * y * Math.sin(M * rad) * Math.cos(2 * L0 * rad)
+      - 0.5 * y * y * Math.sin(4 * L0 * rad) - 1.25 * e * e * Math.sin(2 * M * rad));   // minutes
+    const ha = Math.acos(Math.cos(90.833 * rad) / (Math.cos(lat * rad) * Math.cos(decl)) - Math.tan(lat * rad) * Math.tan(decl)) / rad;
+    const noon = day * DAY_MS + (720 - 4 * lon - eqTime) * 60000;
+    return { rise: noon - ha * 240000, set: noon + ha * 240000 };
+  }
+
+  // What Dynamic shows at `now` and when it switches next: the last sunrise or sunset before now decides.
+  function sunAt(now) {
+    const day = Math.floor(now / DAY_MS);
+    const events = [day - 1, day, day + 1].flatMap(d => { const s = sunOn(d); return [[s.rise, 'light'], [s.set, 'dark']]; });
+    const last = events.filter(([at]) => at <= now).pop();
+    return { shown: last[1], next: events.find(([at]) => at > now)[0] };
+  }
+
+  // { shown: 'light' | 'dark', next: the time Dynamic switches next, or null for the other picks }
+  function theme() {
+    const raw = doc && doc.settings && doc.settings.theme;
+    const pick = THEMES.includes(raw) ? raw : 'system';
+    if (pick === 'dynamic') return sunAt(Date.now());
+    return { shown: pick === 'system' ? (lightQuery.matches ? 'light' : 'dark') : pick, next: null };
+  }
+
+  const bars = {};          // the theme-color of each theme: its --canvas, read the first time it is on screen
+  let themeTimer = 0;
   function applyTheme() {
-    const pick = doc && doc.settings && doc.settings.theme;
-    document.documentElement.dataset.theme = pick === 'light' || pick === 'dark' ? pick : (lightQuery.matches ? 'light' : 'dark');
+    const t = theme();
+    const root = document.documentElement;
+    if (root.dataset.theme !== t.shown) root.dataset.theme = t.shown;
+    const scheme = `only ${t.shown}`;
+    root.style.colorScheme = scheme;
+    const meta = document.querySelector('meta[name="color-scheme"]');
+    if (meta && meta.content !== scheme) meta.content = scheme;
+    bars[t.shown] = bars[t.shown] || getComputedStyle(root).getPropertyValue('--canvas').trim();
+    if (bars[t.shown]) {
+      for (const bar of document.querySelectorAll('meta[name="theme-color"]')) if (bar.content !== bars[t.shown]) bar.content = bars[t.shown];
+    }
+    // Dynamic switches by itself at the next sunrise or sunset while the app is open; a phone freezes a page in the
+    // background, so coming back applies it again.
+    clearTimeout(themeTimer);
+    if (t.next !== null) themeTimer = setTimeout(applyTheme, Math.max(0, t.next - Date.now()));
   }
   lightQuery.addEventListener('change', applyTheme);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') applyTheme(); });
+  window.addEventListener('pageshow', applyTheme);
   applyTheme();
 
   // ── screens ───────────────────────────────────────────────────────

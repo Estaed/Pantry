@@ -1,10 +1,13 @@
 /* Settings ('#/settings'): the targets (daily kcal, the macro split read and typed carbs, protein, fat, salt)
-   edited in place; sync with the private data repo (its state, the last sync, the GitHub token pasted once and shown
-   masked); the data on this phone (every day logged, "460 (+10)": MyNetDiary days plus days logged only in Pantry,
-   and the foods). Drawn after design/screens.html → 9. Settings, without the theme row (the theme follows the phone
-   in v1). The sync itself is app/sync.js (window.PantrySync); this screen shows its state and hands it the token,
-   which never enters the document.
-   Test hooks: data-test="sync-pill", "sync-last", "sync-reason", "token-mask", "history", "history-days", "foods". */
+   edited in place; the theme, Dynamic, Light, Dark or System, picked in one tap (settings.theme, synced like the
+   targets; app/core.js applies it at once and keeps Dynamic on Darwin's sun); sync with the private data
+   repo (its state, the last sync, the GitHub token pasted once and shown masked); the data on this phone (every day
+   logged, "460 (+10)": MyNetDiary days plus days logged only in Pantry, and the foods). Drawn after
+   design/screens.html → 9. Settings; its "Follow phone theme" toggle became the Theme group's four choices, second,
+   so they show without scrolling. The sync itself is app/sync.js (window.PantrySync); this screen shows its state
+   and hands it the token, which never enters the document.
+   Test hooks: data-test="sync-pill", "sync-last", "sync-reason", "token-mask", "history", "history-days", "foods",
+   "theme-help"; the theme choices are radios named Dynamic, Light, Dark and System. */
 (() => {
   'use strict';
 
@@ -17,6 +20,7 @@
   // Only the order shown and typed in follows it; the stored targets keep their shape.
   const SHARE = { carbs: ['carbsPct', 'Carbs', 4], protein: ['proteinPct', 'Protein', 4], fat: ['fatPct', 'Fat', 9] };
   const SHARES = P.MACROS.map(m => SHARE[m]);
+  const THEMES = [['dynamic', 'Dynamic'], ['light', 'Light'], ['dark', 'Dark'], ['system', 'System']];
   const isNum = v => typeof v === 'number' && Number.isFinite(v);
 
   P.css(`
@@ -78,6 +82,23 @@
     .settings-reason { display: flex; gap: 10px; align-items: flex-start; margin: 12px 0 0; font: 500 0.875rem/1.45 var(--font-sans); }
     .settings-reason svg.i { width: 18px; height: 18px; margin-top: 2px; color: var(--danger); }
     .settings-reason p { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+    /* the theme: one segmented control (base: surface-2, the choice in action), two by two where four do not fit */
+    .settings-theme { container-type: inline-size; padding-top: 10px; }
+    .settings-seg {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; padding: 3px;
+      border-radius: var(--r-button); background: var(--surface-2);
+    }
+    @container (max-width: 18.5em) { .settings-seg { grid-template-columns: repeat(2, 1fr); } }
+    .settings-seg label { position: relative; display: flex; min-width: 0; }
+    .settings-seg input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+    .settings-seg span {
+      flex: 1; display: flex; align-items: center; justify-content: center; min-height: 40px; padding: 4px 6px;
+      border-radius: calc(var(--r-button) - 3px); color: var(--ink); font: 600 0.875rem/1.2 var(--font-sans);
+      text-align: center; overflow-wrap: anywhere;   /* no colour transition: the pick and the page change together */
+    }
+    .settings-seg input:active + span { background: var(--surface-3); }
+    .settings-seg input:checked + span { background: var(--action); color: var(--on-action); }
+    .settings-seg input:focus-visible + span { outline: 2px solid var(--primary); outline-offset: 2px; }
   `);
 
   let root = null;
@@ -258,6 +279,34 @@
         <span class="settings-v">${P.fmt(doc.foods.length)}</span></li></ul>`;
   }
 
+  // ── theme ─────────────────────────────────────────────────────────
+  // The line under the choices says what the pick does. An absent or unknown settings.theme is System (app/core.js).
+  const HELP = {
+    dynamic: 'Light by day, dark from sunset to sunrise in Darwin.',
+    light: 'Always light, whatever the phone is set to.',
+    dark: 'Always dark, whatever the phone is set to.',
+    system: 'Follows the phone’s light or dark mode.',
+  };
+
+  const themeHtml = () => `<div class="settings-seg" role="radiogroup" aria-labelledby="settings-h-theme">${THEMES.map(([value, label]) =>
+    `<label><input type="radio" name="settings-theme" value="${value}"><span>${label}</span></label>`).join('')}</div>
+    <p class="settings-help" data-test="theme-help"></p>`;
+
+  // The choices are drawn once; a change only moves the mark, so the radio in use keeps its focus.
+  function paintTheme() {
+    const stored = P.doc().settings.theme;
+    const pick = THEMES.some(([value]) => value === stored) ? stored : 'system';
+    for (const radio of parts.theme.querySelectorAll('input')) radio.checked = radio.value === pick;
+    const help = parts.theme.querySelector('[data-test="theme-help"]');
+    if (help.textContent !== HELP[pick]) help.textContent = HELP[pick];
+  }
+
+  function onChange(e) {
+    if (e.target.name !== 'settings-theme') return;
+    const value = e.target.value;
+    try { P.change(d => { d.settings.theme = value; }); } catch (err) { P.toast(err.message); paintTheme(); }
+  }
+
   // ── screen ────────────────────────────────────────────────────────
   function refresh(full) {
     if (!root) return;
@@ -272,6 +321,7 @@
       paint(parts.status, '<p class="note">Sync is not installed in this version of Pantry.</p>');
     }
     paint(parts.data, dataHtml(doc));
+    paintTheme();
   }
 
   function open(kind) {
@@ -334,13 +384,15 @@
         <div><p class="eyebrow">Pantry</p><h1 class="title">Settings</h1></div></header>
       <div class="settings-body">
         <section class="settings-group" aria-labelledby="settings-h-targets"><h2 class="eyebrow" id="settings-h-targets">Targets</h2><div data-part="targets"></div></section>
+        <section class="settings-group" aria-labelledby="settings-h-theme"><h2 class="eyebrow" id="settings-h-theme">Theme</h2><div class="settings-theme" data-part="theme">${themeHtml()}</div></section>
         <section class="settings-group" aria-labelledby="settings-h-sync"><h2 class="eyebrow" id="settings-h-sync">Sync</h2><div data-part="status"></div><div data-part="token"></div></section>
         <section class="settings-group" aria-labelledby="settings-h-data"><h2 class="eyebrow" id="settings-h-data">Data</h2><div data-part="data"></div></section>
       </div>`;
-    for (const name of ['targets', 'status', 'token', 'data']) parts[name] = el.querySelector(`[data-part="${name}"]`);
+    for (const name of ['targets', 'status', 'token', 'data', 'theme']) parts[name] = el.querySelector(`[data-part="${name}"]`);
     el.addEventListener('click', onClick);
     el.addEventListener('keydown', onKey);
     el.addEventListener('input', onInput);
+    el.addEventListener('change', onChange);
     window.addEventListener('pantrysync', onSync);
     clearInterval(ticker);
     ticker = setInterval(onSync, 30000);
