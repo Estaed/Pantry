@@ -28,7 +28,6 @@
     cheese: [['f', 'M6 26h36v12H6z', '#F2C94C'], ['f', 'M6 26l26-13 10 13z', '#F7DD7A'], ['f', 'M14 32a2.2 2.2 0 1 0 0.1 0zM26 30a2.8 2.8 0 1 0 0.1 0zM36 34a1.7 1.7 0 1 0 0.1 0zM27 20.5a1.6 1.6 0 1 0 0.1 0z', '#D9A92E']],
     steak: [['f', 'M7 27c0-9 8-15 18-15s17 5 17 13-7 13-18 13S7 34 7 27z', '#F3E1CF'], ['f', 'M10 27c0-7 7-12 15-12s14 4 14 10-6 11-15 11-14-3-14-9z', '#B5493C'], ['l', 'M16 24c3-2 7-2 10 0M19 30c3 1 7 1 10-1M28 20c2 0 4 1 5 3', '#DE8E7E']],
     wrap: [['f', 'M8 30L25 13l12 12L20 42c-4 3-15-8-12-12z', '#E8C98E'], ['f', 'M31 11a8.5 8.5 0 1 0 0.1 0z', '#F3DDAE'], ['f', 'M31 13.5a6 6 0 1 0 0.1 0z', '#7FAE52'], ['f', 'M29 18a2 2 0 1 0 0.1 0zM34 21a1.8 1.8 0 1 0 0.1 0z', '#C84A31'], ['f', 'M14 33a1.3 1.3 0 1 0 0.1 0zM19 30a1.1 1.1 0 1 0 0.1 0zM21 36a1.2 1.2 0 1 0 0.1 0z', '#C9964F']],
-    plate: [['f', 'M24 6a18 18 0 1 0 0.1 0z', '#E6E6E6'], ['f', 'M24 12a12 12 0 1 0 0.1 0z', '#F4F4F4'], ['l', 'M4 10v9M7 10v9M4 19c0 2 1.5 3 1.5 3v18M44 10c-3 1-4 5-4 10h3v20', '#9E9E9E']],
     pack: [['f', 'M8 16l16-7 16 7v18l-16 7-16-7z', '#D9C3A0'], ['f', 'M8 16l16 7 16-7-16-7z', '#EAD9BD'], ['l', 'M24 23v18', '#B89B6E']],
   };
 
@@ -89,7 +88,7 @@
   }
 
   // window.Pantry is frozen, so the drawings are their own global:
-  // PantryDrawing(food, size = 32) for a food; PantryDrawing.named('plate', size) for a fixed one;
+  // PantryDrawing(food, size = 32) for a food; PantryDrawing.named(key, size) for a fixed one;
   // PantryDrawing.group(foods, size) for several at once; PantryDrawing.kind(food) the key a food gets;
   // PantryDrawing.keys every key.
   const draw = (food, size = 32) => svg(kind(food), size);

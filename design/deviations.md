@@ -61,3 +61,11 @@
   Data list's last row): Dynamic (dark from Darwin's sunset to sunrise), Light, Dark and System in one segmented
   control, two by two where four do not fit, with a line saying what the pick does; after Targets so it shows
   without scrolling (Tarık, 2026-10-21: "ayarlara ekle dinamik, açık, kapalı, sistem").
+
+## Departures from the prototype, after wave 4 (2026-10-23; Tarık)
+- **No first-launch screen** (design: the empty plate with "Import MyNetDiary history"): the app opens straight
+  on Today at 0 eaten; the history comes in through sync in Settings, whose empty "Days logged" row says so
+  (Tarık: "en basta direkt 0 acsin").
+- **The day strip runs two days past today** (design: it ends at the shown day): tomorrow and the day after show
+  empty with no difference label, open from a tap or a ring swipe, and take entries like any day (Tarık: "bazen
+  ben yarin ne yiyecegimi de koyuyorum").

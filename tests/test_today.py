@@ -534,8 +534,10 @@ def check_strip(page, url):
     show(page)
     strip = page.evaluate(STRIP_JS)
     by = {d["day"]: d for d in strip}
-    check("on Today the strip ends at 20 Oct (the Darwin date, not the UTC one) labelled 'today'",
-          [d["day"] for d in strip][-1] == "2026-10-20" and by["2026-10-20"]["label"] == "today" and by["2026-10-20"]["on"], strip)
+    check("on Today the strip shows 20 Oct (the Darwin date, not the UTC one) labelled 'today', then the two days ahead, "
+          "empty and with no label",
+          [d["day"] for d in strip][-3:] == ["2026-10-20", "2026-10-21", "2026-10-22"] and by["2026-10-20"]["label"] == "today"
+          and by["2026-10-20"]["on"] and all(by[d]["label"] == "" and by[d]["fill"] == 0 and not by[d]["on"] for d in ("2026-10-21", "2026-10-22")), strip)
     check("19 Oct, over budget, is labelled '+92' and marked; its fill is 2,292 / 2,750",
           by["2026-10-19"]["label"] == "+92" and by["2026-10-19"]["over"] and abs(by["2026-10-19"]["fill"] - 2292 / 2750) <= 0.02
           and not by["2026-10-20"]["over"] and abs(by["2026-10-20"]["fill"] - 1304 / 2750) <= 0.02, by["2026-10-19"])
@@ -578,7 +580,7 @@ def check_strip(page, url):
     strip_still(page)
     swipe(page, box["x"] + box["width"] - 30, box["x"] + 60, y)
     strip_still(page)
-    check("the strip never runs past today: a swipe left from 19 Oct stops at 20 Oct", strip_days(page)[-1] == "2026-10-20", strip_days(page))
+    check("the strip never runs past two days after today: a swipe left from 19 Oct stops at 22 Oct", strip_days(page)[-1] == "2026-10-22", strip_days(page))
     first_js = "() => document.querySelector('[data-screen=\"today\"] .today-days .today-day').dataset.day"
     first = page.evaluate(first_js)
     page.evaluate("() => { document.querySelector('[data-screen=\"today\"] .today-days').scrollLeft = 0; }")
@@ -661,10 +663,10 @@ def check_midnight(page):
     page.clock.set_fixed_time(datetime.datetime(2026, 10, 21, 0, 0, 30, tzinfo=A.DARWIN))
     page.evaluate("document.dispatchEvent(new Event('visibilitychange'))")
     strip = page.evaluate(STRIP_JS)
-    check("at midnight Darwin time Today turns to Wednesday, 21 October: 2,200 left, the strip ends at the new today",
+    check("at midnight Darwin time Today turns to Wednesday, 21 October: 2,200 left, the strip ends two days after the new today",
           title == "Today" and text(page, ".top .eyebrow") == "Wednesday, 21 October" and text(page, "h1") == "Today"
-          and text(page, '[data-test="kcal-left"]') == "2,200" and strip[-1]["day"] == "2026-10-21" and strip[-1]["label"] == "today"
-          and strip[-2]["label"] == "−896", (title, text(page, ".top .eyebrow"), strip[-2:]))
+          and text(page, '[data-test="kcal-left"]') == "2,200" and strip[-1]["day"] == "2026-10-23" and strip[-3]["label"] == "today"
+          and strip[-4]["label"] == "−896", (title, text(page, ".top .eyebrow"), strip[-4:]))
     page.clock.set_fixed_time(A.NOW)
     page.evaluate("document.dispatchEvent(new Event('visibilitychange'))")
 
@@ -800,18 +802,15 @@ def check_text_and_theme(page, url):
 def check_first_launch(browser, url, errors):
     ctx, page = A.phone(browser, errors, "today-first")
     A.open_today(page, url)
-    check("first launch: the empty plate, 2,200 kcal left, Import, and the 'Add food' and 'Scan a barcode' buttons",
-          page.locator(f"{SCREEN} .today-empty").count() == 1 and text(page, ".today-empty h2") == "An empty plate."
-          and text(page, '[data-test="kcal-left"]') == "2,200"
-          and page.get_by_role("button", name="Import MyNetDiary history").count() == 1
-          and page.get_by_role("button", name="Add food").count() == 1 and page.get_by_role("button", name="Scan a barcode").count() == 1
-          and page.locator(f"{SCREEN} .today-frame").count() == 0, text(page, ".today-empty h2"))
+    check("first launch is Today at 0 eaten: the ring, 2,200 kcal left, the strip, no import button, and the 'Add food' and "
+          "'Scan a barcode' buttons",
+          page.locator(f"{SCREEN} .today-frame").count() == 1 and text(page, '[data-test="kcal-left"]') == "2,200"
+          and page.locator(f"{SCREEN} .today-days").count() == 1 and page.get_by_role("button", name="Import").count() == 0
+          and page.get_by_role("button", name="Add food").count() == 1 and page.get_by_role("button", name="Scan a barcode").count() == 1,
+          text(page, '[data-test="kcal-left"]'))
     A.fits(page, "first launch, 150 % text")
     fab = page.evaluate(FAB_JS)
     check("first launch: the + floats 20 px from the right edge with Scan 10 px to its left", FAB_OK(fab), fab)
-    page.locator(f'{SCREEN} [data-act="import"]').click()
-    page.wait_for_function("location.hash === '#/settings'")
-    check("Import MyNetDiary history opens settings", page.evaluate("location.hash") == "#/settings", page.evaluate("location.hash"))
     ctx.close()
 
     # an unreadable stored log and a sync error at once: one banner, the unreadable log's
@@ -1017,14 +1016,18 @@ def check_swipe(page):
           text(page, "h1") == "8 Aug" and page.evaluate("location.hash") == hash_, (text(page, "h1"), page.evaluate("location.hash")))
 
     show(page)
+    ring_swipe(page, -120)
+    ahead = (text(page, "h1"), text(page, ".top .eyebrow"), text(page, '[data-test="kcal-left"]'))
+    check("on Today a left swipe opens tomorrow (21 Oct, nothing logged, 2,200 left)", ahead == ("21 Oct", "Wednesday, 21 October", "2,200"), ahead)
+    show(page, "2026-10-22")
     state, hash_ = page.evaluate("JSON.stringify(history.state)"), page.evaluate("location.hash")
     ring_swipe(page, -120)
-    check("on Today a left swipe does nothing: there is no day after today",
-          text(page, "h1") == "Today" and text(page, ".top .eyebrow") == "Tuesday, 20 October"
-          and page.evaluate("JSON.stringify(history.state)") == state, (text(page, "h1"), page.evaluate("history.state"), state))
+    check("on 22 Oct, two days after today, a left swipe does nothing: the strip ends there",
+          text(page, "h1") == "22 Oct" and page.evaluate("JSON.stringify(history.state)") == state,
+          (text(page, "h1"), page.evaluate("history.state"), state))
     corner_flick(page)
-    check("the same flick on Today's corner, which has no next day to go to, does not open the meal: its click is part of the swipe",
-          text(page, "h1") == "Today" and page.evaluate("location.hash") == hash_, (text(page, "h1"), page.evaluate("location.hash")))
+    check("the same flick on 22 Oct's corner, which has no next day to go to, does not open the meal: its click is part of the swipe",
+          text(page, "h1") == "22 Oct" and page.evaluate("location.hash") == hash_, (text(page, "h1"), page.evaluate("location.hash")))
 
     show(page, "2026-08-08")
     page.evaluate("window.scrollTo(0, 0)")
@@ -1070,11 +1073,11 @@ def check_in_place(page):
     show(page)
     depth, hash_, boxes = page.evaluate("history.state.depth"), page.evaluate("location.hash"), page.evaluate(STRIP_BOX_JS)
     seen = []
-    for day in ("2026-10-19", "2026-10-17", "2026-10-15"):
+    for day in ("2026-10-19", "2026-10-17", "2026-10-16"):
         page.locator(f'{SCREEN} .today-day[data-day="{day}"]').click()
         seen.append([text(page, "h1"), page.evaluate(STRIP_BOX_JS) == boxes, page.evaluate("location.hash") == hash_])
-    check("tapping 19, 17 and 15 Oct switches the day in place: the title follows, the strip and every day in it stay put, the address stays",
-          [s[0] for s in seen] == ["19 Oct", "17 Oct", "15 Oct"] and all(s[1] and s[2] for s in seen), seen)
+    check("tapping 19, 17 and 16 Oct switches the day in place: the title follows, the strip and every day in it stay put, the address stays",
+          [s[0] for s in seen] == ["19 Oct", "17 Oct", "16 Oct"] and all(s[1] and s[2] for s in seen), seen)
     check("three taps add one history entry, not three (history depth +1)", page.evaluate("history.state.depth") == depth + 1,
           (depth, page.evaluate("history.state")))
     check("pressing back once returns to the day shown before the first tap (Today)", back_to(page, "Today") == "Today"
@@ -1093,8 +1096,8 @@ def check_in_place(page):
     action.click()
     strip_still(page)
     strip = strip_days(page)
-    check("a past day offers Today, which switches to today in place: Today's numbers, the strip ends at 20 Oct, the address stays",
-          offered and text(page, "h1") == "Today" and text(page, '[data-test="kcal-left"]') == "896" and strip[-1] == "2026-10-20"
+    check("a past day offers Today, which switches to today in place: Today's numbers, the strip ends at 22 Oct, the address stays",
+          offered and text(page, "h1") == "Today" and text(page, '[data-test="kcal-left"]') == "896" and strip[-1] == "2026-10-22"
           and page.evaluate("location.hash") == "#/today/2026-08-08" and page.locator(f'{SCREEN} [data-act="today"]').count() == 0,
           (offered, text(page, "h1"), strip, page.evaluate("location.hash")))
     check("... and back once returns to 8 Aug, the day the address opened", back_to(page, "8 Aug") == "8 Aug")
@@ -1139,10 +1142,12 @@ def check_tap_after_swipe(browser, url, doc, errors):
     touch_tap(page, '[data-act="today"]')
     check("a right swipe on the ring to 19 Oct, then at once a finger tap on Today: Today again",
           swiped and until(page, BACK_TO_JS, "Today"), text(page, "h1"))
+    show(page, "2026-10-22")
+    strip_still(page)
     ring_swipe(page, -120)
-    still_today = text(page, "h1") == "Today"
+    still_today = text(page, "h1") == "22 Oct"
     touch_tap(page, '.today-day[data-day="2026-10-16"]')
-    check("a left swipe on Today's ring (no day after it, nothing redrawn), then at once a finger tap on 16 Oct: 16 Oct",
+    check("a left swipe on 22 Oct's ring (no day after it, nothing redrawn), then at once a finger tap on 16 Oct: 16 Oct",
           still_today and until(page, BACK_TO_JS, "16 Oct"), text(page, "h1"))
     show(page)
     strip_still(page)

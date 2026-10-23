@@ -268,7 +268,7 @@
     const count = own ? `${P.fmt(imported)} (+${P.fmt(own)})` : P.fmt(imported);
     // Under the name, the count's key ("MyNetDiary (+ Pantry only)" for "464 (+2)") and the range of days.
     const subs = sorted.length ? [own ? 'MyNetDiary (+ Pantry only)' : 'MyNetDiary', `${dateLabel(sorted[0])} to ${dateLabel(sorted[sorted.length - 1])}`]
-      : ['None on this phone yet'];
+      : ['None on this phone yet', 'Your MyNetDiary history comes in with sync'];
     const groups = [['from MyNetDiary', ['mynetdiary']], ['scanned', ['coles', 'woolworths', 'off']], ['from labels', ['label']]]
       .map(([label, sources]) => [doc.foods.filter(f => sources.includes(f.source)).length, label]).filter(([n]) => n > 0);
     const foodsSub = !groups.length ? 'None yet' : groups.length === 1 ? `All ${groups[0][1]}` : groups.map(([n, l]) => `${P.fmt(n)} ${l}`).join(', ');

@@ -1,10 +1,11 @@
-/* Today: the day at a glance (design/screens.html: 1. Today, 7. A past day, First launch, Sync failed).
+/* Today: the day at a glance (design/screens.html: 1. Today, 7. A past day, Sync failed).
    Route `today [date]`: no date, a date that is not YYYY-MM-DD, or today's date shows Today and follows the clock past
    midnight; any other date shows that day ("8 Aug").
 
-   Top to bottom: the date with Settings (a past day adds a Today action); the day strip, seven days ending at the shown
-   day, each a tank filled to its kcal on a scale of max(2,750, 1.25 x budget) with a slow wave on top, the dashed budget
-   line and the difference to budget (a swipe moves it a week, the shown day stays); the ring with the four meals in the
+   Top to bottom: the date with Settings (another day adds a Today action); the day strip, seven days to a screen,
+   running to AHEAD days after today (a meal planned for tomorrow) or to the shown day when that is later, each a tank
+   filled to its kcal on a scale of max(2,750, 1.25 x budget) with a slow wave on top, the dashed budget line and the
+   difference to budget (none on a day to come with nothing on it; a swipe moves it a week, the shown day stays); the ring with the four meals in the
    corners (each corner's badge carries the meal's letter); the macro strip in Pantry.MACROS order, carbs, protein, fat
    (each macro's width is its share of carbs x 4 + protein x 4 + fat x 9); what was eaten, one page per meal; the
    floating + and Scan.
@@ -47,8 +48,8 @@
    The + and Scan add to the meal page shown.
 
    Days in place: a tap on a day in the strip, a swipe on the ring (left: the next day, right: the one before; nothing
-   after today) or the Today action switches the shown day without a new screen. The strip stays where it is; it moves a
-   week only when the shown day leaves it. The first switch pushes one history entry with the same address and
+   past the strip's last day) or the Today action switches the shown day without a new screen. The strip stays where it
+   is; it moves a week only when the shown day leaves it. The first switch pushes one history entry with the same address and
    `state.day` (null for today); later switches replace it, and a switch back to the day under it pops it, so Back
    returns to the day shown before the first switch. This file never changes location.hash.
 
@@ -66,10 +67,8 @@
    .name/.sub (the sub keeps "<Meal>, <amount>"); one .banner; the buttons "Add food" (the floating +, accessible name
    "Add food to <meal>") and "Scan a barcode". An empty meal page's button is "Add to <meal>", never one of those.
 
-   First launch differs from design/screens.html (First launch) only to keep those hooks: the gate opens an empty log,
-   reads "2,200" from kcal-left and taps "Add food" and "Scan a barcode" there, so the sentence starts with
-   "2,200 kcal left today." and the floating + and Scan stand in for the secondary "Scan a product"
-   button. Once the gate's first-launch steps move, this screen can follow the design exactly. */
+   First launch (nothing logged yet) is the ordinary Today at 0 eaten, not design/screens.html's empty plate: the
+   MyNetDiary history comes in through sync in Settings (Tarik, 2026-10-23: "en basta direkt 0 acsin"). */
 (() => {
   'use strict';
   const P = window.Pantry;
@@ -259,12 +258,6 @@
     .today-food { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; flex: none; background: var(--surface-2); }
     .today-food svg { width: 32px; height: 32px; }
 
-    .today-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px 28px; }
-    .today-empty svg { width: 132px; height: 132px; }
-    .today-empty h2 { margin: 10px 0 0; font: var(--display-weight) 1.625rem/1.06 var(--font-display); font-stretch: var(--display-stretch); letter-spacing: -0.017em; }
-    .today-empty p { margin: 8px 0 0; max-width: 22rem; font: 500 0.875rem/1.5 var(--font-sans); color: var(--ink-muted); }
-    .today-empty p b { color: var(--primary-text); font-weight: 700; }
-    .today-empty .btn { margin-top: 18px; }
     /* Add and Scan float at the bottom right over the screen, as in MyNetDiary (design/deviations.md): a 56 px + with
        Scan beside it; the band behind them lets the rows show through */
     .today-fab { justify-content: flex-end; background: none; pointer-events: none; }
@@ -396,7 +389,8 @@
     return days.map(d => {
       const kcal = kcalOn.get(d), isNow = d === now, over = kcal > 0 && Math.round(kcal) > budget;
       const diff = Math.round(kcal) - budget;
-      const label = isNow ? 'today' : signed(diff);
+      // a day still to come with nothing on it has no difference yet
+      const label = isNow ? 'today' : d > now && !kcal ? '' : signed(diff);
       const said = kcal ? `${P.fmt(kcal)} kcal, ${diff > 0 ? `${P.fmt(diff)} over` : `${P.fmt(-diff)} under`}` : 'nothing logged';
       const liquid = kcal > 0 ? `<i class="today-liq" style="height:${f2(Math.min(100, kcal / scale * 100))}%" aria-hidden="true">`
         + '<i class="today-wave"></i></i>' : '';
@@ -451,9 +445,9 @@
     return { meal: MEALS[i < 0 ? 0 : i], clock };
   }
 
-  // The floating + and Scan, both for the meal page shown (first launch: the clock's meal).
-  const fab = (meal, first) => `<div class="bottom today-fab"><button class="ibtn today-scan" type="button" data-act="scan" data-for="${meal}" aria-label="Scan a barcode">${P.icon('scan')}</button>`
-    + `<button class="btn${first ? ' sec' : ''}" type="button" data-act="add" data-for="${meal}" aria-label="Add food to ${meal}">${P.icon('plus')}</button></div>`;
+  // The floating + and Scan, both for the meal page shown.
+  const fab = meal => `<div class="bottom today-fab"><button class="ibtn today-scan" type="button" data-act="scan" data-for="${meal}" aria-label="Scan a barcode">${P.icon('scan')}</button>`
+    + `<button class="btn" type="button" data-act="add" data-for="${meal}" aria-label="Add food to ${meal}">${P.icon('plus')}</button></div>`;
 
   function draw(via) {
     const doc = P.doc(), now = P.today(), date = shownDate(), isToday = date === now;
@@ -473,7 +467,6 @@
     const problem = P.problem(), syncError = P.syncState().lastError;
     const banner = problem ? `<div class="banner" role="alert">${P.icon('alert')}<div>${P.esc(problem)}</div></div>`
       : typeof syncError === 'string' && syncError.trim() ? syncBanner(syncError.trim()) : '';
-    const first = !problem && doc.entries.length === 0;
     const clock = P.mealNow();
     const year = date.slice(0, 4) === now.slice(0, 4) ? '' : ` ${date.slice(0, 4)}`;
 
@@ -481,15 +474,6 @@
       + `<h1 class="title">${isToday ? 'Today' : short(date)}</h1></div>`
       + (isToday ? '' : '<button class="today-now" type="button" data-act="today">Today</button>')
       + `<button class="ibtn" type="button" data-act="settings" aria-label="Settings">${GEAR}</button></header>`;
-
-    if (first) {
-      fresh = false;
-      put(`${head}${banner}<section class="today-empty">${window.PantryDrawing ? window.PantryDrawing.named('plate', 132) : ''}
-        <h2>An empty plate.</h2>
-        <p><b data-test="kcal-left">${P.fmt(budget)}</b> kcal left today. Bring your MyNetDiary history in once, or scan your first product. Your frequent foods grow from here.</p>
-        <button class="btn" type="button" data-act="import">Import MyNetDiary history</button></section>${fab(clock, true)}`, { date, first: true }, via);
-      return;
-    }
 
     const perMeal = MEALS.map(m => entries.filter(e => e.meal === m));
     const mealKcal = perMeal.map(list => list.reduce((a, e) => a + e.totals.kcal, 0));
@@ -521,7 +505,7 @@
     }).join('');
     const scale = Math.max(2750, 1.25 * budget), dayKcal = kcalOn.get(date);
     const snap = {
-      date, first: false, over, deg, lap, grow: mac.grow, barOver: mac.over, gram: mac.gram, pct: mac.pct,
+      date, over, deg, lap, grow: mac.grow, barOver: mac.over, gram: mac.gram, pct: mac.pct,
       num: P.fmt(Math.abs(budget - eaten)), lbl: eaten > budget ? 'kcal over' : 'kcal left', tot: tot(eaten, budget),
       ck: perMeal.map((list, i) => (list.length ? P.fmt(mealKcal[i]) : null)),
       cell: dayKcal === undefined ? null : { fill: dayKcal > 0 ? Math.min(100, dayKcal / scale * 100) : 0, over: dayKcal > 0 && Math.round(dayKcal) > budget },
@@ -577,8 +561,8 @@
     if (root && e.currentTarget.isConnected) setPage(nearest(e.currentTarget));
   }
 
-  // The meal the + and Scan add to: the page shown, or the one a tab is bringing in (first launch: the clock's meal).
-  const shownMeal = () => (root.querySelector('.today-pages') ? MEALS[page] : P.mealNow());
+  // The meal the + and Scan add to: the page shown, or the one a tab is bringing in.
+  const shownMeal = () => MEALS[page];
 
   // The first tap of the two that take an entry out: its kcal gives way to Delete, its trash turns into Keep.
   function arm(id) {
@@ -855,7 +839,7 @@
 
   const sameList = (a, b, d) => a.length === b.length && a.every((x, i) => Math.abs(x - b[i]) <= d);
   function differs(a, b) {
-    if (a.first || b.first || a.date !== b.date) return false;
+    if (a.date !== b.date) return false;
     const lapDeg = s => (s.lap ? s.lap.deg : 0);
     return a.over !== b.over || Math.abs(a.deg - b.deg) > 0.01 || Math.abs(lapDeg(a) - lapDeg(b)) > 0.01 || !sameList(a.grow, b.grow, 0.01)
       || a.barOver.some((o, i) => o !== b.barOver[i]) || a.num !== b.num || a.lbl !== b.lbl || a.tot !== b.tot
@@ -1140,7 +1124,7 @@
     else if (b.dataset.entry) P.go('entry', b.dataset.entry);
     else if (b.dataset.act === 'addto') P.go('add', b.dataset.for, date);
     else if (b.dataset.act === 'add' || b.dataset.act === 'scan') P.go(b.dataset.act, shownMeal(), date);
-    else if (b.dataset.act === 'settings' || b.dataset.act === 'import') P.go('settings');
+    else if (b.dataset.act === 'settings') P.go('settings');
   }
 
   // ── gestures: a swipe on the strip moves it a week; a swipe on the ring goes to the next or the day before ──
@@ -1170,7 +1154,7 @@
       if (motion && motion.kind !== 'change') finish();
       touch.room = travel(frame);
     }
-    const ahead = dx < 0 && shownDate() >= P.today();
+    const ahead = dx < 0 && shownDate() >= addDays(P.today(), AHEAD);
     touch.pull = (ahead ? Math.min(8, touch.room) : touch.room) * Math.tanh(dx / 96);
     frame.style.transform = `translateX(${f2(touch.pull)}px)`;
     frame.style.opacity = String(1 - 0.3 * Math.abs(touch.pull) / SHIFT);
@@ -1184,7 +1168,7 @@
     const swipe = sideways && (Math.abs(dx) >= 40 || (Math.abs(dx) >= 20 && Math.abs(dx) / dt >= 0.5));
     if (side || swipe) swallow = true;
     const date = shownDate();
-    if (swipe && dx < 0 && date < P.today()) switchTo(addDays(date, 1), 1);
+    if (swipe && dx < 0 && date < addDays(P.today(), AHEAD)) switchTo(addDays(date, 1), 1);
     else if (swipe && dx > 0) switchTo(addDays(date, -1), -1);
     else if (side) settle(pull);
   }
@@ -1196,9 +1180,10 @@
 
   // ── the strip ──
   // About three months of days to begin with; scrolled near its start it takes three more, once the scroll has stopped
-  // (taking them mid-flick would stop the flick). A day after today shows only while it is the shown day.
-  const STRIP_DAYS = 91;
-  const lastEnd = () => { const d = shownDate(), now = P.today(); return d > now ? d : now; };
+  // (taking them mid-flick would stop the flick). It ends AHEAD days after today, where he plans tomorrow's meals
+  // (Tarik, 2026-10-23: "sonraki 2 gunu de gostersin"), or at the shown day when that is later.
+  const STRIP_DAYS = 91, AHEAD = 2;
+  const lastEnd = () => { const d = shownDate(), end = addDays(P.today(), AHEAD); return d > end ? d : end; };
 
   function moreDays(e) {
     const nav = e.currentTarget;
@@ -1207,12 +1192,13 @@
     draw();
   }
 
-  // The shown day inside the strip's view: at its right end when it was out of sight; `glide`: a scroll the eye can
-  // follow (base Motion), else at once.
+  // The shown day inside the strip's view: at its right end when it was out of sight (today: the strip's end, so the
+  // days ahead show with it); `glide`: a scroll the eye can follow (base Motion), else at once.
   function inView(glide) {
     const nav = root.querySelector('.today-days'), on = nav && nav.querySelector('.today-on');
     if (!on) return;
-    const side = parseFloat(getComputedStyle(nav).paddingLeft), a = on.offsetLeft - side, b = on.offsetLeft + on.offsetWidth + side;
+    const end = on.dataset.day === P.today() ? nav.lastElementChild : on;
+    const side = parseFloat(getComputedStyle(nav).paddingLeft), a = on.offsetLeft - side, b = end.offsetLeft + end.offsetWidth + side;
     if (a >= nav.scrollLeft - 1 && b <= nav.scrollLeft + nav.clientWidth + 1) return;
     nav.scrollTo({ left: b - nav.clientWidth, behavior: glide && !reduced() ? 'smooth' : 'instant' });
   }

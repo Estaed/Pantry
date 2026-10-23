@@ -675,7 +675,7 @@ def check_days(browser, url, errors, remote):
     open_settings(page, url)
     start = datetime.date(2025, 7, 14)
     full = [(start + datetime.timedelta(days=i)).isoformat() for i in range(464)]
-    cases = [("an empty log", [], [], "0", ["None on this phone yet"]),
+    cases = [("an empty log", [], [], "0", ["None on this phone yet", "Your MyNetDiary history comes in with sync"]),
              ("a 464-day import", full, [], "464", ["MyNetDiary", "14 Jul 2025 to 20 Oct 2026"]),
              ("three days logged only in Pantry", [], ["2026-10-18", "2026-10-19", "2026-10-21"], "0 (+3)",
               ["MyNetDiary (+ Pantry only)", "18 Oct 2026 to 21 Oct 2026"]),
