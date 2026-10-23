@@ -10,8 +10,8 @@ Started 2026-10-20 from a TarikOS session; background and sources in
 ## Goal
 Tarık's own food log, built from the MyNetDiary features he actually uses, that also knows what
 is in his kitchen: what he bought (Coles receipts) minus what he logged eating. Once a week Hermes
-posts a visual "running out this week" list to Discord. For Tarık only. Later (v1.2) it merges
-with his workout app (`D:/Projects/Calisthenics-App`).
+posts a visual "running out this week" list to Discord. For Tarık only. The workout app
+(`D:/Projects/Calisthenics-App`) stays separate (Tarık 2026-10-24: the workout app stays a separate app, built the Pantry way).
 
 ## Riskiest assumption
 Bought − logged gives a stock number close enough to trust. Logging is ~80% accurate (near 100% in
@@ -82,8 +82,8 @@ values, no cooked conversion is needed, and raw grams subtract straight from pac
   list are v1.1, after a spike tests "bought − logged" on 2–3 real weeks (riskiest assumption).
 - **Data:** on the phone (localStorage), synced to a private GitHub data repo with a fine-grained
   token, the way Calisthenics-App syncs to Calisthenics-Data. App repo "Pantry" private with
-  GitHub Pages, like Calisthenics-App; made public when Tarık open-sources it. At the v1.2 merge,
-  Calisthenics moves into Pantry and its repo is retired.
+  GitHub Pages, like Calisthenics-App; made public when Tarık open-sources it. (The planned v1.2 merge
+  was dropped on 2026-10-24: Calisthenics-App stays its own repo.)
 - **History:** all 464 MyNetDiary days are imported, so past days are real in the day strip.
 - **New product:** scan → look up the barcode in a catalogue built from Coles and Woolworths
   product data → Open Food Facts → else type the label's per 100 g values once. Label photo read by
@@ -135,6 +135,7 @@ No stock screen in v1: the weekly Discord list covers stock (Tarık, 2026-10-20)
 - 2026-10-20: adding to the Coles/Woolworths trolley; no official API, browser automation is fragile.
 - 2026-10-20: auto-checkout with a virtual card; saves one tap, adds the riskiest step. Payment stays with Tarık.
 - 2026-10-20: merge with the workout app (v1.2, Tarık); body weight comes with it, not in v1 (Tarık no longer weighs in).
+  2026-10-24: merge dropped (Tarık 2026-10-24: the workout app stays a separate app); body weight stays an open idea.
 - 2026-10-21: the full Coles and Woolworths catalogue (95 Coles product pages behind the bot check, 22 open Woolworths
   lines in `.tmp/purchases/woolworths-review.json`): a later version, not a priority; scanning already works (Tarık
   tried cacık and tuna). 68 products went to Pantry-Data's catalogue on 2026-10-21.

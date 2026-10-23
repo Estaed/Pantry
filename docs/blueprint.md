@@ -17,7 +17,7 @@ Done when (Eko's proposal, 2026-10-20, Tarık did not object):
 
 ## Not in v1
 Stock (bought − logged) and Hermes' weekly Discord list (v1.1, after the spike below); label photo
-read by a model (maybe v1.3); merge with Calisthenics-App (v1.2); body weight, water, steps;
+read by a model (maybe v1.3); body weight, water, steps;
 trolley or checkout; desktop layout. Full list: `notes.md` → *After v1*.
 
 ## Riskiest assumption
@@ -28,7 +28,7 @@ trolley or checkout; desktop layout. Full list: `notes.md` → *After v1*.
   weeks of Coles and Woolworths receipts against the log, compared with what is actually in the kitchen.
 
 ## Stack
-No framework and no build step, the way Calisthenics-App works, so the v1.2 merge is one style;
+No framework and no build step, the way Calisthenics-App works, so both apps share one style (they stay separate: Tarık 2026-10-24: the workout app stays a separate app);
 unlike its single file, features live in their own scripts (Layout).
 
 | Piece | Version | Why |
@@ -125,7 +125,7 @@ order on scan: his foods → catalogue → Open Food Facts → typed from the la
 - Import all 464 MyNetDiary days. Rejected: food list only (past days would be empty).
 - New product: his foods → Coles/Woolworths catalogue → Open Food Facts → label typed once.
   Rejected: label photo read by a model (an API key in a public client; maybe v1.3).
-- App repo `Pantry` private with Pages, public when open-sourced; at v1.2 Calisthenics moves in.
+- App repo `Pantry` private with Pages, public when open-sourced; Calisthenics-App stays its own repo (Tarık 2026-10-24: the workout app stays a separate app).
 - UI English; design as picked in `design/DESIGN.md` (corners, B1 strip, W3 waves, style C; the ring and over tone as changed on 2026-10-21 below).
 
 ## Decisions (2026-10-21, Tarık)
