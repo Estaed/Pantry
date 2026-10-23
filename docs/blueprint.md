@@ -114,7 +114,7 @@ order on scan: his foods → catalogue → Open Food Facts → typed from the la
 - Gate: `python tests/acceptance.py` from the repo root; clean = every check PASS, exit 0. Written
   and first run in Task-00.
 - Eye: Tarık on his phone at his text size (1.0; larger sizes are not a target, Tarık 2026-10-21), or
-  the `terra_nt` emulator at 360 px, against `design/screens.html`; intended breaks go to
+  the `tarik_phone` emulator at 360 px, against `design/screens.html`; intended breaks go to
   `design/deviations.md`.
 
 ## Decisions (2026-10-20, Tarık)
