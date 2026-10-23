@@ -2,7 +2,7 @@
    The only file in app/ that touches localStorage. Features talk to everything through window.Pantry.
 
    Storage (localStorage)
-     'pantry.v1'    the data document: { version: 1, foods: [], entries: [], settings: { targets, theme? } }.
+     'pantry.v1'    the data document: { version: 1, foods: [], entries: [], settings: { targets, targetsLog?, theme? } }.
                     Shapes: tasks/Task-00.md, Fixed. Seeded with the starter foods only while it is empty.
      'pantry.sync'  the sync feature's own object (repo, token, dirty flag, last sha). Never inside the document.
 
@@ -35,6 +35,9 @@
      Pantry.dayLabel(date)         'Tuesday, 20 October' for a 'YYYY-MM-DD'.
      Pantry.totals(food, grams)    nutrient totals of grams of a food with per100; an unknown nutrient stays absent.
      Pantry.sum(entries)           the entries' totals added up, per nutrient present in any of them.
+     Pantry.targetsOn(date)        the targets that held on that day: settings.targetsLog keeps [{ from, targets }],
+                                   oldest first, written by Settings, so a change never rewrites a past day's budget.
+                                   From the last change on (today and later), and with no log, the current targets.
      Pantry.fmt(n, digits)         a number with thousands separators (en-AU), at most `digits` decimals (default 0).
      Pantry.esc(text)              text made safe for an HTML template.
      Pantry.icon(name)             a Lucide outline icon as inline SVG: back, plus, minus, scan, x, alert, check.
@@ -139,6 +142,15 @@
       if (typeof e.foodId !== 'string' || typeof e.amount !== 'string') throw new Error(`entry ${e.id}: foodId or amount`);
       if (e.grams !== null && !isNum(e.grams)) throw new Error(`entry ${e.id}: grams ${e.grams}`);
       if (!isObj(e.totals) || !isNum(e.totals.kcal)) throw new Error(`entry ${e.id}: totals.kcal`);
+    }
+    const log = doc.settings.targetsLog;
+    if (log !== undefined) {
+      if (!Array.isArray(log)) throw new Error('targetsLog is not a list');
+      log.forEach((x, i) => {
+        if (!isObj(x) || typeof x.from !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(x.from)) throw new Error('a targetsLog line without from');
+        if (!isObj(x.targets) || !isNum(x.targets.kcal) || x.targets.kcal <= 0) throw new Error(`targetsLog ${x.from}: kcal`);
+        if (i && x.from <= log[i - 1].from) throw new Error(`targetsLog ${x.from}: out of order`);
+      });
     }
     if (doc.removed !== undefined) {
       if (!Array.isArray(doc.removed)) throw new Error('removed is not a list');
@@ -287,6 +299,14 @@
     }
     return out;
   }
+  function targetsOn(date) {
+    const { targets, targetsLog: log } = doc.settings;
+    if (!Array.isArray(log) || !log.length || date >= log[log.length - 1].from) return targets;
+    let held = log[0].targets;
+    for (const x of log) if (x.from <= date) held = x.targets;
+    return held;
+  }
+
   function sum(entries) {
     const out = {};
     for (const e of entries) for (const [k, v] of Object.entries(e.totals || {})) if (isNum(v)) out[k] = (out[k] || 0) + v;
@@ -719,7 +739,7 @@
     setSyncState(patch) { const st = writeSync({ ...readSync(), ...patch }); announce('sync'); return st; },
     problem: () => problem,
     starter: freeze(structuredClone(STARTER)),
-    today, dayLabel, mealNow, usualAmounts, totals, sum, fmt, esc, icon,
+    today, dayLabel, mealNow, usualAmounts, totals, sum, fmt, esc, icon, targetsOn,
     MACROS: Object.freeze(['carbs', 'protein', 'fat']),
     view(name, def) { views[name] = def; },
     go, back, home, css, toast, haptic, removeEntry,

@@ -204,7 +204,14 @@
     const { patch, error } = readTargets(kind);
     if (error) { formError(kind, error); return; }
     try {
-      P.change(d => { Object.assign(d.settings.targets, patch); });
+      P.change(d => {
+        // a change holds from today on; the days before keep the targets they had (P.targetsOn)
+        const now = P.today(), log = d.settings.targetsLog;
+        const kept = Array.isArray(log) && log.length ? log.filter(x => x.from < now)
+          : [{ from: '2000-01-01', targets: { ...d.settings.targets } }];
+        Object.assign(d.settings.targets, patch);
+        d.settings.targetsLog = [...kept, { from: now, targets: { ...d.settings.targets } }];
+      });
     } catch (e) { formError(kind, e.message); return; }
     close(`[data-kind="${kind}"]`);
   }

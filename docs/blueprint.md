@@ -52,7 +52,9 @@ or bundler (a build step for one screen); IndexedDB (localStorage holds years of
   `woolworths`, `off`, `label`).
 - **entries:** id, date (Darwin local), meal (breakfast, lunch, dinner, snacks), foodId, amount as typed, grams,
   and the nutrient totals at log time, so editing a food never rewrites history.
-- **settings:** targets (2,200 kcal; protein 20 %, carbs 45 %, fat 35 %; salt 5.8 g). The sync
+- **settings:** targets (2,200 kcal; protein 20 %, carbs 45 %, fat 35 %; salt 5.8 g) and targetsLog
+  ([{ from, targets }], oldest first): a change holds from that day on and a past day keeps the budget
+  it had (Tarık, 2026-10-24: "eski günde eski limit kalsın"). The sync
   token stays on the phone under its own key, never in the synced document.
 - Frequent foods per meal and their usual grams are derived from entries, not stored.
 - One JSON document, `pantry-data.json`, in the private repo `Estaed/Pantry-Data`; the phone keeps

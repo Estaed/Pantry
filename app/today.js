@@ -380,13 +380,17 @@
     return { html, grow, over, gram, pct };
   }
 
-  function strip(days, kcalOn, now, date, budget) {
-    return `<nav class="today-days" aria-label="Days">${dayCells(days, kcalOn, now, date, budget)}</nav>`;
+  function strip(days, kcalOn, now, date) {
+    return `<nav class="today-days" aria-label="Days">${dayCells(days, kcalOn, now, date)}</nav>`;
   }
 
-  function dayCells(days, kcalOn, now, date, budget) {
-    const scale = Math.max(2750, 1.25 * budget);
+  // Each day is held to the budget it had (P.targetsOn); one scale for the strip, from the largest of them.
+  const scaleFor = days => Math.max(2750, 1.25 * Math.max(...days.map(d => P.targetsOn(d).kcal)));
+
+  function dayCells(days, kcalOn, now, date) {
+    const scale = scaleFor(days);
     return days.map(d => {
+      const budget = P.targetsOn(d).kcal;
       const kcal = kcalOn.get(d), isNow = d === now, over = kcal > 0 && Math.round(kcal) > budget;
       const diff = Math.round(kcal) - budget;
       // a day still to come with nothing on it has no difference yet
@@ -454,7 +458,7 @@
     // the strip begins at least a week before the shown day
     if (!stripFrom) stripFrom = addDays(lastEnd(), -STRIP_DAYS + 1);
     if (stripFrom > addDays(date, -6)) stripFrom = addDays(date, -27);
-    const budget = doc.settings.targets.kcal;
+    const targets = P.targetsOn(date), budget = targets.kcal;
     const foods = new Map(doc.foods.map(f => [f.id, f]));
     const days = [];
     for (let d = stripFrom, last = lastEnd(); d <= last; d = addDays(d, 1)) days.push(d);
@@ -480,7 +484,7 @@
     const total = mealKcal.reduce((a, b) => a + b, 0), eaten = Math.round(total);
     const over = eaten > budget;
     const deg = arcEnd(total, budget), lap = lapOf(eaten, budget);
-    const mac = macros(entries, doc.settings.targets, budget);
+    const mac = macros(entries, targets, budget);
     const pick = pickPage(date, isToday, perMeal, entries, clock), shown = pick.meal;
     page = MEALS.indexOf(shown);
     pages.set(date, pick);
@@ -503,7 +507,7 @@
           + `<button class="btn sec today-addto" type="button" data-act="addto" data-for="${m}">${P.icon('plus')}Add to ${m}</button></div>`;
       return `<div class="today-pg" role="tabpanel" id="today-pg-${m}" data-pg="${m}" aria-labelledby="today-tab-${m}"${i === page ? '' : ' inert'}>${body}</div>`;
     }).join('');
-    const scale = Math.max(2750, 1.25 * budget), dayKcal = kcalOn.get(date);
+    const scale = scaleFor(days), dayKcal = kcalOn.get(date);
     const snap = {
       date, over, deg, lap, grow: mac.grow, barOver: mac.over, gram: mac.gram, pct: mac.pct,
       num: P.fmt(Math.abs(budget - eaten)), lbl: eaten > budget ? 'kcal over' : 'kcal left', tot: tot(eaten, budget),
@@ -511,7 +515,7 @@
       cell: dayKcal === undefined ? null : { fill: dayKcal > 0 ? Math.min(100, dayKcal / scale * 100) : 0, over: dayKcal > 0 && Math.round(dayKcal) > budget },
     };
 
-    put(`${head}${strip(days, kcalOn, now, date, budget)}${banner}
+    put(`${head}${strip(days, kcalOn, now, date)}${banner}
       <div class="today-frame${over ? ' today-over' : ''}">${ring(deg, eaten, budget, over, lap)}${MEALS.map((m, i) => corner(i, perMeal[i], mealKcal[i], foods)).join('')}</div>
       ${mac.html}
       <section class="sec today-eaten" aria-label="${isToday ? 'Eaten today' : 'Eaten that day'}">

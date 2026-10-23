@@ -38,7 +38,7 @@ FAST, BASE, SLOW = 120, 200, 320            # tokens.css --dur-fast, --dur-base,
 API = [("doc", "function", 0), ("change", "function", 1), ("subscribe", "function", 1), ("dirty", "function", 0),
        ("changes", "function", 0), ("markClean", "function", 1), ("syncState", "function", 0), ("setSyncState", "function", 1),
        ("problem", "function", 0), ("starter", "object", None), ("today", "function", 0), ("dayLabel", "function", 1),
-       ("mealNow", "function", 0), ("usualAmounts", "function", 2), ("totals", "function", 2), ("sum", "function", 1),
+       ("mealNow", "function", 0), ("usualAmounts", "function", 2), ("totals", "function", 2), ("sum", "function", 1), ("targetsOn", "function", 1),
        ("fmt", "function", 1), ("esc", "function", 1), ("icon", "function", 1), ("MACROS", "object", None),
        ("view", "function", 2), ("go", "function", 1), ("back", "function", 0), ("home", "function", 0),
        ("css", "function", 1), ("toast", "function", 1), ("haptic", "function", 0), ("removeEntry", "function", 1)]
