@@ -1,7 +1,10 @@
 # Catalogue fixtures (tests/test_catalogue.py)
 
 Public product data only, copied verbatim on 2026-10-21 from what the two store sites return for any visitor;
-no receipt, order or account data. The receipts the tests use are built in `tests/test_catalogue.py` in the
+no receipt, order or account data. Trimmed on 2026-10-24 before the repo went public to the identity and nutrition
+fields `tools/catalogue.py` reads: the Coles shelf description, page key list and %DI disclaimer, the Woolworths
+search results' HTML description and the product details' AdditionalAttributes (ingredients, allergens) are gone.
+The receipts the tests use are built in `tests/test_catalogue.py` in the
 real shapes.
 
 - `coles-products.json`: product page data (`__NEXT_DATA__` product: id, name, brand, size, gtin, nutrition)

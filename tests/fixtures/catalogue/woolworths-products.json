@@ -10,7 +10,6 @@
      "Brand": "Western Star",
      "Barcode": "9310052123239",
      "PackageSize": "500g",
-     "Description": " Western Star Spreadable<br>Butter Blend Tub... 500g",
      "IsAvailable": true
     },
     {
@@ -20,7 +19,6 @@
      "Brand": "Western Star",
      "Barcode": "9310052122515",
      "PackageSize": "500g",
-     "Description": " Western Star Original<br>Spreadable Butter... 500g",
      "IsAvailable": true
     },
     {
@@ -30,7 +28,6 @@
      "Brand": "Western Star",
      "Barcode": "19310052122529",
      "PackageSize": "500g",
-     "Description": " Western Star Spreadable<br>Butter Blend Tub... 500g",
      "IsAvailable": true
     },
     {
@@ -40,7 +37,6 @@
      "Brand": "Western Star",
      "Barcode": "9310052122539",
      "PackageSize": "375g",
-     "Description": " Western Star Original<br>Spreadable Butter... 375g",
      "IsAvailable": true
     },
     {
@@ -50,7 +46,6 @@
      "Brand": "Western Star",
      "Barcode": "9310052163129",
      "PackageSize": "500g",
-     "Description": " Western Star Salted Butter<br>Block Butter Block 500g",
      "IsAvailable": true
     },
     {
@@ -60,7 +55,6 @@
      "Brand": "Western Star",
      "Barcode": "9310052122546",
      "PackageSize": "375g",
-     "Description": " Western Star Soft 'N' Less<br>Salt Butter... 375g",
      "IsAvailable": true
     },
     {
@@ -70,7 +64,6 @@
      "Brand": "Western Star",
      "Barcode": "9310053108471",
      "PackageSize": "340g",
-     "Description": " Western Star Gold Salted<br>Cultured Butter  340g",
      "IsAvailable": true
     },
     {
@@ -80,7 +73,6 @@
      "Brand": "Western Star",
      "Barcode": "9310052123222",
      "PackageSize": "375g",
-     "Description": " Western Star Spreadable<br>Butter Blend Tub... 375g",
      "IsAvailable": true
     }
    ]
@@ -95,7 +87,6 @@
      "Brand": "Sunrice",
      "Barcode": "9310140005744",
      "PackageSize": "120g x 2 pack",
-     "Description": " Sunrice Microwave Basmati<br>Rice Cup 2... 120g x 2 pack",
      "IsAvailable": true
     },
     {
@@ -105,7 +96,6 @@
      "Brand": "Sunrice",
      "Barcode": "9310140012261",
      "PackageSize": "250g",
-     "Description": " Sunrice Microwave Chicken<br>Style Flavoured... 250g",
      "IsAvailable": true
     },
     {
@@ -115,7 +105,6 @@
      "Brand": "Woolworths",
      "Barcode": "9339687135141",
      "PackageSize": "125g x 2 pack",
-     "Description": " Woolworths Basmati Rice<br>Microwave... 125g x 2 pack",
      "IsAvailable": true
     },
     {
@@ -125,7 +114,6 @@
      "Brand": "Sunrice",
      "Barcode": "9310140013343",
      "PackageSize": "120g x 2 pack",
-     "Description": " Sunrice Protein Basmati Rice<br>Cup  120g x 2 pack",
      "IsAvailable": true
     },
     {
@@ -135,7 +123,6 @@
      "Brand": "Sunrice",
      "Barcode": "9310140012285",
      "PackageSize": "250g",
-     "Description": " Sunrice Microwave Mexican<br>Flavoured Rice Cups... 250g",
      "IsAvailable": true
     },
     {
@@ -145,7 +132,6 @@
      "Brand": "Woolworths",
      "Barcode": "9339687366996",
      "PackageSize": "450g",
-     "Description": " Woolworths Family Size<br>Basmati Rice  450g",
      "IsAvailable": true
     },
     {
@@ -155,7 +141,6 @@
      "Brand": "Woolworths",
      "Barcode": "9300633211899",
      "PackageSize": "250g",
-     "Description": " Woolworths Microwave Basmati<br>Rice  250g",
      "IsAvailable": true
     },
     {
@@ -165,7 +150,6 @@
      "Brand": "Sunrice",
      "Barcode": "9310140002804",
      "PackageSize": "450g",
-     "Description": " Sunrice Microwave Basmati<br>Rice Pouch Indian... 450g",
      "IsAvailable": true
     }
    ]
@@ -180,7 +164,6 @@
      "Brand": "The Odd Bunch",
      "Barcode": "9300633686222",
      "PackageSize": "4kg",
-     "Description": " The Odd Bunch Potato<br>Prepacked  4kg",
      "IsAvailable": true
     },
     {
@@ -190,7 +173,6 @@
      "Brand": "The Odd Bunch",
      "Barcode": "9339687341580",
      "PackageSize": "1.5kg",
-     "Description": " The Odd Bunch Carrots  1.5kg",
      "IsAvailable": true
     },
     {
@@ -200,7 +182,6 @@
      "Brand": "The Odd Bunch",
      "Barcode": "9300633746179",
      "PackageSize": "1kg",
-     "Description": " The Odd Bunch Mandarin<br>Prepacked  1kg",
      "IsAvailable": true
     },
     {
@@ -210,7 +191,6 @@
      "Brand": "The Odd Bunch",
      "Barcode": "9300633701246",
      "PackageSize": "1kg",
-     "Description": " The Odd Bunch Tomato<br>Prepacked  1kg",
      "IsAvailable": false
     },
     {
@@ -220,7 +200,6 @@
      "Brand": "The Odd Bunch",
      "Barcode": "9300633611958",
      "PackageSize": "5kg",
-     "Description": " The Odd Bunch Crazy Carrots  5kg",
      "IsAvailable": true
     },
     {
@@ -230,7 +209,6 @@
      "Brand": "The Odd Bunch",
      "Barcode": "9300633701253",
      "PackageSize": "1kg",
-     "Description": " The Odd Bunch Capsicum<br>Prepacked 1kg",
      "IsAvailable": true
     },
     {
@@ -240,7 +218,6 @@
      "Brand": "The Odd Bunch",
      "Barcode": "9300633768959",
      "PackageSize": "1kg",
-     "Description": " The Odd Bunch Pear Prepacked<br> 1kg",
      "IsAvailable": true
     },
     {
@@ -250,7 +227,6 @@
      "Brand": "The Odd Bunch",
      "Barcode": "9300633768966",
      "PackageSize": "1kg",
-     "Description": " The Odd Bunch Apples<br>Prepacked Punnet 1kg",
      "IsAvailable": true
     }
    ]
@@ -265,7 +241,6 @@
      "Brand": "Macro",
      "Barcode": "9300633579838",
      "PackageSize": "425g",
-     "Description": " Macro Organic Corn Cobettes<br>Pre-Pack 425g",
      "IsAvailable": false
     },
     {
@@ -275,7 +250,6 @@
      "Brand": "Macro",
      "Barcode": "9300633007522",
      "PackageSize": "500g",
-     "Description": " Macro Organic Roma Tomato  500g",
      "IsAvailable": false
     },
     {
@@ -285,7 +259,6 @@
      "Brand": "Macro",
      "Barcode": "9339687069057",
      "PackageSize": "500g",
-     "Description": " Macro Organic Broccoli  500g",
      "IsAvailable": false
     },
     {
@@ -295,7 +268,6 @@
      "Brand": "Macro",
      "Barcode": "9339687329564",
      "PackageSize": "500g",
-     "Description": " Macro Organic Sweet Potato 500g",
      "IsAvailable": true
     },
     {
@@ -305,7 +277,6 @@
      "Brand": "Macro",
      "Barcode": "9300633579340",
      "PackageSize": "550g",
-     "Description": " Macro Avocado Mini Organic 550g",
      "IsAvailable": false
     },
     {
@@ -315,7 +286,6 @@
      "Brand": "Macro",
      "Barcode": "9300633007218",
      "PackageSize": "750g",
-     "Description": " Macro Organic Carrots  750g",
      "IsAvailable": true
     },
     {
@@ -325,7 +295,6 @@
      "Brand": "Macro",
      "Barcode": "9300633675431",
      "PackageSize": "200g",
-     "Description": " Macro Organic Snacking<br>Tomato Punnet 200g",
      "IsAvailable": true
     },
     {
@@ -335,7 +304,6 @@
      "Brand": "Macro",
      "Barcode": "9339687045365",
      "PackageSize": "200g",
-     "Description": " Macro Organic Solanato<br>Tomatoes  200g",
      "IsAvailable": true
     }
    ]
@@ -426,16 +394,7 @@
      "ServingsPerPack": "100.0"
     }
    ],
-   "Nutrition": null,
-   "AdditionalAttributes": {
-    "servingsize-total-nip": null,
-    "allergenmaybepresent": null,
-    "ingredients": "Pasteurised cream (milk), vegetable oil, water, butteroil (milk), salt, buttermilk powder (milk), emulsifier (476), preservative (202), flavour, vitamins (A, D), colour (B-carotene).",
-    "servingsperpack-total-nip": null,
-    "nutritionalinformation": "{\"Name\":\"Nutritional Information\",\"Attributes\":[{\"Id\":705,\"Name\":\"Carbohydrate Quantity Per 100g - Total - NIP\",\"Value\":\"1.0g\",\"Description\":\"Carbohydrate Quantity Per 100g - Total - NIP\",\"SortOrder\":83},{\"Id\":706,\"Name\":\"Carbohydrate Quantity Per Serve - Total - NIP\",\"Value\":\"< 1.0g\",\"Description\":\"Carbohydrate Quantity Per Serve - Total - NIP\",\"SortOrder\":87},{\"Id\":125,\"Name\":\"Cholesterol Quantity Per Serve - Total - NIP\",\"Value\":\"6.25mg\",\"Description\":\"Cholesterol Quantity Per Serve - Total - NIP\",\"SortOrder\":115},{\"Id\":759,\"Name\":\"Energy kJ Quantity Per 100g - Total - NIP\",\"Value\":\"2190.0kJ\",\"Description\":\"Energy kJ Quantity Per 100g - Total - NIP\",\"SortOrder\":239},{\"Id\":760,\"Name\":\"Energy kJ Quantity Per Serve - Total - NIP\",\"Value\":\"110.0kJ\",\"Description\":\"Energy kJ Quantity Per Serve - Total - NIP\",\"SortOrder\":243},{\"Id\":253,\"Name\":\"Fat Saturated Quantity Per 100g - Total - NIP\",\"Value\":\"24.7g\",\"Description\":\"Fat Saturated Quantity Per 100g - Total - NIP\",\"SortOrder\":251},{\"Id\":258,\"Name\":\"Fat Saturated Quantity Per Serve - Total - NIP\",\"Value\":\"1.2g\",\"Description\":\"Fat Saturated Quantity Per Serve - Total - NIP\",\"SortOrder\":255},{\"Id\":764,\"Name\":\"Fat Total Quantity Per 100g - Total - NIP\",\"Value\":\"58.4g\",\"Description\":\"Fat Total Quantity Per 100g - Total - NIP\",\"SortOrder\":263},{\"Id\":166,\"Name\":\"Fat Total Quantity Per 100g - ValueWord - NIP\",\"Value\":\"58.4\",\"Description\":\"Fat Total Quantity Per 100g - ValueWord - NIP\",\"SortOrder\":264},{\"Id\":264,\"Name\":\"Fat Total Quantity Per Serve - Total - NIP\",\"Value\":\"2.9g\",\"Description\":\"Fat Total Quantity Per Serve - Total - NIP\",\"SortOrder\":267},{\"Id\":834,\"Name\":\"Monounsaturated Quantity Per Serve - Total - NIP\",\"Value\":\"0.6g\",\"Description\":\"Monounsaturated Quantity Per Serve - Total - NIP\",\"SortOrder\":483},{\"Id\":435,\"Name\":\"Polyunsaturated Quantity Per Serve - Total - NIP\",\"Value\":\"0.06g\",\"Description\":\"Polyunsaturated Quantity Per Serve - Total - NIP\",\"SortOrder\":567},{\"Id\":493,\"Name\":\"Potassium Quantity Per Serve - Total - NIP\",\"Value\":\"1.15mg\",\"Description\":\"Potassium Quantity Per Serve - Total - NIP\",\"SortOrder\":579},{\"Id\":878,\"Name\":\"Protein Quantity Per 100g - Total - NIP\",\"Value\":\"< 1.0g\",\"Description\":\"Protein Quantity Per 100g - Total - NIP\",\"SortOrder\":587},{\"Id\":882,\"Name\":\"Protein Quantity Per Serve - Total - NIP\",\"Value\":\"< 1.0g\",\"Description\":\"Protein Quantity Per Serve - Total - NIP\",\"SortOrder\":591},{\"Id\":477,\"Name\":\"Serving Size - Total - NIP\",\"Value\":\"5.0 G\",\"Description\":\"Serving Size - Total - NIP\",\"SortOrder\":607},{\"Id\":544,\"Name\":\"Servings Per Pack - Total - NIP\",\"Value\":\"100.0\",\"Description\":\"Servings Per Pack - Total - NIP\",\"SortOrder\":611},{\"Id\":491,\"Name\":\"Sodium Quantity Per 100g - Total - NIP\",\"Value\":\"481.0mg\",\"Description\":\"Sodium Quantity Per 100g - Total - NIP\",\"SortOrder\":623},{\"Id\":495,\"Name\":\"Sodium Quantity Per Serve - Total - NIP\",\"Value\":\"24.0mg\",\"Description\":\"Sodium Quantity Per Serve - Total - NIP\",\"SortOrder\":627},{\"Id\":908,\"Name\":\"Sugars Quantity Per 100g - SuffixUnits - NIP\",\"Value\":\"g\",\"Description\":\"Sugars Quantity Per 100g - SuffixUnits - NIP\",\"SortOrder\":646},{\"Id\":909,\"Name\":\"Sugars Quantity Per 100g - Total - NIP\",\"Value\":\"1.0g\",\"Description\":\"Sugars Quantity Per 100g - Total - NIP\",\"SortOrder\":647},{\"Id\":910,\"Name\":\"Sugars Quantity Per 100g - ValueWord - NIP\",\"Value\":\"1.0\",\"Description\":\"Sugars Quantity Per 100g - ValueWord - NIP\",\"SortOrder\":648},{\"Id\":504,\"Name\":\"Sugars Quantity Per Serve - Prefix - NIP\",\"Value\":\"<\",\"Description\":\"Sugars Quantity Per Serve - Prefix - NIP\",\"SortOrder\":649},{\"Id\":911,\"Name\":\"Sugars Quantity Per Serve - SuffixUnits - NIP\",\"Value\":\"g\",\"Description\":\"Sugars Quantity Per Serve - SuffixUnits - NIP\",\"SortOrder\":650},{\"Id\":912,\"Name\":\"Sugars Quantity Per Serve - Total - NIP\",\"Value\":\"< 1.0g\",\"Description\":\"Sugars Quantity Per Serve - Total - NIP\",\"SortOrder\":651},{\"Id\":572,\"Name\":\"Sugars Quantity Per Serve - ValueWord - NIP\",\"Value\":\"1.0\",\"Description\":\"Sugars Quantity Per Serve - ValueWord - NIP\",\"SortOrder\":652},{\"Id\":510,\"Name\":\"Trans Quantity Per Serve - Total - NIP\",\"Value\":\"178.38mg\",\"Description\":\"Trans Quantity Per Serve - Total - NIP\",\"SortOrder\":671}]}",
-    "hypo-allergenic": null,
-    "allergencontains": "Milk"
-   }
+   "Nutrition": null
   },
   "69756": {
    "status": 200,
@@ -521,16 +480,7 @@
      "ServingsPerPack": "100.0"
     }
    ],
-   "Nutrition": null,
-   "AdditionalAttributes": {
-    "servingsize-total-nip": null,
-    "allergenmaybepresent": null,
-    "ingredients": "Pasteurised cream (milk), vegetable oil, butteroil (milk), salt, buttermilk powder (milk), emulsifier (soy lecithin), flavour, vitamins (A, D), colour (B-carotene).",
-    "servingsperpack-total-nip": null,
-    "nutritionalinformation": "{\"Name\":\"Nutritional Information\",\"Attributes\":[{\"Id\":705,\"Name\":\"Carbohydrate Quantity Per 100g - Total - NIP\",\"Value\":\"1.2g\",\"Description\":\"Carbohydrate Quantity Per 100g - Total - NIP\",\"SortOrder\":83},{\"Id\":706,\"Name\":\"Carbohydrate Quantity Per Serve - Total - NIP\",\"Value\":\"< 1.0g\",\"Description\":\"Carbohydrate Quantity Per Serve - Total - NIP\",\"SortOrder\":87},{\"Id\":125,\"Name\":\"Cholesterol Quantity Per Serve - Total - NIP\",\"Value\":\"8.35mg\",\"Description\":\"Cholesterol Quantity Per Serve - Total - NIP\",\"SortOrder\":115},{\"Id\":759,\"Name\":\"Energy kJ Quantity Per 100g - Total - NIP\",\"Value\":\"2570.0kJ\",\"Description\":\"Energy kJ Quantity Per 100g - Total - NIP\",\"SortOrder\":239},{\"Id\":760,\"Name\":\"Energy kJ Quantity Per Serve - Total - NIP\",\"Value\":\"129.0kJ\",\"Description\":\"Energy kJ Quantity Per Serve - Total - NIP\",\"SortOrder\":243},{\"Id\":253,\"Name\":\"Fat Saturated Quantity Per 100g - Total - NIP\",\"Value\":\"28.0g\",\"Description\":\"Fat Saturated Quantity Per 100g - Total - NIP\",\"SortOrder\":251},{\"Id\":258,\"Name\":\"Fat Saturated Quantity Per Serve - Total - NIP\",\"Value\":\"1.4g\",\"Description\":\"Fat Saturated Quantity Per Serve - Total - NIP\",\"SortOrder\":255},{\"Id\":764,\"Name\":\"Fat Total Quantity Per 100g - Total - NIP\",\"Value\":\"68.4g\",\"Description\":\"Fat Total Quantity Per 100g - Total - NIP\",\"SortOrder\":263},{\"Id\":166,\"Name\":\"Fat Total Quantity Per 100g - ValueWord - NIP\",\"Value\":\"68.4\",\"Description\":\"Fat Total Quantity Per 100g - ValueWord - NIP\",\"SortOrder\":264},{\"Id\":264,\"Name\":\"Fat Total Quantity Per Serve - Total - NIP\",\"Value\":\"3.4g\",\"Description\":\"Fat Total Quantity Per Serve - Total - NIP\",\"SortOrder\":267},{\"Id\":834,\"Name\":\"Monounsaturated Quantity Per Serve - Total - NIP\",\"Value\":\"0.81g\",\"Description\":\"Monounsaturated Quantity Per Serve - Total - NIP\",\"SortOrder\":483},{\"Id\":435,\"Name\":\"Polyunsaturated Quantity Per Serve - Total - NIP\",\"Value\":\"0.08g\",\"Description\":\"Polyunsaturated Quantity Per Serve - Total - NIP\",\"SortOrder\":567},{\"Id\":493,\"Name\":\"Potassium Quantity Per Serve - Total - NIP\",\"Value\":\"1.15mg\",\"Description\":\"Potassium Quantity Per Serve - Total - NIP\",\"SortOrder\":579},{\"Id\":878,\"Name\":\"Protein Quantity Per 100g - Total - NIP\",\"Value\":\"< 1.0g\",\"Description\":\"Protein Quantity Per 100g - Total - NIP\",\"SortOrder\":587},{\"Id\":882,\"Name\":\"Protein Quantity Per Serve - Total - NIP\",\"Value\":\"< 1.0g\",\"Description\":\"Protein Quantity Per Serve - Total - NIP\",\"SortOrder\":591},{\"Id\":477,\"Name\":\"Serving Size - Total - NIP\",\"Value\":\"5.0 G\",\"Description\":\"Serving Size - Total - NIP\",\"SortOrder\":607},{\"Id\":544,\"Name\":\"Servings Per Pack - Total - NIP\",\"Value\":\"100.0\",\"Description\":\"Servings Per Pack - Total - NIP\",\"SortOrder\":611},{\"Id\":491,\"Name\":\"Sodium Quantity Per 100g - Total - NIP\",\"Value\":\"487.0mg\",\"Description\":\"Sodium Quantity Per 100g - Total - NIP\",\"SortOrder\":623},{\"Id\":495,\"Name\":\"Sodium Quantity Per Serve - Total - NIP\",\"Value\":\"24.0mg\",\"Description\":\"Sodium Quantity Per Serve - Total - NIP\",\"SortOrder\":627},{\"Id\":908,\"Name\":\"Sugars Quantity Per 100g - SuffixUnits - NIP\",\"Value\":\"g\",\"Description\":\"Sugars Quantity Per 100g - SuffixUnits - NIP\",\"SortOrder\":646},{\"Id\":909,\"Name\":\"Sugars Quantity Per 100g - Total - NIP\",\"Value\":\"1.2g\",\"Description\":\"Sugars Quantity Per 100g - Total - NIP\",\"SortOrder\":647},{\"Id\":910,\"Name\":\"Sugars Quantity Per 100g - ValueWord - NIP\",\"Value\":\"1.2\",\"Description\":\"Sugars Quantity Per 100g - ValueWord - NIP\",\"SortOrder\":648},{\"Id\":504,\"Name\":\"Sugars Quantity Per Serve - Prefix - NIP\",\"Value\":\"<\",\"Description\":\"Sugars Quantity Per Serve - Prefix - NIP\",\"SortOrder\":649},{\"Id\":911,\"Name\":\"Sugars Quantity Per Serve - SuffixUnits - NIP\",\"Value\":\"g\",\"Description\":\"Sugars Quantity Per Serve - SuffixUnits - NIP\",\"SortOrder\":650},{\"Id\":912,\"Name\":\"Sugars Quantity Per Serve - Total - NIP\",\"Value\":\"< 1.0g\",\"Description\":\"Sugars Quantity Per Serve - Total - NIP\",\"SortOrder\":651},{\"Id\":572,\"Name\":\"Sugars Quantity Per Serve - ValueWord - NIP\",\"Value\":\"1.0\",\"Description\":\"Sugars Quantity Per Serve - ValueWord - NIP\",\"SortOrder\":652},{\"Id\":510,\"Name\":\"Trans Quantity Per Serve - Total - NIP\",\"Value\":\"240.88mg\",\"Description\":\"Trans Quantity Per Serve - Total - NIP\",\"SortOrder\":671}]}",
-    "hypo-allergenic": null,
-    "allergencontains": "Milk, Soy"
-   }
+   "Nutrition": null
   },
   "69759": {
    "status": 200,
@@ -616,16 +566,7 @@
      "ServingsPerPack": "100.0"
     }
    ],
-   "Nutrition": null,
-   "AdditionalAttributes": {
-    "servingsize-total-nip": null,
-    "allergenmaybepresent": null,
-    "ingredients": "Pasteurised cream (milk), vegetable oil, butteroil (milk), salt, buttermilk powder (milk), emulsifier (soy lecithin), Preservative (202), flavour, acidity regulator (lactic acid), vitamins (A, D), colour (B-carotene).  Dairy Content: Min 60%, Vegetable Oil: Min 34%",
-    "servingsperpack-total-nip": null,
-    "nutritionalinformation": "{\"Name\":\"Nutritional Information\",\"Attributes\":[{\"Id\":705,\"Name\":\"Carbohydrate Quantity Per 100g - Total - NIP\",\"Value\":\"1.2g\",\"Description\":\"Carbohydrate Quantity Per 100g - Total - NIP\",\"SortOrder\":83},{\"Id\":706,\"Name\":\"Carbohydrate Quantity Per Serve - Total - NIP\",\"Value\":\"< 1.0g\",\"Description\":\"Carbohydrate Quantity Per Serve - Total - NIP\",\"SortOrder\":87},{\"Id\":125,\"Name\":\"Cholesterol Quantity Per Serve - Total - NIP\",\"Value\":\"8.35mg\",\"Description\":\"Cholesterol Quantity Per Serve - Total - NIP\",\"SortOrder\":115},{\"Id\":759,\"Name\":\"Energy kJ Quantity Per 100g - Total - NIP\",\"Value\":\"2570.0kJ\",\"Description\":\"Energy kJ Quantity Per 100g - Total - NIP\",\"SortOrder\":239},{\"Id\":760,\"Name\":\"Energy kJ Quantity Per Serve - Total - NIP\",\"Value\":\"129.0kJ\",\"Description\":\"Energy kJ Quantity Per Serve - Total - NIP\",\"SortOrder\":243},{\"Id\":253,\"Name\":\"Fat Saturated Quantity Per 100g - Total - NIP\",\"Value\":\"28.1g\",\"Description\":\"Fat Saturated Quantity Per 100g - Total - NIP\",\"SortOrder\":251},{\"Id\":258,\"Name\":\"Fat Saturated Quantity Per Serve - Total - NIP\",\"Value\":\"1.4g\",\"Description\":\"Fat Saturated Quantity Per Serve - Total - NIP\",\"SortOrder\":255},{\"Id\":764,\"Name\":\"Fat Total Quantity Per 100g - Total - NIP\",\"Value\":\"68.4g\",\"Description\":\"Fat Total Quantity Per 100g - Total - NIP\",\"SortOrder\":263},{\"Id\":166,\"Name\":\"Fat Total Quantity Per 100g - ValueWord - NIP\",\"Value\":\"68.4\",\"Description\":\"Fat Total Quantity Per 100g - ValueWord - NIP\",\"SortOrder\":264},{\"Id\":264,\"Name\":\"Fat Total Quantity Per Serve - Total - NIP\",\"Value\":\"3.4g\",\"Description\":\"Fat Total Quantity Per Serve - Total - NIP\",\"SortOrder\":267},{\"Id\":834,\"Name\":\"Monounsaturated Quantity Per Serve - Total - NIP\",\"Value\":\"0.8g\",\"Description\":\"Monounsaturated Quantity Per Serve - Total - NIP\",\"SortOrder\":483},{\"Id\":435,\"Name\":\"Polyunsaturated Quantity Per Serve - Total - NIP\",\"Value\":\"0.07g\",\"Description\":\"Polyunsaturated Quantity Per Serve - Total - NIP\",\"SortOrder\":567},{\"Id\":443,\"Name\":\"Potassium Quantity Per 100g - Total - NIP\",\"Value\":\"70.0mg\",\"Description\":\"Potassium Quantity Per 100g - Total - NIP\",\"SortOrder\":575},{\"Id\":493,\"Name\":\"Potassium Quantity Per Serve - Total - NIP\",\"Value\":\"4.00mg\",\"Description\":\"Potassium Quantity Per Serve - Total - NIP\",\"SortOrder\":579},{\"Id\":878,\"Name\":\"Protein Quantity Per 100g - Total - NIP\",\"Value\":\"1.0g\",\"Description\":\"Protein Quantity Per 100g - Total - NIP\",\"SortOrder\":587},{\"Id\":882,\"Name\":\"Protein Quantity Per Serve - Total - NIP\",\"Value\":\"< 1.0g\",\"Description\":\"Protein Quantity Per Serve - Total - NIP\",\"SortOrder\":591},{\"Id\":477,\"Name\":\"Serving Size - Total - NIP\",\"Value\":\"5.0 G\",\"Description\":\"Serving Size - Total - NIP\",\"SortOrder\":607},{\"Id\":544,\"Name\":\"Servings Per Pack - Total - NIP\",\"Value\":\"100.0\",\"Description\":\"Servings Per Pack - Total - NIP\",\"SortOrder\":611},{\"Id\":491,\"Name\":\"Sodium Quantity Per 100g - Total - NIP\",\"Value\":\"285.0mg\",\"Description\":\"Sodium Quantity Per 100g - Total - NIP\",\"SortOrder\":623},{\"Id\":495,\"Name\":\"Sodium Quantity Per Serve - Total - NIP\",\"Value\":\"14.0mg\",\"Description\":\"Sodium Quantity Per Serve - Total - NIP\",\"SortOrder\":627},{\"Id\":908,\"Name\":\"Sugars Quantity Per 100g - SuffixUnits - NIP\",\"Value\":\"g\",\"Description\":\"Sugars Quantity Per 100g - SuffixUnits - NIP\",\"SortOrder\":646},{\"Id\":909,\"Name\":\"Sugars Quantity Per 100g - Total - NIP\",\"Value\":\"1.2g\",\"Description\":\"Sugars Quantity Per 100g - Total - NIP\",\"SortOrder\":647},{\"Id\":910,\"Name\":\"Sugars Quantity Per 100g - ValueWord - NIP\",\"Value\":\"1.2\",\"Description\":\"Sugars Quantity Per 100g - ValueWord - NIP\",\"SortOrder\":648},{\"Id\":504,\"Name\":\"Sugars Quantity Per Serve - Prefix - NIP\",\"Value\":\"<\",\"Description\":\"Sugars Quantity Per Serve - Prefix - NIP\",\"SortOrder\":649},{\"Id\":911,\"Name\":\"Sugars Quantity Per Serve - SuffixUnits - NIP\",\"Value\":\"g\",\"Description\":\"Sugars Quantity Per Serve - SuffixUnits - NIP\",\"SortOrder\":650},{\"Id\":912,\"Name\":\"Sugars Quantity Per Serve - Total - NIP\",\"Value\":\"< 1.0g\",\"Description\":\"Sugars Quantity Per Serve - Total - NIP\",\"SortOrder\":651},{\"Id\":572,\"Name\":\"Sugars Quantity Per Serve - ValueWord - NIP\",\"Value\":\"1.0\",\"Description\":\"Sugars Quantity Per Serve - ValueWord - NIP\",\"SortOrder\":652},{\"Id\":510,\"Name\":\"Trans Quantity Per Serve - Total - NIP\",\"Value\":\"239.7mg\",\"Description\":\"Trans Quantity Per Serve - Total - NIP\",\"SortOrder\":671}]}",
-    "hypo-allergenic": null,
-    "allergencontains": "Milk, Soy"
-   }
+   "Nutrition": null
   },
   "371049": {
    "status": 200,
@@ -711,16 +652,7 @@
      "ServingsPerPack": "2.0"
     }
    ],
-   "Nutrition": null,
-   "AdditionalAttributes": {
-    "servingsize-total-nip": null,
-    "allergenmaybepresent": "Egg",
-    "ingredients": "Cooked Basmati White Rice (96%) (Water, Basmati White Rice), Vegetable Oil, Stabiliser (471), Antioxidant (307b).",
-    "servingsperpack-total-nip": null,
-    "nutritionalinformation": "{\"Name\":\"Nutritional Information\",\"Attributes\":[{\"Id\":705,\"Name\":\"Carbohydrate Quantity Per 100g - Total - NIP\",\"Value\":\"31.5g\",\"Description\":\"Carbohydrate Quantity Per 100g - Total - NIP\",\"SortOrder\":83},{\"Id\":706,\"Name\":\"Carbohydrate Quantity Per Serve - Total - NIP\",\"Value\":\"37.8g\",\"Description\":\"Carbohydrate Quantity Per Serve - Total - NIP\",\"SortOrder\":87},{\"Id\":191,\"Name\":\"Dietary Fibre Quantity Per 100g - Total - NIP\",\"Value\":\"1.0g\",\"Description\":\"Dietary Fibre Quantity Per 100g - Total - NIP\",\"SortOrder\":175},{\"Id\":120,\"Name\":\"Dietary Fibre Quantity Per Serve - Total - NIP\",\"Value\":\"1.2g\",\"Description\":\"Dietary Fibre Quantity Per Serve - Total - NIP\",\"SortOrder\":179},{\"Id\":759,\"Name\":\"Energy kJ Quantity Per 100g - Total - NIP\",\"Value\":\"691.0kJ\",\"Description\":\"Energy kJ Quantity Per 100g - Total - NIP\",\"SortOrder\":239},{\"Id\":760,\"Name\":\"Energy kJ Quantity Per Serve - Total - NIP\",\"Value\":\"829.0kJ\",\"Description\":\"Energy kJ Quantity Per Serve - Total - NIP\",\"SortOrder\":243},{\"Id\":253,\"Name\":\"Fat Saturated Quantity Per 100g - Total - NIP\",\"Value\":\"1.0g\",\"Description\":\"Fat Saturated Quantity Per 100g - Total - NIP\",\"SortOrder\":251},{\"Id\":258,\"Name\":\"Fat Saturated Quantity Per Serve - Total - NIP\",\"Value\":\"1.2g\",\"Description\":\"Fat Saturated Quantity Per Serve - Total - NIP\",\"SortOrder\":255},{\"Id\":764,\"Name\":\"Fat Total Quantity Per 100g - Total - NIP\",\"Value\":\"3.1g\",\"Description\":\"Fat Total Quantity Per 100g - Total - NIP\",\"SortOrder\":263},{\"Id\":166,\"Name\":\"Fat Total Quantity Per 100g - ValueWord - NIP\",\"Value\":\"3.1\",\"Description\":\"Fat Total Quantity Per 100g - ValueWord - NIP\",\"SortOrder\":264},{\"Id\":264,\"Name\":\"Fat Total Quantity Per Serve - Total - NIP\",\"Value\":\"3.7g\",\"Description\":\"Fat Total Quantity Per Serve - Total - NIP\",\"SortOrder\":267},{\"Id\":834,\"Name\":\"Monounsaturated Quantity Per Serve - Total - NIP\",\"Value\":\"0.31g\",\"Description\":\"Monounsaturated Quantity Per Serve - Total - NIP\",\"SortOrder\":483},{\"Id\":435,\"Name\":\"Polyunsaturated Quantity Per Serve - Total - NIP\",\"Value\":\"0.75g\",\"Description\":\"Polyunsaturated Quantity Per Serve - Total - NIP\",\"SortOrder\":567},{\"Id\":493,\"Name\":\"Potassium Quantity Per Serve - Total - NIP\",\"Value\":\"26mg\",\"Description\":\"Potassium Quantity Per Serve - Total - NIP\",\"SortOrder\":579},{\"Id\":878,\"Name\":\"Protein Quantity Per 100g - Total - NIP\",\"Value\":\"3.9g\",\"Description\":\"Protein Quantity Per 100g - Total - NIP\",\"SortOrder\":587},{\"Id\":882,\"Name\":\"Protein Quantity Per Serve - Total - NIP\",\"Value\":\"4.7g\",\"Description\":\"Protein Quantity Per Serve - Total - NIP\",\"SortOrder\":591},{\"Id\":477,\"Name\":\"Serving Size - Total - NIP\",\"Value\":\"120.0 G\",\"Description\":\"Serving Size - Total - NIP\",\"SortOrder\":607},{\"Id\":544,\"Name\":\"Servings Per Pack - Total - NIP\",\"Value\":\"2.0\",\"Description\":\"Servings Per Pack - Total - NIP\",\"SortOrder\":611},{\"Id\":491,\"Name\":\"Sodium Quantity Per 100g - Total - NIP\",\"Value\":\"5.0mg\",\"Description\":\"Sodium Quantity Per 100g - Total - NIP\",\"SortOrder\":623},{\"Id\":495,\"Name\":\"Sodium Quantity Per Serve - Total - NIP\",\"Value\":\"6.0mg\",\"Description\":\"Sodium Quantity Per Serve - Total - NIP\",\"SortOrder\":627},{\"Id\":908,\"Name\":\"Sugars Quantity Per 100g - SuffixUnits - NIP\",\"Value\":\"g\",\"Description\":\"Sugars Quantity Per 100g - SuffixUnits - NIP\",\"SortOrder\":646},{\"Id\":909,\"Name\":\"Sugars Quantity Per 100g - Total - NIP\",\"Value\":\"1.0g\",\"Description\":\"Sugars Quantity Per 100g - Total - NIP\",\"SortOrder\":647},{\"Id\":910,\"Name\":\"Sugars Quantity Per 100g - ValueWord - NIP\",\"Value\":\"1.0\",\"Description\":\"Sugars Quantity Per 100g - ValueWord - NIP\",\"SortOrder\":648},{\"Id\":504,\"Name\":\"Sugars Quantity Per Serve - Prefix - NIP\",\"Value\":\"<\",\"Description\":\"Sugars Quantity Per Serve - Prefix - NIP\",\"SortOrder\":649},{\"Id\":911,\"Name\":\"Sugars Quantity Per Serve - SuffixUnits - NIP\",\"Value\":\"g\",\"Description\":\"Sugars Quantity Per Serve - SuffixUnits - NIP\",\"SortOrder\":650},{\"Id\":912,\"Name\":\"Sugars Quantity Per Serve - Total - NIP\",\"Value\":\"< 1.2g\",\"Description\":\"Sugars Quantity Per Serve - Total - NIP\",\"SortOrder\":651},{\"Id\":572,\"Name\":\"Sugars Quantity Per Serve - ValueWord - NIP\",\"Value\":\"1.2\",\"Description\":\"Sugars Quantity Per Serve - ValueWord - NIP\",\"SortOrder\":652},{\"Id\":510,\"Name\":\"Trans Quantity Per Serve - Total - NIP\",\"Value\":\"26.89mg\",\"Description\":\"Trans Quantity Per Serve - Total - NIP\",\"SortOrder\":671}]}",
-    "hypo-allergenic": null,
-    "allergencontains": null
-   }
+   "Nutrition": null
   },
   "390985": {
    "status": 200,
@@ -806,16 +738,7 @@
      "ServingsPerPack": "2.0"
     }
    ],
-   "Nutrition": null,
-   "AdditionalAttributes": {
-    "servingsize-total-nip": null,
-    "allergenmaybepresent": "Sesame",
-    "ingredients": "Cooked Long Grain White Rice (79%) (Water, Rice), Vegetables (12%) (Carrot, Corn, Onion), Vegetable Oil, Garlic, Soy Sauce, Natural Flavour (Contains Egg), Salt, Sugar, Spices (Ginger, Pepper, Turmeric), Antioxidant (Tocopherols).",
-    "servingsperpack-total-nip": null,
-    "nutritionalinformation": "{\"Name\":\"Nutritional Information\",\"Attributes\":[{\"Id\":705,\"Name\":\"Carbohydrate Quantity Per 100g - Total - NIP\",\"Value\":\"28.6g\",\"Description\":\"Carbohydrate Quantity Per 100g - Total - NIP\",\"SortOrder\":83},{\"Id\":706,\"Name\":\"Carbohydrate Quantity Per Serve - Total - NIP\",\"Value\":\"35.8g\",\"Description\":\"Carbohydrate Quantity Per Serve - Total - NIP\",\"SortOrder\":87},{\"Id\":191,\"Name\":\"Dietary Fibre Quantity Per 100g - Total - NIP\",\"Value\":\"1.8g\",\"Description\":\"Dietary Fibre Quantity Per 100g - Total - NIP\",\"SortOrder\":175},{\"Id\":120,\"Name\":\"Dietary Fibre Quantity Per Serve - Total - NIP\",\"Value\":\"2.2g\",\"Description\":\"Dietary Fibre Quantity Per Serve - Total - NIP\",\"SortOrder\":179},{\"Id\":759,\"Name\":\"Energy kJ Quantity Per 100g - Total - NIP\",\"Value\":\"655.0kJ\",\"Description\":\"Energy kJ Quantity Per 100g - Total - NIP\",\"SortOrder\":239},{\"Id\":760,\"Name\":\"Energy kJ Quantity Per Serve - Total - NIP\",\"Value\":\"819.0kJ\",\"Description\":\"Energy kJ Quantity Per Serve - Total - NIP\",\"SortOrder\":243},{\"Id\":253,\"Name\":\"Fat Saturated Quantity Per 100g - Total - NIP\",\"Value\":\"< 1.0g\",\"Description\":\"Fat Saturated Quantity Per 100g - Total - NIP\",\"SortOrder\":251},{\"Id\":258,\"Name\":\"Fat Saturated Quantity Per Serve - Total - NIP\",\"Value\":\"< 1.2g\",\"Description\":\"Fat Saturated Quantity Per Serve - Total - NIP\",\"SortOrder\":255},{\"Id\":764,\"Name\":\"Fat Total Quantity Per 100g - Total - NIP\",\"Value\":\"2.7g\",\"Description\":\"Fat Total Quantity Per 100g - Total - NIP\",\"SortOrder\":263},{\"Id\":166,\"Name\":\"Fat Total Quantity Per 100g - ValueWord - NIP\",\"Value\":\"2.7\",\"Description\":\"Fat Total Quantity Per 100g - ValueWord - NIP\",\"SortOrder\":264},{\"Id\":264,\"Name\":\"Fat Total Quantity Per Serve - Total - NIP\",\"Value\":\"3.4g\",\"Description\":\"Fat Total Quantity Per Serve - Total - NIP\",\"SortOrder\":267},{\"Id\":878,\"Name\":\"Protein Quantity Per 100g - Total - NIP\",\"Value\":\"3.1g\",\"Description\":\"Protein Quantity Per 100g - Total - NIP\",\"SortOrder\":587},{\"Id\":882,\"Name\":\"Protein Quantity Per Serve - Total - NIP\",\"Value\":\"3.9g\",\"Description\":\"Protein Quantity Per Serve - Total - NIP\",\"SortOrder\":591},{\"Id\":477,\"Name\":\"Serving Size - Total - NIP\",\"Value\":\"125.0 G\",\"Description\":\"Serving Size - Total - NIP\",\"SortOrder\":607},{\"Id\":544,\"Name\":\"Servings Per Pack - Total - NIP\",\"Value\":\"2.0\",\"Description\":\"Servings Per Pack - Total - NIP\",\"SortOrder\":611},{\"Id\":491,\"Name\":\"Sodium Quantity Per 100g - Total - NIP\",\"Value\":\"302.0mg\",\"Description\":\"Sodium Quantity Per 100g - Total - NIP\",\"SortOrder\":623},{\"Id\":495,\"Name\":\"Sodium Quantity Per Serve - Total - NIP\",\"Value\":\"378.0mg\",\"Description\":\"Sodium Quantity Per Serve - Total - NIP\",\"SortOrder\":627},{\"Id\":909,\"Name\":\"Sugars Quantity Per 100g - Total - NIP\",\"Value\":\"1.0g\",\"Description\":\"Sugars Quantity Per 100g - Total - NIP\",\"SortOrder\":647},{\"Id\":910,\"Name\":\"Sugars Quantity Per 100g - ValueWord - NIP\",\"Value\":\"1.0\",\"Description\":\"Sugars Quantity Per 100g - ValueWord - NIP\",\"SortOrder\":648},{\"Id\":912,\"Name\":\"Sugars Quantity Per Serve - Total - NIP\",\"Value\":\"1.2g\",\"Description\":\"Sugars Quantity Per Serve - Total - NIP\",\"SortOrder\":651},{\"Id\":572,\"Name\":\"Sugars Quantity Per Serve - ValueWord - NIP\",\"Value\":\"1.2\",\"Description\":\"Sugars Quantity Per Serve - ValueWord - NIP\",\"SortOrder\":652}]}",
-    "hypo-allergenic": null,
-    "allergencontains": "Egg, Soy"
-   }
+   "Nutrition": null
   },
   "63665": {
    "status": 200,
@@ -901,16 +824,7 @@
      "ServingsPerPack": "2.0"
     }
    ],
-   "Nutrition": null,
-   "AdditionalAttributes": {
-    "servingsize-total-nip": null,
-    "allergenmaybepresent": null,
-    "ingredients": "Cooked Rice (99%) (Water, Basmati Rice), Vegetable Oil, Antioxidant (307), Stabiliser (471)",
-    "servingsperpack-total-nip": null,
-    "nutritionalinformation": "{\"Name\":\"Nutritional Information\",\"Attributes\":[{\"Id\":705,\"Name\":\"Carbohydrate Quantity Per 100g - Total - NIP\",\"Value\":\"34.8g\",\"Description\":\"Carbohydrate Quantity Per 100g - Total - NIP\",\"SortOrder\":83},{\"Id\":706,\"Name\":\"Carbohydrate Quantity Per Serve - Total - NIP\",\"Value\":\"43.5g\",\"Description\":\"Carbohydrate Quantity Per Serve - Total - NIP\",\"SortOrder\":87},{\"Id\":191,\"Name\":\"Dietary Fibre Quantity Per 100g - Total - NIP\",\"Value\":\"1.0g\",\"Description\":\"Dietary Fibre Quantity Per 100g - Total - NIP\",\"SortOrder\":175},{\"Id\":120,\"Name\":\"Dietary Fibre Quantity Per Serve - Total - NIP\",\"Value\":\"1.2g\",\"Description\":\"Dietary Fibre Quantity Per Serve - Total - NIP\",\"SortOrder\":179},{\"Id\":759,\"Name\":\"Energy kJ Quantity Per 100g - Total - NIP\",\"Value\":\"677.0kJ\",\"Description\":\"Energy kJ Quantity Per 100g - Total - NIP\",\"SortOrder\":239},{\"Id\":760,\"Name\":\"Energy kJ Quantity Per Serve - Total - NIP\",\"Value\":\"846.0kJ\",\"Description\":\"Energy kJ Quantity Per Serve - Total - NIP\",\"SortOrder\":243},{\"Id\":253,\"Name\":\"Fat Saturated Quantity Per 100g - Total - NIP\",\"Value\":\"0.2g\",\"Description\":\"Fat Saturated Quantity Per 100g - Total - NIP\",\"SortOrder\":251},{\"Id\":258,\"Name\":\"Fat Saturated Quantity Per Serve - Total - NIP\",\"Value\":\"0.2g\",\"Description\":\"Fat Saturated Quantity Per Serve - Total - NIP\",\"SortOrder\":255},{\"Id\":764,\"Name\":\"Fat Total Quantity Per 100g - Total - NIP\",\"Value\":\"0.9g\",\"Description\":\"Fat Total Quantity Per 100g - Total - NIP\",\"SortOrder\":263},{\"Id\":166,\"Name\":\"Fat Total Quantity Per 100g - ValueWord - NIP\",\"Value\":\"0.9\",\"Description\":\"Fat Total Quantity Per 100g - ValueWord - NIP\",\"SortOrder\":264},{\"Id\":264,\"Name\":\"Fat Total Quantity Per Serve - Total - NIP\",\"Value\":\"1.1g\",\"Description\":\"Fat Total Quantity Per Serve - Total - NIP\",\"SortOrder\":267},{\"Id\":878,\"Name\":\"Protein Quantity Per 100g - Total - NIP\",\"Value\":\"2.7g\",\"Description\":\"Protein Quantity Per 100g - Total - NIP\",\"SortOrder\":587},{\"Id\":882,\"Name\":\"Protein Quantity Per Serve - Total - NIP\",\"Value\":\"3.4g\",\"Description\":\"Protein Quantity Per Serve - Total - NIP\",\"SortOrder\":591},{\"Id\":477,\"Name\":\"Serving Size - Total - NIP\",\"Value\":\"125.0 G\",\"Description\":\"Serving Size - Total - NIP\",\"SortOrder\":607},{\"Id\":544,\"Name\":\"Servings Per Pack - Total - NIP\",\"Value\":\"2.0\",\"Description\":\"Servings Per Pack - Total - NIP\",\"SortOrder\":611},{\"Id\":491,\"Name\":\"Sodium Quantity Per 100g - Total - NIP\",\"Value\":\"5.0mg\",\"Description\":\"Sodium Quantity Per 100g - Total - NIP\",\"SortOrder\":623},{\"Id\":495,\"Name\":\"Sodium Quantity Per Serve - Total - NIP\",\"Value\":\"6.0mg\",\"Description\":\"Sodium Quantity Per Serve - Total - NIP\",\"SortOrder\":627},{\"Id\":908,\"Name\":\"Sugars Quantity Per 100g - SuffixUnits - NIP\",\"Value\":\"g\",\"Description\":\"Sugars Quantity Per 100g - SuffixUnits - NIP\",\"SortOrder\":646},{\"Id\":909,\"Name\":\"Sugars Quantity Per 100g - Total - NIP\",\"Value\":\"0.1g\",\"Description\":\"Sugars Quantity Per 100g - Total - NIP\",\"SortOrder\":647},{\"Id\":910,\"Name\":\"Sugars Quantity Per 100g - ValueWord - NIP\",\"Value\":\"0.1\",\"Description\":\"Sugars Quantity Per 100g - ValueWord - NIP\",\"SortOrder\":648},{\"Id\":911,\"Name\":\"Sugars Quantity Per Serve - SuffixUnits - NIP\",\"Value\":\"g\",\"Description\":\"Sugars Quantity Per Serve - SuffixUnits - NIP\",\"SortOrder\":650},{\"Id\":912,\"Name\":\"Sugars Quantity Per Serve - Total - NIP\",\"Value\":\"0.1g\",\"Description\":\"Sugars Quantity Per Serve - Total - NIP\",\"SortOrder\":651},{\"Id\":572,\"Name\":\"Sugars Quantity Per Serve - ValueWord - NIP\",\"Value\":\"0.1\",\"Description\":\"Sugars Quantity Per Serve - ValueWord - NIP\",\"SortOrder\":652},{\"Id\":510,\"Name\":\"Trans Quantity Per Serve - Total - NIP\",\"Value\":\"<0.1g\",\"Description\":\"Trans Quantity Per Serve - Total - NIP\",\"SortOrder\":671}]}",
-    "hypo-allergenic": null,
-    "allergencontains": null
-   }
+   "Nutrition": null
   },
   "652008": {
    "status": 200,
@@ -923,16 +837,7 @@
     "PackageSize": "4kg"
    },
    "NutritionalInformation": null,
-   "Nutrition": null,
-   "AdditionalAttributes": {
-    "servingsize-total-nip": null,
-    "allergenmaybepresent": null,
-    "ingredients": null,
-    "servingsperpack-total-nip": null,
-    "nutritionalinformation": null,
-    "hypo-allergenic": null,
-    "allergencontains": null
-   }
+   "Nutrition": null
   },
   "288440": {
    "status": 200,
@@ -945,16 +850,7 @@
     "PackageSize": "1.5kg"
    },
    "NutritionalInformation": null,
-   "Nutrition": null,
-   "AdditionalAttributes": {
-    "servingsize-total-nip": null,
-    "allergenmaybepresent": null,
-    "ingredients": null,
-    "servingsperpack-total-nip": null,
-    "nutritionalinformation": null,
-    "hypo-allergenic": null,
-    "allergencontains": null
-   }
+   "Nutrition": null
   },
   "845671": {
    "status": 200,
@@ -1040,16 +936,7 @@
      "ServingsPerPack": null
     }
    ],
-   "Nutrition": null,
-   "AdditionalAttributes": {
-    "servingsize-total-nip": null,
-    "allergenmaybepresent": null,
-    "ingredients": null,
-    "servingsperpack-total-nip": null,
-    "nutritionalinformation": "{\"Name\":\"Nutritional Information\",\"Attributes\":[{\"Id\":702,\"Name\":\"Calcium Quantity Per 100g - Total - NIP\",\"Value\":\"31mg\",\"Description\":\"Calcium Quantity Per 100g - Total - NIP\",\"SortOrder\":71},{\"Id\":705,\"Name\":\"Carbohydrate Quantity Per 100g - Total - NIP\",\"Value\":\"9g\",\"Description\":\"Carbohydrate Quantity Per 100g - Total - NIP\",\"SortOrder\":83},{\"Id\":714,\"Name\":\"Cholesterol Quantity Per 100g - Total - NIP\",\"Value\":\"0mg\",\"Description\":\"Cholesterol Quantity Per 100g - Total - NIP\",\"SortOrder\":111},{\"Id\":191,\"Name\":\"Dietary Fibre Quantity Per 100g - Total - NIP\",\"Value\":\"1.4g\",\"Description\":\"Dietary Fibre Quantity Per 100g - Total - NIP\",\"SortOrder\":175},{\"Id\":759,\"Name\":\"Energy kJ Quantity Per 100g - Total - NIP\",\"Value\":\"191kJ\",\"Description\":\"Energy kJ Quantity Per 100g - Total - NIP\",\"SortOrder\":239},{\"Id\":764,\"Name\":\"Fat Total Quantity Per 100g - Total - NIP\",\"Value\":\"0.2g\",\"Description\":\"Fat Total Quantity Per 100g - Total - NIP\",\"SortOrder\":263},{\"Id\":166,\"Name\":\"Fat Total Quantity Per 100g - ValueWord - NIP\",\"Value\":\"0.2\",\"Description\":\"Fat Total Quantity Per 100g - ValueWord - NIP\",\"SortOrder\":264},{\"Id\":443,\"Name\":\"Potassium Quantity Per 100g - Total - NIP\",\"Value\":\"150mg\",\"Description\":\"Potassium Quantity Per 100g - Total - NIP\",\"SortOrder\":575},{\"Id\":878,\"Name\":\"Protein Quantity Per 100g - Total - NIP\",\"Value\":\"0.9g\",\"Description\":\"Protein Quantity Per 100g - Total - NIP\",\"SortOrder\":587},{\"Id\":491,\"Name\":\"Sodium Quantity Per 100g - Total - NIP\",\"Value\":\"3mg\",\"Description\":\"Sodium Quantity Per 100g - Total - NIP\",\"SortOrder\":623},{\"Id\":907,\"Name\":\"Sugars Quantity Per 100g - Prefix - NIP\",\"Value\":null,\"Description\":\"Sugars Quantity Per 100g - Prefix - NIP\",\"SortOrder\":645},{\"Id\":908,\"Name\":\"Sugars Quantity Per 100g - SuffixUnits - NIP\",\"Value\":\"g\",\"Description\":\"Sugars Quantity Per 100g - SuffixUnits - NIP\",\"SortOrder\":646},{\"Id\":909,\"Name\":\"Sugars Quantity Per 100g - Total - NIP\",\"Value\":\"9g\",\"Description\":\"Sugars Quantity Per 100g - Total - NIP\",\"SortOrder\":647},{\"Id\":910,\"Name\":\"Sugars Quantity Per 100g - ValueWord - NIP\",\"Value\":\"9\",\"Description\":\"Sugars Quantity Per 100g - ValueWord - NIP\",\"SortOrder\":648},{\"Id\":540,\"Name\":\"Vitamin B2 Quantity Per 100g - Total - NIP\",\"Value\":\"0.023mg\",\"Description\":\"Vitamin B2 Quantity Per 100g - Total - NIP\",\"SortOrder\":731}]}",
-    "hypo-allergenic": null,
-    "allergencontains": null
-   }
+   "Nutrition": null
   },
   "515925": {
    "status": 200,
@@ -1135,16 +1022,7 @@
      "ServingsPerPack": null
     }
    ],
-   "Nutrition": null,
-   "AdditionalAttributes": {
-    "servingsize-total-nip": null,
-    "allergenmaybepresent": null,
-    "ingredients": null,
-    "servingsperpack-total-nip": null,
-    "nutritionalinformation": "{\"Name\":\"Nutritional Information\",\"Attributes\":[{\"Id\":908,\"Name\":\"Sugars Quantity Per 100g - SuffixUnits - NIP\",\"Value\":\"g\",\"Description\":\"Sugars Quantity Per 100g - SuffixUnits - NIP\",\"SortOrder\":646}]}",
-    "hypo-allergenic": null,
-    "allergencontains": null
-   }
+   "Nutrition": null
   },
   "169761": {
    "status": 200,
@@ -1157,16 +1035,7 @@
     "PackageSize": "500g"
    },
    "NutritionalInformation": null,
-   "Nutrition": null,
-   "AdditionalAttributes": {
-    "servingsize-total-nip": null,
-    "allergenmaybepresent": null,
-    "ingredients": null,
-    "servingsperpack-total-nip": null,
-    "nutritionalinformation": null,
-    "hypo-allergenic": null,
-    "allergencontains": null
-   }
+   "Nutrition": null
   },
   "810386": {
    "status": 200,
@@ -1179,16 +1048,7 @@
     "PackageSize": "500g"
    },
    "NutritionalInformation": null,
-   "Nutrition": null,
-   "AdditionalAttributes": {
-    "servingsize-total-nip": null,
-    "allergenmaybepresent": null,
-    "ingredients": null,
-    "servingsperpack-total-nip": null,
-    "nutritionalinformation": null,
-    "hypo-allergenic": null,
-    "allergencontains": null
-   }
+   "Nutrition": null
   }
  }
 }

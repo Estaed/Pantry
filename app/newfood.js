@@ -5,6 +5,8 @@
    then the label form. Found shows the product's name, store and values per 100 g, editable once; "This is my …"
    offers his foods with a matching name and attaches the barcode to the one he picks, so its history stays. Saving
    opens the gram sheet for the meal and day he came from ('food id meal date'). A barcode is never stored twice.
+   With no code ('newfood  meal date name', from a search with no match) it opens the label form at once, the name
+   filled in, and saves a food without a barcode (Tarık, 2026-10-24: a stranger must add a food without a barcode).
    Open Food Facts reports unknown values as 0, so only these are taken: energy-kcal_100g (else energy-kj_100g
    ÷ 4.184), proteins, carbohydrates, sugars, fat, saturated-fat, salt, fiber (_100g); a missing one stays absent,
    a 0 among them is kept. */
@@ -220,9 +222,10 @@
   const art = (food, size) => (window.PantryDrawing ? window.PantryDrawing(food, size) : '');
   function wireBack(el) { el.querySelector('[data-act="back"]').addEventListener('click', () => P.back()); }
 
-  function render(el, code, meal, date) {
+  function render(el, code, meal, date, name) {
     leave();
     const me = shown = { el, code, meal: MEALS.includes(meal) ? meal : P.mealNow(), date: /^\d{4}-\d{2}-\d{2}$/.test(date || '') ? date : P.today(), abort: null };
+    if (!code) { me.code = null; return label(me, { eyebrow: 'New food, no barcode', product: name ? { name } : undefined }); }
     if (!validCode(code)) {
       el.innerHTML = `${header('Barcode', 'New food')}<div class="newfood-body"><div class="banner newfood-banner" role="alert">${P.icon('alert')}`
         + `<div>${P.esc(code ? `${code} is not a barcode Pantry can look up: the digits or the check digit are wrong.` : 'No barcode was given.')} Go back and scan it again.</div></div></div>`;
@@ -518,12 +521,12 @@
     let id = null;
     try {
       P.change(d => {
-        const mine = owner(d, me.code);
+        const mine = me.code && owner(d, me.code);
         if (mine) { id = mine.id; return; }   // saved meanwhile (another tab, a double tap): never twice
         id = newId(d);
         const food = { id, name };
         if (brand) food.brand = brand;
-        food.barcode = me.code;
+        if (me.code) food.barcode = me.code;
         food.per100 = per100;
         food.servings = pack ? [{ label: '1 pack', grams: pack, kcal: round(per100.kcal * pack / 100, 1) }] : [];
         food.source = source;

@@ -10,7 +10,7 @@ Started 2026-10-20 from a TarikOS session; background and sources in
 ## Goal
 Tarık's own food log, built from the MyNetDiary features he actually uses, that also knows what
 is in his kitchen: what he bought (Coles receipts) minus what he logged eating. Once a week Hermes
-posts a visual "running out this week" list to Discord. For Tarık only. The workout app
+posts a visual "running out this week" list to Discord. Built for Tarık, public since 2026-10-24 (any stranger can use it). The workout app
 (`D:/Projects/Calisthenics-App`) stays separate (Tarık 2026-10-24: the workout app stays a separate app, built the Pantry way).
 
 ## Riskiest assumption
@@ -103,8 +103,7 @@ grams (ml drinks, restaurant "servings") but still carry kcal. Pulled from the s
 So v1 starts with his real food list, per-meal frequent lists and last grams; nothing to type in.
 Coverage per entry: kcal, protein, carbs, fat, sugars, sat fat and sodium on ~98 %; fiber 83 %;
 vitamins, minerals and cholesterol only on ~20 % (generic foods, not Coles labels). Not in it:
-water (no such trackable), barcodes, body weight history (MyNetDiary shows -12 kg since 14 Jul
-2025, last weigh-in 75 kg; another endpoint), steps (Samsung Health), the 100+ other nutrients
+water (no such trackable), barcodes, body weight history (another endpoint), steps (Samsung Health), the 100+ other nutrients
 MyNetDiary lists (only what the food's label carries). Targets read: 2,200 kcal, carbs 45 %,
 protein 20 %, fat 35 %, salt 5.8 g.
 Top staples: butter 5 g (316×), Coles tuna 185 g (225×), chicken breast raw 350 g, Coles basmati

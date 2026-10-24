@@ -688,6 +688,39 @@ def normal_text(browser, url, errors):
     ph.close()
 
 
+def by_hand(browser, url, errors):
+    """2026-10-24, public: a food with no barcode (an apple) is added by hand through the label form and logged."""
+    ph = Phone(browser, url, errors, "by-hand")
+    before = ph.doc()
+    ph.go("newfood", None, "lunch", "2026-10-20", "apple")
+    ph.page.wait_for_selector('[data-screen="newfood"] input[name="energy"]')
+    eyebrow = ph.page.locator('[data-screen="newfood"] .top .eyebrow').inner_text().strip()
+    A.check("New food with no code opens the label form at once, says there is no barcode and fills in the name",
+            eyebrow == "New food, no barcode" and ph.fields().get("name") == "Apple" and not ph.off.asked, (eyebrow, ph.fields()))
+    ph.unit("energyUnit", "kcal")
+    ph.fill({"energy": "52", "carbs": "14", "protein": "0.3", "fat": "0.2"})
+    ph.save()
+    got = ph.wait_hash("#/food/")
+    added = new_food(before, ph.doc())
+    food = added[0] if len(added) == 1 else {}
+    A.check("it saves one label food with no barcode and opens its gram sheet for the meal and day it came from",
+            len(added) == 1 and "barcode" not in food and food.get("source") == "label" and food.get("name") == "Apple"
+            and food.get("per100") == {"kcal": 52, "protein": 0.3, "carbs": 14, "fat": 0.2}
+            and got == ph.food_hash(food.get("id"), "lunch", "2026-10-20"), (food, got))
+    ph.page.get_by_label("Grams").fill("150")
+    ph.page.get_by_role("button", name="Add to lunch").click()
+    ph.page.wait_for_selector('[data-screen="today"] [data-test="kcal-left"]')
+    entry = [e for e in ph.doc()["entries"] if e["foodId"] == food.get("id")]
+    A.check("150 g of it is logged at 78 kcal and Today shows 2,200 - 78 = 2,122 left",
+            len(entry) == 1 and entry[0]["grams"] == 150 and entry[0]["totals"]["kcal"] == 78 and A.kcal_left(ph.page) == "2,122",
+            (entry, A.kcal_left(ph.page)))
+    A.check("adding by hand makes no network request", not ph.outside(), ph.outside())
+    ph.go("newfood", None, "lunch", "2026-10-20")
+    ph.page.wait_for_selector('[data-screen="newfood"] input[name="energy"]')
+    A.check("with no name passed the name field is empty", ph.fields().get("name") == "", ph.fields())
+    ph.close()
+
+
 def main():
     srv, site, url = A.start_site()
     registry = (A.ROOT / "app" / "registry.js").read_bytes()
@@ -699,7 +732,7 @@ def main():
         for name, fn in (("own food", own_food), ("catalogue", catalogue), ("Open Food Facts", open_food_facts),
                          ("listed zero", listed_zero), ("This is my", this_is_my), ("label form", label_form),
                          ("down and offline", down_and_offline), ("check digit and typing", check_digit_and_typing),
-                         ("camera", camera), ("240 px", narrow), ("100 % text", normal_text)):
+                         ("camera", camera), ("240 px", narrow), ("100 % text", normal_text), ("by hand", by_hand)):
             A.guarded(f"{name} scenario", fn, browser, url, errors)
         browser.close()
     srv.shutdown()

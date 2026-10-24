@@ -6,7 +6,9 @@ skill writes and amends it. Constraints live in `AGENTS.md`, because every sessi
 ## What v1 is
 Tarık's own food log on his Android phone, replacing MyNetDiary for the way he uses it: one Today
 screen (day strip, kcal left, four meals in the corners, macro strip, what he ate), a meal's
-frequent foods with their usual grams, a gram sheet, barcode scan for new products, past days and
+frequent foods with their usual grams, a gram sheet, barcode scan for new products (a food with no barcode is
+typed by hand from a search with no match: 2026-10-24, Tarık: a stranger must add a food without a barcode before
+public), past days and
 editing. English UI. His 464 days of MyNetDiary history come in, so it starts full. Built for Tarık; since
 2026-10-24 also public, so a stranger can use it from the same address with their own targets and their own data
 repo (Decisions 2026-10-24).
@@ -86,7 +88,8 @@ order on scan: his foods → catalogue → Open Food Facts → typed from the la
 - Routes (`Pantry.go(name, ...args)`): `today [date]` Today or a past day (`app/today.js`);
   `add meal [date]` the meal's food list and `food id meal [date]` the gram sheet (`app/log.js`);
   `scan meal [date]` scan and new product (`app/scan.js`); `entry id` edit, move, delete
-  (`app/entry.js`); `newfood code meal [date]` Found or From the label (`app/newfood.js`); `settings` targets,
+  (`app/entry.js`); `newfood code meal [date] [name]` Found or From the label, and with no code From the label for a
+  food without a barcode, its name filled in (`app/newfood.js`, 2026-10-24); `settings` targets,
   sync, data (`app/settings.js`, `app/sync.js`). A missing `date` is today; a missing `meal` is
   `Pantry.mealNow()`; callers pass both when they know them. Saving on a screen opened for a day
   returns with `Pantry.go('today', date)`, never `back()`.

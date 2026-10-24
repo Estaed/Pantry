@@ -32,7 +32,8 @@ Built by Tarık for his own daily use, and shared as is under the MIT licence. B
 
 Five common foods are there to start with. To add a packaged food, tap the barcode button and scan the pack (or
 type its number). Pantry looks it up on [Open Food Facts](https://world.openfoodfacts.org/); if it is not found,
-you type the values from the label once, and the food is yours from then on.
+you type the values from the label once, and the food is yours from then on. A food with no barcode, such as an
+apple or your own dish: search for it, tap **Add “apple” by hand** and type its values per 100 g once.
 
 > Your log is stored in the browser on this phone. Clearing the browser's site data deletes it. Step 2 keeps a copy.
 
@@ -72,12 +73,13 @@ The camera needs HTTPS or `localhost`. To host your own copy, fork the repo and 
 ```mermaid
 flowchart LR
   A[You tap a food] --> B[Gram sheet]
+  Q[Search, no match] --> L
   B --> C[(Phone storage<br/>localStorage)]
   C --> D[Today: ring, macros, day strip]
   S[Barcode] --> F{Known?}
   F -- your foods --> B
   F -- Open Food Facts --> N[New food, checked once] --> B
-  F -- not found --> L[Type the label once] --> B
+  F -- not found --> L[Type its values once] --> B
   C <-.->|optional sync| G[(Your private GitHub repo<br/>pantry-data.json)]
 ```
 

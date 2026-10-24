@@ -368,6 +368,18 @@ def check_search(browser, errors):
     said = empty.inner_text() if empty.count() else ""
     scan = page.locator(".log-list").get_by_role("button", name="Scan a barcode")
     CHECK("no match says so and offers Scan", not rows(page) and "No food matches" in said and scan.count() == 1, said)
+    by_hand = page.locator(".log-list").get_by_role("button", name="Add “zzzq” by hand")
+    CHECK("no match also offers the food by hand (2026-10-24: a food with no barcode)", by_hand.count() == 1, said)
+    by_hand.click()
+    page.wait_for_selector('[data-screen="newfood"] input[name="energy"]')
+    got = page.evaluate("location.hash")
+    CHECK("... which opens New food with no code, the list's meal and day, and the typed text as its name",
+          got.startswith("#/newfood//") and got.endswith("/zzzq"), got)
+    page.go_back()
+    page.wait_for_selector(".log-list")
+    q.fill("zzzq")
+    page.wait_for_selector(".log-list .log-empty")
+    scan = page.locator(".log-list").get_by_role("button", name="Scan a barcode")
     scan.click()
     page.wait_for_selector('[data-screen="scan"]')
     CHECK("Scan opens the scan screen", page.locator('[data-screen="scan"]').count() == 1)

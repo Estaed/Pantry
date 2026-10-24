@@ -41,7 +41,9 @@
      Frequent    the foods logged at that meal in the 90 days up to today, most often first (then the latest first);
                  with no entries at all, the starter foods in their order.
      Recent      the last distinct foods logged; My foods every food, A to Z.
-     Search      every typed word starts a word of the food's name or brand, ignoring case and accents.
+     Search      every typed word starts a word of the food's name or brand, ignoring case and accents. No match offers
+                 the food by hand ('newfood' with no code and the typed text as its name: the label form) or Scan
+                 (Tarık, 2026-10-24: a stranger must add a food without a barcode).
      Usual       Pantry.usualAmounts(foodId, meal)[0], the one rule in core; the sheet's chips are that list, with no use
                  counts, then the food's pack ('1 pack' serving) when it has one.
      Sheet       opens with no field focused, so no keyboard: the amount shows, the chips, radios and Add work without
@@ -647,6 +649,7 @@
       const act = e.target.closest('[data-act]');
       if (!act) return;
       if (act.dataset.act === 'scan') { P.go('scan', S.meal, S.dateArg); return; }
+      if (act.dataset.act === 'byhand') { P.go('newfood', null, S.meal, S.dateArg, S.query.trim()); return; }
       const ent = act.closest('[data-entry]');
       if (ent) {
         if (act.dataset.act === 'edit') P.go('entry', ent.dataset.entry);
@@ -1038,7 +1041,10 @@
 
   function empty(doc, query) {
     const scan = `<button class="btn sec" type="button" data-act="scan">${P.icon('scan')}Scan a barcode</button>`;
-    if (query) return `<div class="log-empty"><p class="note">No food matches “${P.esc(query)}”. Scan its barcode to add it.</p>${scan}</div>`;
+    if (query) {
+      return `<div class="log-empty"><p class="note">No food matches “${P.esc(query)}”. Add it by hand, or scan its barcode.</p>`
+        + `<button class="btn sec" type="button" data-act="byhand">${P.icon('plus')}Add “${P.esc(query)}” by hand</button>${scan}</div>`;
+    }
     if (S.tab === 'meal') return `<div class="log-empty"><p class="note">Nothing in ${mealWord(S.meal)} yet. Log from Frequent, Recent or My foods; what you add shows here, to edit or take out.</p></div>`;
     if (S.tab === 'frequent') return `<div class="log-empty"><p class="note">Nothing logged at ${mealWord(S.meal)} in the last ${WINDOW} days. Search, or look in Recent and My foods.</p></div>`;
     if (S.tab === 'recent') return '<div class="log-empty"><p class="note">Nothing logged yet. The foods you log show here, newest first.</p></div>';
