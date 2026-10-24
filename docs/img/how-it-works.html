@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<title>Pantry: how it works (README diagram source)</title>
+<!-- Source of docs/img/how-it-works-light-2.png and -dark-2.png. Rendered with Playwright at device scale 2:
+     element #d, once with data-theme="light" and once with "dark". Colours and type from ../../tokens.css. -->
+<link rel="stylesheet" href="../../fonts/archivo.css">
+<link rel="stylesheet" href="../../tokens.css">
+<style>
+  @font-face { font-family: 'Manrope'; src: url(../../fonts/Manrope.woff2) format('woff2'); font-weight: 200 800; }
+  body { margin: 0; background: var(--canvas); }
+  #d { width: 880px; box-sizing: border-box; padding: 28px; background: var(--canvas); color: var(--ink);
+       font: 500 16px/1.35 var(--font-sans); }
+  .row { display: grid; grid-template-columns: 1fr 34px 1fr 34px 1fr; align-items: start; }
+  .row > .arrow { padding-top: 52px; }
+  .col { display: grid; gap: 10px; }
+  .box { border: 1px solid var(--hairline-strong); border-radius: 14px; padding: 14px 16px; background: var(--surface-1); }
+  .box b { display: block; font: 700 18px/1.2 var(--font-display); font-stretch: 118%; }
+  .box span { color: var(--ink-muted); font-size: 14px; }
+  .lit { border: 2px solid var(--primary); }
+  .lit b { color: var(--primary-text); }
+  .arrow { text-align: center; color: var(--ink-muted); font-size: 22px; }
+  .label { color: var(--ink-subtle); font-size: 13px; letter-spacing: .04em; text-transform: uppercase; margin: 0 0 8px 2px; }
+  .opt { border-style: dashed; background: transparent; }
+  .col > .arrow { line-height: 1; }
+</style>
+</head>
+<body>
+<div id="d">
+  <div class="row">
+    <div class="col">
+      <p class="label">Find the food</p>
+      <div class="box"><b>Your foods</b><span>usual amount remembered</span></div>
+      <div class="box"><b>Barcode</b><span>looked up on Open Food Facts</span></div>
+      <div class="box"><b>By hand</b><span>values per 100 g, typed once</span></div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col">
+      <p class="label">Log it</p>
+      <div class="box"><b>Gram sheet</b><span>pick the grams</span></div>
+      <div class="arrow">↓</div>
+      <div class="box lit"><b>This phone</b><span>saved first, works offline</span></div>
+      <div class="arrow">↕</div>
+      <div class="box opt"><b>Your private repo</b><span>optional sync to GitHub: a backup, or two devices</span></div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col">
+      <p class="label">See the day</p>
+      <div class="box"><b>Today</b><span>kcal left, macros, day strip</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

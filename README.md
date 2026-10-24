@@ -70,18 +70,10 @@ The camera needs HTTPS or `localhost`. To host your own copy, fork the repo and 
 
 ## How it works
 
-```mermaid
-flowchart LR
-  A[You tap a food] --> B[Gram sheet]
-  Q[Search, no match] --> L
-  B --> C[(Phone storage<br/>localStorage)]
-  C --> D[Today: ring, macros, day strip]
-  S[Barcode] --> F{Known?}
-  F -- your foods --> B
-  F -- Open Food Facts --> N[New food, checked once] --> B
-  F -- not found --> L[Type its values once] --> B
-  C <-.->|optional sync| G[(Your private GitHub repo<br/>pantry-data.json)]
-```
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/how-it-works-dark.png">
+  <img src="docs/img/how-it-works-light.png" width="880" alt="Find a food (your foods, barcode, or by hand), pick the grams, it is saved on this phone first and Today shows what is left; an optional sync keeps a copy in your private GitHub repo.">
+</picture>
 
 1. Everything you log is saved on the phone first, so Pantry works with no network.
 2. Each entry keeps the nutrients it had when you logged it. Editing a food later never changes past days.
