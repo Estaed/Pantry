@@ -61,3 +61,7 @@ not named here follows the base.
   öğünleri kaldıralım sadece 1 tane bar olsun mynetdiary gibi"), ending round 8's G3 alternating meal arcs; the macro
   deviation marks go ("ne işe yarıyor anlamadım, gereksiz gibi"). Read across (hypothesis): on Today he wants one
   reading per element, the MyNetDiary one he knows; detail that needs decoding is cut.
+- 2026-10-24, app icon round 1 (`D:/Projects/Calisthenics-App/design/icons.html`): torn between P11 Barcode (scan
+  corners with an orange scan line) and P15 Plate, kcal left (plate with an orange arc); the current jar was passed
+  over. Read (hypothesis): as in the Calisthenics pick, orange shows the app's own act (scanning, kcal used), not an
+  object. Round 2 (`D:/Projects/Calisthenics-App/design/icons-2.html`) derives 10 from those two.
