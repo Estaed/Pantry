@@ -7,8 +7,8 @@ skill writes and amends it. Constraints live in `AGENTS.md`, because every sessi
 Tarık's own food log on his Android phone, replacing MyNetDiary for the way he uses it: one Today
 screen (day strip, kcal left, four meals in the corners, macro strip, what he ate), a meal's
 frequent foods with their usual grams, a gram sheet, barcode scan for new products (a food with no barcode is
-typed by hand from a search with no match: 2026-10-24, Tarık: a stranger must add a food without a barcode before
-public), past days and
+typed by hand from any search, under its matches or in place of them: 2026-10-24, Tarık: a stranger must add a
+food without a barcode before public; 2026-10-25, under matches too), past days and
 editing. English UI. His 464 days of MyNetDiary history come in, so it starts full. Built for Tarık; since
 2026-10-24 also public, so a stranger can use it from the same address with their own targets and their own data
 repo (Decisions 2026-10-24).

@@ -356,6 +356,12 @@ def check_search(browser, errors):
     CHECK('search "tza" finds Classic Tzatziki Dip and "coles" lists the two Coles foods, any case, every word',
           found["tza"] == ["Classic Tzatziki Dip"] and found["coles"] == ["Classic Tzatziki Dip", "Indian Basmati Rice"]
           and found["COLES"] == found["coles"] and found["rice coles"] == ["Indian Basmati Rice"], found)
+    q.fill("tza")
+    under = page.locator(".log-list .log-byhand").get_by_role("button", name="Add “tza” by hand")
+    CHECK('a search with matches still offers the food by hand under them (2026-10-25: "doner" found another food)',
+          len(rows(page)) == 1 and under.count() == 1, rows(page))
+    q.fill("")
+    CHECK("... and a tab with no search does not", page.locator(".log-list .log-byhand").count() == 0)
     page.evaluate("""() => Pantry.change(d => { d.foods.push({ id: 'test-accent', name: 'Crème Fraîche', brand: "O'Brien",
         per100: { kcal: 300 }, servings: [], source: 'label' }); })""")
     folded = {}

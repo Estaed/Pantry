@@ -43,7 +43,9 @@
      Recent      the last distinct foods logged; My foods every food, A to Z.
      Search      every typed word starts a word of the food's name or brand, ignoring case and accents. No match offers
                  the food by hand ('newfood' with no code and the typed text as its name: the label form) or Scan
-                 (Tarık, 2026-10-24: a stranger must add a food without a barcode).
+                 (Tarık, 2026-10-24: a stranger must add a food without a barcode). A search with matches offers
+                 the same by hand under them, since a match may be another food (his "doner" finds "Lamb Doner
+                 Kebab"; Tarık, 2026-10-25).
      Usual       Pantry.usualAmounts(foodId, meal)[0], the one rule in core; the sheet's chips are that list, with no use
                  counts, then the food's pack ('1 pack' serving) when it has one.
      Sheet       opens with no field focused, so no keyboard: the amount shows, the chips, radios and Add work without
@@ -241,7 +243,8 @@
     .log-bar { z-index: 2; }
     .log-empty { display: flex; flex-direction: column; gap: 14px; padding-top: 6px; }
     .log-empty .note { margin: 0; }
-    .log-empty .btn, .log-gone .btn { margin: 0; }   /* base.css .sec is also the section margin */
+    .log-empty .btn, .log-gone .btn, .log-byhand .btn { margin: 0; }   /* base.css .sec is also the section margin */
+    .log-byhand { padding-top: 16px; }
     .log-gone { margin: 24px 20px 0; display: flex; flex-direction: column; gap: 14px; }
     .log-gone .banner { margin: 0; }
 
@@ -706,7 +709,9 @@
     const keep = !recompute && S.kind === 'foods' && S.drawn && S.drawn.length === drawn.length && lis.length === drawn.length
       && drawn.every(([id], i) => S.drawn[i][0] === id);
     if (keep) drawn.forEach(([, html], i) => { if (html !== S.drawn[i][1]) lis[i].outerHTML = html; });
-    else S.list.innerHTML = foods.length ? `<ul class="rows">${drawn.map(r => r[1]).join('')}</ul>` : empty(doc, query);
+    else S.list.innerHTML = foods.length
+      ? `<ul class="rows">${drawn.map(r => r[1]).join('')}</ul>${query ? `<div class="log-byhand">${byHand(query)}</div>` : ''}`
+      : empty(doc, query);
     S.drawn = drawn;
     S.kind = 'foods';
     paint(keep);
@@ -1039,11 +1044,13 @@
     measure(long).forEach((m, i) => { if (m.a > m.room + 0.5) { if (long[i].b) long[i].b.hidden = true; } else place(long[i], m); });
   }
 
+  const byHand = query => `<button class="btn sec" type="button" data-act="byhand">${P.icon('plus')}Add “${P.esc(query)}” by hand</button>`;
+
   function empty(doc, query) {
     const scan = `<button class="btn sec" type="button" data-act="scan">${P.icon('scan')}Scan a barcode</button>`;
     if (query) {
       return `<div class="log-empty"><p class="note">No food matches “${P.esc(query)}”. Add it by hand, or scan its barcode.</p>`
-        + `<button class="btn sec" type="button" data-act="byhand">${P.icon('plus')}Add “${P.esc(query)}” by hand</button>${scan}</div>`;
+        + `${byHand(query)}${scan}</div>`;
     }
     if (S.tab === 'meal') return `<div class="log-empty"><p class="note">Nothing in ${mealWord(S.meal)} yet. Log from Frequent, Recent or My foods; what you add shows here, to edit or take out.</p></div>`;
     if (S.tab === 'frequent') return `<div class="log-empty"><p class="note">Nothing logged at ${mealWord(S.meal)} in the last ${WINDOW} days. Search, or look in Recent and My foods.</p></div>`;
