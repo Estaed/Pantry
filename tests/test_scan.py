@@ -271,6 +271,9 @@ def catalogue(browser, url, errors):
     ph.page.go_back()
     ph.page.wait_for_selector('[data-screen="scan"] [data-test="scan-code"]')
     held(ph, "#/scan/lunch/2026-10-20", length, "Found")
+    sheet = ph.page.locator('[data-screen="scan"] .scan-sheet').inner_text()
+    A.check("with a store catalogue the sheet names the stores in the lookup order",
+            "Looks in your foods, then Coles and Woolworths, then Open Food Facts." in sheet, sheet)
     ph.page.get_by_role("button", name="Open it again").click()
     ph.page.wait_for_selector('[data-screen="newfood"] .newfood-tag')
     A.check('... "Open it again" opens Found once more, with no new history entry and no request',
@@ -522,8 +525,8 @@ def check_digit_and_typing(browser, url, errors):
     ph.shot("scan-live")
     themes(ph, "Scan", '[data-screen="scan"] .scan-sheet', "rgb(25, 25, 25)", "rgb(255, 255, 255)")
     sheet = ph.page.locator('[data-screen="scan"] .scan-sheet').inner_text()
-    A.check("the sheet says which meal it scans for and the lookup order", "Scanning for Dinner" in sheet
-            and "Looks in your foods, then Coles and Woolworths, then Open Food Facts." in sheet, sheet)
+    A.check("the sheet says which meal it scans for and the lookup order; with no store catalogue it names none",
+            "Scanning for Dinner" in sheet and "Looks in your foods, then Open Food Facts." in sheet, sheet)
 
     ph.page.get_by_role("button", name="Type the barcode").click()
     box = ph.page.get_by_label("Barcode", exact=True)

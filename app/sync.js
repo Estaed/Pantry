@@ -1,4 +1,4 @@
-/* Sync: keeps the phone's food log and the private GitHub data repo (Estaed/Pantry-Data, file pantry-data.json,
+/* Sync: keeps the phone's food log and a private GitHub data repo (the one named in Settings, file pantry-data.json,
    default branch) in step through the GitHub Contents API. Ported from Calisthenics-App (config apart from the data,
    sha handling, dirty flag, single flight, retry); its whole-document replace is not ported: Pantry merges.
 
@@ -14,21 +14,25 @@
            (the default media type answers the same) and the text comes from the raw media type. PUT sends the sha
            it read; 409 (or 422 for a PUT without a sha: the file appeared meanwhile) means the repo moved on, so it
            pulls, merges and pushes again, at most three rounds; it never writes without the current sha.
-   State   Pantry.syncState(), the 'pantry.sync' object, never inside the document: token, sha (the repo version
+   State   Pantry.syncState(), the 'pantry.sync' object, never inside the document: token, repo ('owner/name'; absent on
+           a phone connected before the repo was a setting, which keeps Estaed/Pantry-Data), sha (the repo version
            this phone holds in full), changed ({ entries: { id: n }, foods: { id: n }, settings: n }: what the
            phone changed, stamped with Pantry.changes(); a push carrying a stamp clears it), lastSync (ISO time of
            the last sync that ended well), lastError (a sentence for Today's banner, or null), lastCause (the plain
            reason for Settings, or null).
    API     window.PantrySync: now() runs a sync (single flight, never rejects); connect(token) stores the token and
-           syncs; status() what Settings shows; merge(local, remote, changed) the pure merge; mask(token); REPO.
+           syncs; connect(token, repo) also sets the repo; status() what Settings shows; merge(local, remote, changed)
+           the pure merge; mask(token); repo() the repo in use. A sync runs against the repo it started with.
            Fires 'pantrysync' on window when its in-memory state (running, waiting, offline) changes. */
 (() => {
   'use strict';
 
   const P = window.Pantry;
-  const REPO = 'Estaed/Pantry-Data';
-  const API = `https://api.github.com/repos/${REPO}`;
-  const CONTENTS = `${API}/contents/pantry-data.json`;
+  const FIRST_REPO = 'Estaed/Pantry-Data';    // the repo of a phone connected before the repo was a setting
+  const repo = () => P.syncState().repo || FIRST_REPO;
+  let active = repo();     // the repo the sync in progress talks to, read when it starts
+  const api = () => `https://api.github.com/repos/${active}`;
+  const contents = () => `${api()}/contents/pantry-data.json`;
   const HOLD_MS = 10250;   // 10 s and a margin: a browser timer can fire a few ms early by the system's clock
   const RETRY_MS = [15000, 30000, 60000, 120000, 300000];
   const ROUNDS = 3;
@@ -184,8 +188,8 @@
     const limited = res.status === 429 || (res.status === 403 && res.headers.get('x-ratelimit-remaining') === '0');
     if (res.status === 401) return failure('The GitHub token may have expired', true);
     if (limited) return failure('GitHub is limiting requests for now');
-    if (res.status === 403) return failure(`The GitHub token cannot ${writing ? 'write to' : 'read'} ${REPO}; it needs Contents read and write`, true);
-    if (res.status === 404) return failure(`The GitHub token cannot see ${REPO}; check its repository access`, true);
+    if (res.status === 403) return failure(`The GitHub token cannot ${writing ? 'write to' : 'read'} ${active}; it needs Contents read and write`, true);
+    if (res.status === 404) return failure(`The GitHub token cannot see ${active}; check the repo name and the token's repository access`, true);
     return failure(`GitHub answered ${res.status}`);
   }
 
@@ -209,12 +213,12 @@
 
   // { exists: false } or { exists: true, sha, text }: text is null when the file is above 1 MB.
   async function readMeta(token) {
-    const res = await call(CONTENTS, { headers: headers(token, 'application/vnd.github.object+json') });
+    const res = await call(contents(), { headers: headers(token, 'application/vnd.github.object+json') });
     if (res.status === 404) {
       // A missing file, a missing repo and a token that cannot see the repo all answer 404: ask the repo.
-      const repo = await call(API, { headers: headers(token, 'application/vnd.github+json') });
-      if (repo.ok) return { exists: false };
-      throw statusFailure(repo, false);
+      const answer = await call(api(), { headers: headers(token, 'application/vnd.github+json') });
+      if (answer.ok) return { exists: false };
+      throw statusFailure(answer, false);
     }
     if (!res.ok) throw statusFailure(res, false);
     const meta = await json(res);
@@ -224,7 +228,7 @@
   }
 
   async function readRaw(token) {
-    const res = await call(CONTENTS, { headers: headers(token, 'application/vnd.github.raw+json') });
+    const res = await call(contents(), { headers: headers(token, 'application/vnd.github.raw+json') });
     if (!res.ok) throw statusFailure(res, false);
     return res.text();
   }
@@ -255,7 +259,7 @@
     const upTo = P.changes();
     const body = { message: `Pantry sync ${new Date().toISOString()}`, content: encode(JSON.stringify(P.doc()) + '\n') };
     if (sha) body.sha = sha;
-    const res = await call(CONTENTS, {
+    const res = await call(contents(), {
       method: 'PUT',
       headers: headers(token, 'application/vnd.github+json', { 'Content-Type': 'application/json' }),
       body: JSON.stringify(body),
@@ -333,6 +337,7 @@
       rerun = false;
       const token = P.syncState().token;
       if (!token || P.problem() || navigator.onLine === false) break;
+      active = repo();
       try { await rounds(token); } catch (e) { failed(e); }
     } while (rerun);
   }
@@ -345,10 +350,11 @@
     return running;
   }
 
-  function connect(token) {
+  // A new repo needs no reset: a sha names content, so the stored one only matches a file this phone already holds.
+  function connect(token, repoName) {
     failures = 0;
     clearTimeout(retryTimer);
-    P.setSyncState({ token, lastError: null, lastCause: null });
+    P.setSyncState({ token, ...(repoName ? { repo: repoName } : {}), lastError: null, lastCause: null });
     return now();
   }
 
@@ -363,7 +369,7 @@
     return {
       configured: Boolean(st.token), running: Boolean(running), held, online: navigator.onLine !== false,
       dirty: P.dirty(), lastSync: st.lastSync || null, lastError: st.lastError || null, lastCause: st.lastCause || null,
-      token: mask(st.token), problem: P.problem(),
+      token: mask(st.token), repo: repo(), problem: P.problem(),
     };
   }
 
@@ -373,6 +379,6 @@
   window.addEventListener('online', () => { emit(); now(); });
   window.addEventListener('offline', emit);
 
-  window.PantrySync = Object.freeze({ now, connect, status, merge, mask, REPO });
+  window.PantrySync = Object.freeze({ now, connect, status, merge, mask, repo });
   now();
 })();

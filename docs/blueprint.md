@@ -7,7 +7,9 @@ skill writes and amends it. Constraints live in `AGENTS.md`, because every sessi
 Tarık's own food log on his Android phone, replacing MyNetDiary for the way he uses it: one Today
 screen (day strip, kcal left, four meals in the corners, macro strip, what he ate), a meal's
 frequent foods with their usual grams, a gram sheet, barcode scan for new products, past days and
-editing. English UI. His 464 days of MyNetDiary history come in, so it starts full. For Tarık only.
+editing. English UI. His 464 days of MyNetDiary history come in, so it starts full. Built for Tarık; since
+2026-10-24 also public, so a stranger can use it from the same address with their own targets and their own data
+repo (Decisions 2026-10-24).
 
 Done when (Eko's proposal, 2026-10-20, Tarık did not object):
 - a full week logged only in Pantry, MyNetDiary not opened;
@@ -57,7 +59,8 @@ or bundler (a build step for one screen); IndexedDB (localStorage holds years of
   it had (Tarık, 2026-10-24: "eski günde eski limit kalsın"). The sync
   token stays on the phone under its own key, never in the synced document.
 - Frequent foods per meal and their usual grams are derived from entries, not stored.
-- One JSON document, `pantry-data.json`, in the private repo `Estaed/Pantry-Data`; the phone keeps
+- One JSON document, `pantry-data.json`, in a private data repo named in Settings (`repo` in 'pantry.sync');
+  a phone connected before that setting keeps `Estaed/Pantry-Data` (2026-10-24, public). The phone keeps
   a copy in localStorage and works offline.
 
 ## Barcode catalogue
@@ -145,3 +148,12 @@ order on scan: his foods → catalogue → Open Food Facts → typed from the la
   per-meal arcs in alternating greys (G3), then per-meal arcs without quarters (both 2026-10-21).
   Rejected: round 5's fixed quarter per meal (the empty slots read as meals).
 - Theme chosen in Settings: dynamic (dark from sunset to sunrise), light, dark or system.
+
+## Decisions (2026-10-24, Tarık)
+- The app repo is public under MIT and usable by a stranger (Tarık: make it public, a new user can use it). Text a
+  stranger sees says only what is true for them: the manifest says "A food log",
+  Scan names the stores only when a catalogue is there, Settings counts days without the MyNetDiary key when nothing
+  was imported. Kept as defaults: the five starter foods, his targets (editable), Dynamic on Darwin's sun (labelled).
+- The data repo is a setting typed with the token ('owner/name' or its github.com address). A phone whose sync state
+  has no repo keeps `Estaed/Pantry-Data`, read as a default, never written. Rejected: the repo hard-coded (no one
+  else can sync); a migration that writes the repo into Tarık's phone (a write to his live state for no gain).

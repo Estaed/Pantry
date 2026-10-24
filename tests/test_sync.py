@@ -41,7 +41,8 @@ FULL_CANDIDATES = [Path(p) for p in (os.environ.get("MYNETDIARY_SOURCE"),) if p]
     ROOT / "references" / FULL_NAME, Path("D:/Projects/Pantry/references") / FULL_NAME]
 TOKEN = "github_pat_11TESTONLY0000_mockTokenForPantryTestsNotARealOne0000000000000000000000000"
 EXPIRED = "github_pat_11TESTONLY0000_anExpiredTokenThatTheMockRefuses000000000000000000000000"
-REPO_PATH = "/repos/Estaed/Pantry-Data"
+FIRST_REPO = "Estaed/Pantry-Data"      # the repo a phone connected before the repo was a setting keeps
+REPO_PATH = "/repos/" + FIRST_REPO
 CONTENTS_PATH = REPO_PATH + "/contents/pantry-data.json"
 CONTENTS_URL = "https://api.github.com" + CONTENTS_PATH
 PREFIX = "Sync failed. Saved on this phone; it will try again."
@@ -58,7 +59,9 @@ class MockGitHub:
             "access-control-allow-methods": "GET, PUT, OPTIONS",
             "access-control-expose-headers": "etag, x-ratelimit-remaining"}
 
-    def __init__(self, doc=None):
+    def __init__(self, doc=None, repo=FIRST_REPO):
+        self.repo = repo
+        self.repo_path = "/repos/" + repo
         self.text = None
         self.sha = None
         self.requests = []          # every call: method, url, accept, authorization, body
@@ -95,11 +98,11 @@ class MockGitHub:
             return answer(401, {"message": "Bad credentials"})
         if self.mode == 403:
             return answer(403, {"message": "Resource not accessible by personal access token"}, {"x-ratelimit-remaining": "4999"})
-        if self.mode == 404 and path.startswith(REPO_PATH):
+        if self.mode == 404 and path.startswith(self.repo_path):
             return answer(404, {"message": "Not Found"})       # a private repo the token cannot see
-        if path == REPO_PATH:
-            return answer(200, {"full_name": "Estaed/Pantry-Data", "private": True})
-        if path != CONTENTS_PATH:
+        if path == self.repo_path:
+            return answer(200, {"full_name": self.repo, "private": True})
+        if path != self.repo_path + "/contents/pantry-data.json":
             return answer(404, {"message": "Not Found"})
         if req.method == "GET":
             if self.text is None:
@@ -231,9 +234,10 @@ def open_settings(page, url):
     page.wait_for_selector('[data-screen="settings"] [data-part="targets"] .settings-row')
 
 
-def configure(page, url, token=TOKEN):
-    """Paste the token in Settings, as Tarik does once."""
+def configure(page, url, token=TOKEN, repo=FIRST_REPO):
+    """Name the data repo and paste the token in Settings, as Tarik does once."""
     open_settings(page, url)
+    page.get_by_label("Data repo").fill(repo)
     page.get_by_label("GitHub token").fill(token)
     page.get_by_role("button", name="Save and sync").click()
 
@@ -675,10 +679,10 @@ def check_days(browser, url, errors, remote):
     open_settings(page, url)
     start = datetime.date(2025, 7, 14)
     full = [(start + datetime.timedelta(days=i)).isoformat() for i in range(464)]
-    cases = [("an empty log", [], [], "0", ["None on this phone yet", "Your MyNetDiary history comes in with sync"]),
+    cases = [("an empty log", [], [], "0", ["None on this phone yet"]),
              ("a 464-day import", full, [], "464", ["MyNetDiary", "14 Jul 2025 to 20 Oct 2026"]),
-             ("three days logged only in Pantry", [], ["2026-10-18", "2026-10-19", "2026-10-21"], "0 (+3)",
-              ["MyNetDiary (+ Pantry only)", "18 Oct 2026 to 21 Oct 2026"]),
+             ("three days logged only in Pantry, no import (a new user)", [], ["2026-10-18", "2026-10-19", "2026-10-21"], "3",
+              ["18 Oct 2026 to 21 Oct 2026"]),
              ("the import plus two Pantry-only days and one more Pantry entry on 20 Oct (a MyNetDiary day)", full,
               ["2026-10-21", "2026-10-22", "2026-10-20"], "464 (+2)", ["MyNetDiary (+ Pantry only)", "14 Jul 2025 to 22 Oct 2026"])]
     for label, imported, own, count, subs in cases:
@@ -696,6 +700,83 @@ def check_days(browser, url, errors, remote):
     A.fits(page, "Settings with 464 (+2) days logged, 240 px")
     A.check("the count stays beside 'Days logged' at 360 px and at 240 px; the lines under the name wrap instead", wide and narrow,
             (wide, narrow))
+    ctx.close()
+
+
+def check_own_repo(browser, url, errors, remote):
+    """2026-10-24, public: a new user names their own private repo; nothing on their phone points at Estaed."""
+    mock = MockGitHub(repo="alex-k/my-pantry.data")
+    ctx, page = phone(browser, errors, "own-repo", mock, text=1.0)
+    A.open_today(page, url)
+    open_settings(page, url)
+    shown = page.locator('[data-screen="settings"]').inner_text()
+    A.check("a new phone's Settings names no repo of Tarik's: the repo row says it is not connected, the repo field is empty",
+            "Estaed" not in shown and "Not connected" in shown and page.get_by_label("Data repo").input_value() == "", shown[:400])
+    for typed in ("", "my-pantry", "alex-k/my pantry"):
+        page.get_by_label("Data repo").fill(typed)
+        page.get_by_label("GitHub token").fill(TOKEN)
+        page.get_by_role("button", name="Save and sync").click()
+        err = page.locator('[data-form="token"] [data-err]')
+        A.check(f"a data repo typed as {typed!r} is refused in plain words, nothing stored",
+                err.is_visible() and "owner/name" in err.inner_text() and not state(page).get("token") and not mock.requests,
+                (err.inner_text(), state(page)))
+    page.evaluate(OWN)
+    configure(page, url, repo="https://github.com/alex-k/my-pantry.data.git")
+    pushed(page, mock, 1, 30)
+    paths = {urllib.parse.urlsplit(r["url"]).path for r in mock.requests}
+    A.check("the repo's github.com address is read as owner/name and stored with the token",
+            state(page).get("repo") == "alex-k/my-pantry.data" and state(page).get("token") == TOKEN, state(page))
+    A.check("every GitHub call goes to that repo, the first push creates its pantry-data.json with the phone's log",
+            paths <= {mock.repo_path, mock.repo_path + "/contents/pantry-data.json"} and mock.doc() == doc(page)
+            and set(OWN_IDS) <= set(ids(mock.doc())), sorted(paths))
+    sub = page.locator('[data-screen="settings"] [data-part="status"] .settings-sub').first.inner_text().strip()
+    A.check("Settings then shows the repo in use", sub == "alex-k/my-pantry.data, private", sub)
+    page.get_by_role("button", name="Replace").click()
+    A.check("Replace keeps the repo filled in, so only the token has to be pasted again",
+            page.get_by_label("Data repo").input_value() == "alex-k/my-pantry.data")
+    ctx.close()
+
+    mock = MockGitHub(repo="alex-k/my-pantry.data")
+    mock.mode = 404
+    ctx, page = phone(browser, errors, "own-repo-404", mock, text=1.0)
+    A.open_today(page, url)
+    configure(page, url, repo="alex-k/my-pantry.data")
+    wait_until(page, lambda: state(page).get("lastError"), 20)
+    idle(page)
+    A.check("a repo the token cannot see is named in the reason, with what to check",
+            "cannot see alex-k/my-pantry.data; check the repo name" in (state(page).get("lastCause") or ""), state(page))
+    ctx.close()
+
+
+def check_first_repo(browser, url, errors, remote):
+    """Tarik's phone, connected before the repo was a setting: 'pantry.sync' holds a token and no repo. It keeps
+    syncing with Estaed/Pantry-Data, and opening the new version rewrites neither its log nor its sync state."""
+    mock = MockGitHub(remote)
+    log = json.dumps(remote, ensure_ascii=False, separators=(",", ":"))
+    sync = json.dumps({"token": TOKEN, "sha": mock.sha, "lastSync": "2026-10-20T06:00:00.000Z", "dirty": False,
+                       "changes": 0, "changed": {"entries": {}, "foods": {}}})
+    ctx, page = phone(browser, errors, "first-repo", mock, text=1.0)
+    ctx.add_init_script("""(() => { const [log, sync] = %s; if (localStorage.getItem('pantry.v1') === null) {
+        localStorage.setItem('pantry.v1', log); localStorage.setItem('pantry.sync', sync); } })()""" % json.dumps([log, sync]))
+    A.open_today(page, url)
+    wait_until(page, lambda: any(r["method"] == "GET" for r in mock.requests), 20)
+    idle(page)
+    raw = page.evaluate("() => ({ log: localStorage.getItem('pantry.v1'), sync: JSON.parse(localStorage.getItem('pantry.sync')) })")
+    paths = {urllib.parse.urlsplit(r["url"]).path for r in mock.requests}
+    A.check("an existing phone with no repo in its sync state syncs with Estaed/Pantry-Data and finds it the same",
+            paths == {CONTENTS_PATH} and not mock.puts and raw["sync"].get("lastError") is None, (sorted(paths), mock.puts))
+    A.check("its stored log is byte for byte what it was, and no repo key is written into its sync state (no migration)",
+            raw["log"] == log and "repo" not in raw["sync"] and raw["sync"]["token"] == TOKEN, sorted(raw["sync"]))
+    open_settings(page, url)
+    sub = page.locator('[data-screen="settings"] [data-part="status"] .settings-sub').first.inner_text().strip()
+    A.check("its Settings shows Estaed/Pantry-Data and the masked token as before",
+            sub == "Estaed/Pantry-Data, private" and page.locator('[data-test="token-mask"]').count() == 1, sub)
+    page.get_by_role("button", name="Replace").click()
+    A.check("Replace there starts from Estaed/Pantry-Data", page.get_by_label("Data repo").input_value() == FIRST_REPO)
+    page.evaluate(OWN)
+    pushed(page, mock, 1, 30)
+    A.check("a new entry on that phone is pushed to Estaed/Pantry-Data, merged with what was there",
+            set(OWN_IDS) <= set(ids(mock.doc())) and set(ids(remote)) <= set(ids(mock.doc())) and mock.doc() == doc(page))
     ctx.close()
 
 
@@ -745,6 +826,7 @@ def check_screen(browser, url, errors, remote):
     A.check("every text on Settings grows with the text size (rem, no px font sizes)",
             sizes100 and len(sizes100) == len(sizes150) and not flat, flat or (len(sizes100), len(sizes150)))
     A.fits(page, "Settings, no token yet, 150 % text")
+    page.get_by_label("Data repo").fill(FIRST_REPO)
     page.get_by_label("GitHub token").fill("not a token")
     page.get_by_role("button", name="Save and sync").click()
     err = page.locator('[data-form="token"] [data-err]')
@@ -768,6 +850,7 @@ def check_screen(browser, url, errors, remote):
     A.fits(page, "Settings at 240 px (150 % page zoom), no token yet")
     page.get_by_role("button", name="Macro split").click()
     A.fits(page, "Settings at 240 px, macro editor open")
+    page.get_by_label("Data repo").fill(FIRST_REPO)
     page.get_by_label("GitHub token").fill(TOKEN)
     page.get_by_role("button", name="Save and sync").click()
     pushed(page, mock, 1, 30)
@@ -793,6 +876,7 @@ def main():
                                    ("refused token", check_refused, (remote,)),
                                    ("targets", check_targets, (remote,)), ("days logged", check_days, (remote,)),
                                    ("macro order", check_macro_order, (remote,)), ("screen", check_screen, (remote,)),
+                                   ("own repo", check_own_repo, (remote,)), ("first repo", check_first_repo, (remote,)),
                                    ("full history", check_full, ())):
                 A.guarded(name, fn, browser, url, errors, *args)
             browser.close()

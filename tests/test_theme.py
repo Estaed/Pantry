@@ -374,6 +374,7 @@ def check_sync(browser, url, errors):
     open_settings(page, url)
     page.evaluate("() => { window.__sameLoad = true; }")
     first = shown(page)
+    page.get_by_label("Data repo").fill("Estaed/Pantry-Data")
     page.get_by_label("GitHub token").fill(TOKEN)
     page.get_by_role("button", name="Save and sync").click()
     page.wait_for_function("() => document.documentElement.dataset.theme === 'light'", timeout=15000)

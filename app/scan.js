@@ -123,7 +123,7 @@
       <div class="scan-sheet">
         <div class="scan-handle" aria-hidden="true"></div>
         <h1 class="scan-for">Scanning for ${MEALS[m]}${P.esc(day)}</h1>
-        <p class="note">Looks in your foods, then Coles and Woolworths, then Open Food Facts.</p>
+        <p class="note">Looks in your foods, then ${(P.doc().catalogue || []).length ? 'Coles and Woolworths, then ' : ''}Open Food Facts.</p>
         <p class="scan-last" hidden>Last read <b data-test="scan-code"></b>. <span class="scan-took"></span></p>
         <button class="btn sec" type="button" data-act="again" hidden>Open it again</button>
         <button class="btn sec" type="button" data-act="type">${icon('kbd')}Type the barcode</button>

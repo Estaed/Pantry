@@ -2,7 +2,7 @@
   "id": "./",
   "name": "Pantry",
   "short_name": "Pantry",
-  "description": "Tarık's food log: kcal left today, his foods by the gram, barcode scan.",
+  "description": "A food log: kcal left today, your foods by the gram, barcode scan.",
   "lang": "en",
   "start_url": "./",
   "scope": "./",

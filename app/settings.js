@@ -1,8 +1,8 @@
 /* Settings ('#/settings'): the targets (daily kcal, the macro split read and typed carbs, protein, fat, salt)
    edited in place; the theme, Dynamic, Light, Dark or System, picked in one tap (settings.theme, synced like the
-   targets; app/core.js applies it at once and keeps Dynamic on Darwin's sun); sync with the private data
-   repo (its state, the last sync, the GitHub token pasted once and shown masked); the data on this phone (every day
-   logged, "460 (+10)": MyNetDiary days plus days logged only in Pantry, and the foods). Drawn after
+   targets; app/core.js applies it at once and keeps Dynamic on Darwin's sun); sync with a private data repo
+   (its state, the last sync, the repo named and the GitHub token pasted once and shown masked); the data on this phone
+   (every day logged, "460 (+10)": MyNetDiary days plus days logged only in Pantry, and the foods). Drawn after
    design/screens.html → 9. Settings; its "Follow phone theme" toggle became the Theme group's four choices, second,
    so they show without scrolling. The sync itself is app/sync.js (window.PantrySync); this screen shows its state
    and hands it the token, which never enters the document.
@@ -15,6 +15,7 @@
   const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const IMPORTED = /^(\d{4}-\d{2}-\d{2})-\d+$/;          // tools/import_mynetdiary.py names entries <date>-<entryNo>
   const TOKEN = /^(github_pat_|ghp_)[A-Za-z0-9_]+$/;
+  const REPO = /^[A-Za-z0-9][A-Za-z0-9-]{0,38}\/[A-Za-z0-9._-]{1,100}$/;   // owner/name as GitHub allows them
   const TARGETS = ['kcal', 'macro', 'salt'];
   // The macro split in the order every screen shows it (Pantry.MACROS): [key in settings.targets, label, kcal per gram].
   // Only the order shown and typed in follows it; the stored targets keep their shape.
@@ -57,6 +58,7 @@
     }
     .settings-edit { padding: 4px 0 18px; }
     .settings-label { display: block; margin: 0 0 6px; font: 700 0.875rem/1.3 var(--font-sans); }
+    .settings-next { margin-top: 12px; }
     .settings-input {
       display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 14px;
       border-radius: var(--r-md); background: var(--surface-2);
@@ -217,7 +219,7 @@
   }
 
   // ── sync ──────────────────────────────────────────────────────────
-  function statusHtml(s, repo) {
+  function statusHtml(s) {
     let pill = ['Synced', '', 'check'];   // grey: the app is grey + one orange (design/DESIGN.md, round 7)
     let sub = 'This phone';
     let reason = null;
@@ -230,7 +232,8 @@
     if (s.lastError && !s.problem) reason = s.lastCause || s.lastError;
     const [word, tone, icon] = pill;
     return `<ul class="settings-list">
-      <li class="settings-row"><span class="settings-t">GitHub data repo<span class="settings-sub">${P.esc(repo)}, private</span></span>
+      <li class="settings-row"><span class="settings-t">GitHub data repo<span class="settings-sub">${s.configured ? `${P.esc(s.repo)}, private`
+        : 'Not connected; the log stays on this phone'}</span></span>
         <span class="settings-pill ${tone}" data-test="sync-pill">${icon ? P.icon(icon) : ''}${word}</span></li>
       ${s.configured ? `<li class="settings-row"><span class="settings-t">Last sync<span class="settings-sub">${sub}</span></span>
         <span class="settings-v light" data-test="sync-last">${ago(s.lastSync)}</span></li>` : ''}</ul>
@@ -238,12 +241,16 @@
         ${s.running || s.problem ? '' : '<div class="settings-actions"><button type="button" class="btn sec" data-act="retry">Try again</button></div>'}` : ''}`;
   }
 
-  function tokenHtml(s, repo) {
+  // The repo and the token go in together; a connected phone's repo is filled in, so Replace can keep it.
+  function tokenHtml(s) {
     if (!s.configured || editing === 'token') {
-      return formHtml('token', `<label class="settings-label" for="settings-in-token">GitHub token</label>
+      return formHtml('token', `<label class="settings-label" for="settings-in-repo">Data repo</label>
+        <span class="settings-input"><input id="settings-in-repo" name="repo" type="text" value="${s.configured ? P.esc(s.repo) : ''}"
+          autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="owner/pantry-data"></span>
+        <label class="settings-label settings-next" for="settings-in-token">GitHub token</label>
         <span class="settings-input"><input id="settings-in-token" name="token" class="settings-secret" type="text"
           autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" placeholder="github_pat_…"></span>`,
-      `A fine-grained token for ${P.esc(repo)} with Contents read and write. Paste it once; it stays on this phone and is never synced.`,
+      'A private repo of yours, and a fine-grained token for only that repo with Contents read and write. Paste it once; it stays on this phone and is never synced.',
       'Save and sync', s.configured);
     }
     return `<ul class="settings-list"><li class="settings-row"><span class="settings-t">GitHub token
@@ -254,16 +261,19 @@
   function saveToken() {
     const field = root.querySelector('#settings-in-token');
     const token = field.value.replace(/\s+/g, '');
+    // the repo as owner/name; its github.com address works too
+    const repo = value('repo').trim().replace(/^(https?:\/\/)?(www\.)?github\.com\//i, '').replace(/(\.git)?\/*$/i, '');
+    if (!REPO.test(repo)) { formError('token', 'Type the data repo as owner/name, for example alex/pantry-data.'); return; }
     if (!token) { formError('token', 'Paste the token first.'); return; }
     if (!TOKEN.test(token)) { formError('token', 'This is not a GitHub token: a fine-grained one starts with github_pat_.'); return; }
     field.value = '';
-    window.PantrySync.connect(token);
+    window.PantrySync.connect(token, repo);
     close('[data-act="replace"]');
   }
 
   // ── data ──────────────────────────────────────────────────────────
   // Every logged day: M from MyNetDiary (a day with an imported entry, even when Pantry logged more on it) plus P
-  // logged only in Pantry, written "M (+P)" (Tarık: "460 (+10)"), or "M" while P is 0.
+  // logged only in Pantry, written "M (+P)" (Tarık: "460 (+10)"), "M" while P is 0, and "P" while M is 0 (no import).
   function dataHtml(doc) {
     const days = new Map();   // date -> true when MyNetDiary logged that day
     for (const e of doc.entries) {
@@ -272,10 +282,12 @@
     }
     const sorted = [...days.keys()].sort();
     const imported = [...days.values()].filter(Boolean).length, own = sorted.length - imported;
-    const count = own ? `${P.fmt(imported)} (+${P.fmt(own)})` : P.fmt(imported);
-    // Under the name, the count's key ("MyNetDiary (+ Pantry only)" for "464 (+2)") and the range of days.
-    const subs = sorted.length ? [own ? 'MyNetDiary (+ Pantry only)' : 'MyNetDiary', `${dateLabel(sorted[0])} to ${dateLabel(sorted[sorted.length - 1])}`]
-      : ['None on this phone yet', 'Your MyNetDiary history comes in with sync'];
+    const count = !imported ? P.fmt(own) : own ? `${P.fmt(imported)} (+${P.fmt(own)})` : P.fmt(imported);
+    // Under the name, the count's key ("MyNetDiary (+ Pantry only)" for "464 (+2)"; none without MyNetDiary days) and
+    // the range of days.
+    const range = sorted.length ? `${dateLabel(sorted[0])} to ${dateLabel(sorted[sorted.length - 1])}` : '';
+    const subs = !sorted.length ? ['None on this phone yet'] : !imported ? [range]
+      : [own ? 'MyNetDiary (+ Pantry only)' : 'MyNetDiary', range];
     const groups = [['from MyNetDiary', ['mynetdiary']], ['scanned', ['coles', 'woolworths', 'off']], ['from labels', ['label']]]
       .map(([label, sources]) => [doc.foods.filter(f => sources.includes(f.source)).length, label]).filter(([n]) => n > 0);
     const foodsSub = !groups.length ? 'None yet' : groups.length === 1 ? `All ${groups[0][1]}` : groups.map(([n, l]) => `${P.fmt(n)} ${l}`).join(', ');
@@ -322,8 +334,8 @@
     if (full || !TARGETS.includes(editing)) paint(parts.targets, targetsHtml(doc.settings.targets));
     if (sync) {
       const s = sync.status();
-      paint(parts.status, statusHtml(s, sync.REPO));
-      paint(parts.token, tokenHtml(s, sync.REPO));
+      paint(parts.status, statusHtml(s));
+      paint(parts.token, tokenHtml(s));
     } else {
       paint(parts.status, '<p class="note">Sync is not installed in this version of Pantry.</p>');
     }

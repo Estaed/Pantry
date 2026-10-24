@@ -3,7 +3,7 @@
    shows on the next launch) and falls back to the cache when offline or after 3 s without an answer.
    Install stores the shell below plus every feature in app/registry.js, so a new feature needs no edit here.
    Bump CACHE on every release; activate drops the older caches. */
-const CACHE = 'pantry-v10';
+const CACHE = 'pantry-v11';
 importScripts('app/registry.js');
 
 const SHELL = [
