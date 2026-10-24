@@ -65,3 +65,5 @@ not named here follows the base.
   corners with an orange scan line) and P15 Plate, kcal left (plate with an orange arc); the current jar was passed
   over. Read (hypothesis): as in the Calisthenics pick, orange shows the app's own act (scanning, kcal used), not an
   object. Round 2 (`D:/Projects/Calisthenics-App/design/icons-2.html`) derives 10 from those two.
+- 2026-10-24, app icon final: P27 Plate and fork (plate and fork in ink, kcal as an orange arc), over the scan family
+  (P11, P21-P24, P29, P30) and the other plate variants. Source `icons/icon.svg`, rendered to the PNGs.

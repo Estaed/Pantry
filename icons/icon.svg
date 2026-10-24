@@ -1,11 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <!-- Pantry app icon source: one jar in ink on canvas (Tarik Base v6: one glyph, no text, no gradient).
+  <!-- Pantry app icon source (P27 Plate and fork, Calisthenics-App/design/icons-2.html): the plate and fork in ink,
+       the kcal used as an orange arc, on the canvas (Tarik Base v6; the orange detail is Tarık's pick).
        The glyph stays inside the maskable safe circle (radius 205 around the centre).
        icon-192.png and icon-512.png are this file rendered at their size. -->
   <rect width="512" height="512" fill="#0E0E0E"/>
-  <g fill="none" stroke="#EEEEEE" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="186" y="122" width="140" height="44" rx="12"/>
-    <path d="M200 166v14c0 8-12 14-28 24-16 10-22 22-22 40v114c0 22 14 36 36 36h140c22 0 36-14 36-36V244c0-18-6-30-22-40-16-10-28-16-28-24v-14"/>
-    <path d="M150 262h212M150 338h212"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="256" cy="256" r="140" stroke="#EEEEEE" stroke-width="24"/>
+    <path stroke="#FF5A00" stroke-width="28" d="M256 166A90 90 0 1 1 166 256"/>
+    <path stroke="#EEEEEE" stroke-width="16" d="M240 214V246a16 16 0 0 0 32 0V214M256 214V300"/>
   </g>
 </svg>
