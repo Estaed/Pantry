@@ -244,7 +244,7 @@ def check_files():
     check("app/registry.js lists one existing feature script per line", listed and not missing, (listed, missing))
     sw = (ROOT / "sw.js").read_text(encoding="utf-8")
     check("sw.js names a release cache and lists no feature by hand",
-          re.search(r"const CACHE = 'pantry-v\d+'", sw) is not None and not any(f in sw for f in listed), listed)
+          re.search(r"const CACHE = 'pantry-v[\d.]+'", sw) is not None and not any(f in sw for f in listed), listed)
 
     if TASARIM.is_dir():
         pairs = [(ROOT / "tokens.css", TASARIM / "references" / "tokens.css")] + [

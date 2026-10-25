@@ -1,10 +1,12 @@
 # Tasks
 
-## Wave 1
+Each wave is one MINOR version (`CHANGELOG.md`); v1 is 1.0.0.
+
+## Wave 1 (0.1.0, 2026-10-20)
 - [x] Task-00: Thinnest path — PWA shell, data document, log a food, kcal left, camera scan probe, the gate
 - [x] Task-01: Import the 464-day MyNetDiary history into the data document
 
-## Wave 2
+## Wave 2 (0.2.0, 2026-10-21)
 Run with `/otopilot` (Workflow). The wave report records, per finding, which lens found it, real or false alarm, and who would have caught it without the Workflow; plus time, agents and both quota windows. Baseline: wave 1 report. Decision: `D:/TarikOS/850-Companion 🔮/Kararlar.md`, check 2026-10-27.
 
 - [x] Task-02: Today in full — day strip with waves, meals in the corners, G3 ring, macro strip, eaten list
@@ -13,7 +15,7 @@ Run with `/otopilot` (Workflow). The wave report records, per finding, which len
 - [x] Task-05: Edit, move and delete an entry
 - [x] Task-06: Sync with the private data repo, and settings
 
-## Wave 3
+## Wave 3 (0.3.0, 2026-10-21)
 Ran overnight 2026-10-21 (Workflow, phone not on the cable): `reports/otopilot-2026-10-21-report.md`. All four green on main; eye checks on the phone and Task-10's review answers wait for Tarık.
 
 - [x] Task-07: Screens that move, a forgiving router, Edit Save with Undo, Settings day count and macro order
@@ -21,7 +23,7 @@ Ran overnight 2026-10-21 (Workflow, phone not on the cable): `reports/otopilot-2
 - [x] Task-09: Today in colour and motion: over budget at a glance, swipe the ring between days
 - [x] Task-10: Barcode catalogue from his Coles and Woolworths purchases
 
-## Wave 4
+## Wave 4 (0.4.0, 2026-10-21)
 From Tarık's first day on the phone with wave 3 (2026-10-21). Three lanes, files disjoint, run at once with the
 Workflow while he is present; the phone is on the cable for the use check (Samsung Internet).
 
@@ -30,6 +32,6 @@ Workflow while he is present; the phone is on the cable for the use check (Samsu
 - [x] Task-13: Light, dark, system or dynamic (dark after sunset) theme in Settings
 
 ## Later waves (draft)
-- After wave 4: a week of real use against the acceptance in Blueprint; a look at MyNetDiary's design and
+- 0.5.0 (2026-10-25) held the fixes after wave 4. 1.0.0: a week of real use against the acceptance in Blueprint; a look at MyNetDiary's design and
   motion on his phone for ideas (Tarık, 2026-10-21: design and animation, not features; later, with the phone).
-- v1.1: stock spike (receipts vs log vs kitchen), then stock and Hermes' weekly Discord list.
+- 1.1.0: stock spike (receipts vs log vs kitchen), then stock and Hermes' weekly Discord list.
