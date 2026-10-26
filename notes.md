@@ -79,15 +79,15 @@ values, no cooked conversion is needed, and raw grams subtract straight from pac
   restaurant meals as one item ("Whopper junior by Burger King", "2X Chicken Royale and 2X Medium
   Chips"), so such foods simply never touch kitchen stock.
 - **v1 = the food log app** (MyNetDiary replacement). Stock from receipts and the weekly Discord
-  list are v1.1, after a spike tests "bought − logged" on 2–3 real weeks (riskiest assumption).
+  list are 1.1.0, after a spike tests "bought − logged" on 2–3 real weeks (riskiest assumption).
 - **Data:** on the phone (localStorage), synced to a private GitHub data repo with a fine-grained
   token, the way Calisthenics-App syncs to Calisthenics-Data. App repo "Pantry" private with
-  GitHub Pages, like Calisthenics-App; made public when Tarık open-sources it. (The planned v1.2 merge
+  GitHub Pages, like Calisthenics-App; made public when Tarık open-sources it. (The planned 1.2.0 merge
   was dropped on 2026-10-24: Calisthenics-App stays its own repo.)
 - **History:** all 464 MyNetDiary days are imported, so past days are real in the day strip.
 - **New product:** scan → look up the barcode in a catalogue built from Coles and Woolworths
   product data → Open Food Facts → else type the label's per 100 g values once. Label photo read by
-  a model: not planned (maybe v1.3, Tarık).
+  a model: not planned (maybe 1.3.0, Tarık).
 - **Acceptance (Eko's proposal, Tarık did not object):** a full week logged only in Pantry; a
   frequent food takes ≤ 3 taps; any past day opens from the strip with its overage right; (eye) the
   screen matches the final prototype on the phone.
@@ -131,16 +131,16 @@ No stock screen in v1: the weekly Discord list covers stock (Tarık, 2026-10-20)
 Items with a place sit under the version they aim at (`CHANGELOG.md`: one MINOR per wave).
 
 ### 1.1
-- 2026-10-20: stock (bought − logged) and Hermes' weekly Discord list: v1.1, after the spike in Blueprint.
+- 2026-10-20: stock (bought − logged) and Hermes' weekly Discord list: 1.1.0, after the spike in Blueprint.
 
 ### 1.3
-- 2026-10-20: new product from a photo of its label read by a model: maybe v1.3 (Tarık).
+- 2026-10-20: new product from a photo of its label read by a model: maybe 1.3.0 (Tarık).
 
 ### Later
 - 2026-10-20: water, steps: not tracked in v1.
 - 2026-10-20: adding to the Coles/Woolworths trolley; no official API, browser automation is fragile.
 - 2026-10-20: auto-checkout with a virtual card; saves one tap, adds the riskiest step. Payment stays with Tarık.
-- 2026-10-20: merge with the workout app (v1.2, Tarık); body weight comes with it, not in v1 (Tarık no longer weighs in).
+- 2026-10-20: merge with the workout app (1.2.0, Tarık); body weight comes with it, not in v1 (Tarık no longer weighs in).
   2026-10-24: merge dropped (Tarık 2026-10-24: the workout app stays a separate app); body weight stays an open idea.
 - 2026-10-21: the full Coles and Woolworths catalogue (95 Coles product pages behind the bot check, 22 open Woolworths
   lines in `.tmp/purchases/woolworths-review.json`): a later version, not a priority; scanning already works (Tarık
