@@ -22,7 +22,7 @@ Done when (Eko's proposal, 2026-10-20, Tarık did not object):
 ## Not in v1
 Stock (bought − logged) and Hermes' weekly Discord list (v1.1, after the spike below); label photo
 read by a model (maybe v1.3); body weight, water, steps;
-trolley or checkout; desktop layout. Full list: `notes.md` → *After v1*.
+trolley or checkout; desktop layout. Full list: `notes.md` → *Backlog*.
 
 ## Riskiest assumption
 - **v1:** the phone's camera reads EAN-13 through Chrome's built-in `BarcodeDetector` fast enough

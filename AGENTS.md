@@ -10,7 +10,7 @@ missing or cut, read the sources: `D:/TarikOS/850-Companion 🔮/Kurallar.md` (h
 file stays consistent with the house rules; a deliberate exception is stated here explicitly.
 
 **How this project runs** (PRINCIPLES #7, Project lane): ideas and notes go in `notes.md`, and
-anything v1 doesn't need goes under *After v1* → `compass` if the approach is open → Blueprint
+anything v1 doesn't need goes under *Backlog* → `compass` if the approach is open → Blueprint
 (`docs/blueprint.md`, `blueprint` skill) → v1, the simplest complete version, in waves: `plan-wave` writes the next
 wave (every v1 feature ready to run at once), `otopilot` runs it → Tarık looks at each wave and the next is chosen together.
 After v1, growth comes from what the running product showed.
@@ -19,7 +19,7 @@ After v1, growth comes from what the running product showed.
 empty skeleton; when a topic outgrows `notes.md`, it moves to its own file in the matching folder
 and `notes.md` keeps a one-line link.
 
-- `notes.md`: goal, ideas, *After v1*.
+- `notes.md`: goal, ideas, *Backlog*.
 - `references/`: material Tarık brings (brief, rubric, PDFs, links, sample data); read, not edited.
 - `design/`: the visual source of truth (`design/screens.html` prototype and its screenshots), a
   `design/DESIGN.md` holding only what this project overrides, and `design/deviations.md`. The base

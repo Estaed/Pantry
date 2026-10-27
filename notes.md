@@ -2,7 +2,7 @@
 
 The first file of the project and the one place for ideas. Nothing here is binding; what holds
 becomes Blueprint. Dump freely, then sort: v1 is the simplest complete version, and everything it
-doesn't need moves to *After v1*. Eko points out when the v1 list grows past that.
+doesn't need moves to the *Backlog*. Eko points out when the v1 list grows past that.
 
 Started 2026-10-20 from a TarikOS session; background and sources in
 `D:/TarikOS/knowledge/concepts/hermes-ile-market-alisverisi-fizibilite.md`.
@@ -45,7 +45,7 @@ is actually in the kitchen.
 - **Barcode data:** Open Food Facts is free but thin for Australia (Coles eggs and tuna found,
   McCain family pizza not). Since Tarık eats the same things, a personal product list seeded from
   Coles receipts, each label read once, covers most of it.
-- **No official cart or checkout API** at Coles or Woolworths; auto-checkout is out (see After v1).
+- **No official cart or checkout API** at Coles or Woolworths; auto-checkout is out (see Backlog).
 
 ## How Tarık logs today (screen recording, `references/mynetdiary-logging-2026-10-20.mp4`)
 1. Dashboard: calorie budget 2,200, eaten / over, per-meal totals (Breakfast, Lunch, Dinner,
@@ -127,22 +127,22 @@ protein / carbs / fat up front, "o alttaki bar hoşuma gidiyordu"):
 Open: the drawing style (A thin line, B flat greys, C flat natural colours), Tarık picks.
 No stock screen in v1: the weekly Discord list covers stock (Tarık, 2026-10-20).
 
-## After v1
-Items with a place sit under the version they aim at (`CHANGELOG.md`: one MINOR per wave).
+## Backlog
+Not scheduled yet, in order: the first item is the first candidate for the next wave. A scheduled wave
+is in `docs/TASKS_INDEX.md`, what shipped is in `CHANGELOG.md`.
 
-### 1.1
 - 2026-10-20: stock (bought − logged) and Hermes' weekly Discord list: 1.1.0, after the spike in Blueprint.
-
-### 1.3
 - 2026-10-20: new product from a photo of its label read by a model: maybe 1.3.0 (Tarık).
-
-### Later
 - 2026-10-20: water, steps: not tracked in v1.
 - 2026-10-20: adding to the Coles/Woolworths trolley; no official API, browser automation is fragile.
-- 2026-10-20: auto-checkout with a virtual card; saves one tap, adds the riskiest step. Payment stays with Tarık.
-- 2026-10-20: merge with the workout app (1.2.0, Tarık); body weight comes with it, not in v1 (Tarık no longer weighs in).
-  2026-10-24: merge dropped (Tarık 2026-10-24: the workout app stays a separate app); body weight stays an open idea.
+- 2026-10-20: body weight, not in v1 (Tarık no longer weighs in); it was to come with the workout-app merge, so
+  since 2026-10-24 it stays an open idea on its own.
 - 2026-10-21: the full Coles and Woolworths catalogue (95 Coles product pages behind the bot check, 22 open Woolworths
   lines in `.tmp/purchases/woolworths-review.json`): a later version, not a priority; scanning already works (Tarık
   tried cacık and tuna). 68 products went to Pantry-Data's catalogue on 2026-10-21.
 - 2026-10-21: an APK (TWA or Capacitor): not now; the installed PWA already runs as an app. Revisit if the web barcode reader fails his five packs (Tarık).
+
+### Not doing
+- 2026-10-20: auto-checkout with a virtual card; saves one tap, adds the riskiest step. Payment stays with Tarık.
+- 2026-10-20: merge with the workout app (1.2.0, Tarık). 2026-10-24: merge dropped (Tarık 2026-10-24: the workout app
+  stays a separate app).

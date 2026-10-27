@@ -10,7 +10,7 @@ All notable changes to Pantry are written here. The format follows
 - The release string a deploy needs (a service worker cache, a package version) is this file's newest version.
 
 Each wave adds its lines under *Unreleased* as it lands; the closing wave turns *Unreleased* into the new version
-with the date. What later versions will bring lives in `notes.md` → *After v1* and `docs/TASKS_INDEX.md`.
+with the date. What later versions will bring lives in `notes.md` → *Backlog* and `docs/TASKS_INDEX.md`.
 
 Versions before 0.5.0 were numbered afterwards, from the git history; the service worker cache went `pantry-v1` to
 `pantry-v13` then.
