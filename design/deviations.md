@@ -1,4 +1,4 @@
-# Deliberate breaks from Tarik Base v6
+# Deliberate breaks from the base `tasarim`
 
 - **Food drawings carry natural colours** (base: one saturated hue). Tarık picked style C on
   2026-10-20: a food is recognised fastest by its colour. The colour stays inside the drawing;
@@ -34,7 +34,7 @@
 - **The day strip scrolls freely, day by day** (the prototype shows one fixed week): the browser's own sideways
   scroll with a snap on each day, about three months loaded and more as he reaches the start (Tarık, 2026-10-21:
   "mynetdiarydeki gibi ... gün gün akıcı bir şekilde kaydırmak istiyorum").
-- **Screen motion** follows Tarik Base v6 → Motion (push in from the right, back reverses, Today crossfades);
+- **Screen motion** follows `tasarim` → Motion (push in from the right, back reverses, Today crossfades);
   the prototype is static.
 
 ## Departures from the prototype, wave 4 (2026-10-21; from Tarık's first day on the phone)

@@ -38,7 +38,7 @@ unlike its single file, features live in their own scripts (Layout).
 | Piece | Version | Why |
 |---|---|---|
 | Vanilla JS, HTML, CSS | — | one `index.html` app; Tarık asked for light ("hafif") |
-| `tokens.css`, Archivo, Manrope | Tarik Base v6, copied unchanged | design language; fonts local so it works offline |
+| `tokens.css`, Archivo, Manrope | the base `tasarim`, copied unchanged | design language; fonts local so it works offline |
 | Service worker + manifest | — | installable PWA, offline; Pages serves HTTPS for the camera |
 | `BarcodeDetector` (Chrome Android) | built in | EAN-13 scan, no library |
 | GitHub Contents API | REST, fine-grained token | sync to a private data repo, ported from Calisthenics-App |

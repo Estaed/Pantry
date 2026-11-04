@@ -1,6 +1,6 @@
 # Pantry design layer
 
-Overrides on Tarik Base v6 (`D:/TarikOS/.brain/skills/tasarim/references/DESIGN.md`); everything
+Overrides on the base `tasarim` (`D:/TarikOS/.brain/skills/tasarim/references/DESIGN.md`); everything
 not named here follows the base.
 
 - **Illustration tier: `spot`.** Every food in a list or sheet carries a small drawing (Tarık,
