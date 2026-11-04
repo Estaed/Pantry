@@ -140,8 +140,6 @@ is in `docs/TASKS_INDEX.md`, what shipped is in `CHANGELOG.md`.
 - 2026-10-21: the full Coles and Woolworths catalogue (95 Coles product pages behind the bot check, 22 open Woolworths
   lines in `.tmp/purchases/woolworths-review.json`): a later version, not a priority; scanning already works (Tarık
   tried cacık and tuna). 68 products went to Pantry-Data's catalogue on 2026-10-21.
-- 2026-11-04: a Trends screen (weeks against targets, weekday vs weekend, range switch): two prototype directions in
-  `design/ab-trends-A.html` and `ab-trends-B.html` (a blind A/B on reference screens); waits for Tarık's pick.
 - 2026-10-21: an APK (TWA or Capacitor): not now; the installed PWA already runs as an app. Revisit if the web barcode reader fails his five packs (Tarık).
 
 ### Not doing
