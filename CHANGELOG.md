@@ -17,6 +17,14 @@ Versions before 0.5.0 were numbered afterwards, from the git history; the servic
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-11-09
+
+### Added
+- Eggs, slices and anything else with a countable amount are counted with − and + on the food sheet and Edit entry; the grams and kcal follow, and a food counted in several units offers them.
+
+### Fixed
+- `fonts/archivo.css` is again an unchanged copy of the `tasarim` file.
+
 ## [0.5.0] - 2026-10-25
 
 ### Added

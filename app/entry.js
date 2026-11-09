@@ -47,6 +47,13 @@
     .entry-amt .entry-fixed { max-width: 100%; font-size: 2rem; line-height: 1.15; color: var(--ink); overflow-wrap: anywhere; }
     .entry-err { display: flex; gap: 8px; align-items: center; justify-content: center; margin: 0; max-width: 100%; font: 600 0.8125rem/1.4 var(--font-sans); color: var(--danger); text-align: left; }
     .entry-err svg.i { width: 16px; height: 16px; }
+    .entry-count { display: flex; align-items: center; justify-content: center; gap: 14px; }
+    .entry-step {
+      width: 44px; height: 44px; flex: none; display: grid; place-items: center; border-radius: 50%; touch-action: manipulation;
+      border: 1px solid var(--hairline-strong); background: none; color: var(--ink); font: 600 1.375rem/1 var(--font-sans);
+    }
+    .entry-step:disabled { opacity: 0.35; }
+    .entry-count output { min-width: 7em; text-align: center; font: 700 1.0625rem/1.3 var(--font-sans); color: var(--ink); }
     .entry-chips { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; max-width: 100%; }
     .entry-lbl { font: 600 0.75rem/1.3 var(--font-sans); color: var(--ink-muted); }
     .entry-chip {
@@ -119,6 +126,13 @@
   const isGramText = amount => /^\s*[\d.,]+\s*g\s*$/.test(amount);
   const chipLabel = (c, m) => (m.unit === 'g' && isGramText(c.amount) ? `${P.fmt(c.value, 1)} g` : c.amount);
 
+  // An entry logged as a count ('4 eggs', 208 g) steps by one: the grams of one and its word; null for a weight.
+  function countIn(e, m) {
+    const a = parseAmount(e.amount);
+    if (!a || !(a.n > 0) || !/^[a-z][a-z ]*$/i.test(a.unit) || /^(g|grams?|kg|mg|mcg|ml|l|oz|fl oz|lb)$/i.test(a.unit)) return null;
+    return { per: m.unit === 'g' ? m.base / a.n : 1, word: n => (window.PantryCountWord ? window.PantryCountWord(a.unit, n) : a.unit) };
+  }
+
   const header = (eyebrow, title) => `<header class="top back">`
     + `<button class="ibtn" type="button" data-act="back" aria-label="Back">${P.icon('back')}</button>`
     + `<div><p class="eyebrow">${P.esc(eyebrow)}</p><h1 class="title">${P.esc(title)}</h1></div></header>`;
@@ -143,6 +157,7 @@
     const start = fixed ? null : round(m.base, m.digits);   // the amount as the field shows it on opening
     const startText = fixed ? '' : P.fmt(m.base, m.digits);
     const chips = fixed ? [] : chipsFor(entry, m);
+    const count = fixed ? null : countIn(entry, m);
     const drawing = window.PantryDrawing ? window.PantryDrawing(food, 78) : '';
     const shownAmount = !fixed && m.unit === 'g' && !isGramText(entry.amount) ? `, ${entry.amount}` : '';
     const problem = P.problem();
@@ -161,6 +176,11 @@
             <output class="disp" aria-live="polite"><span data-test="entry-kcal"></span><small> kcal</small></output>
           </div>
           <p class="entry-err" role="alert" hidden></p>
+          ${count ? `<div class="entry-count" role="group" aria-label="Count">
+            <button class="entry-step" type="button" data-step="-1" aria-label="One less">−</button>
+            <output data-test="entry-count" aria-live="polite"></output>
+            <button class="entry-step" type="button" data-step="1" aria-label="One more">+</button>
+          </div>` : ''}
           ${fixed ? `<p class="note">${logged ? 'This amount cannot be scaled' : 'Logged without an amount'}, so only the meal can change.</p>` : ''}
           ${chips.length ? `<div class="entry-chips" role="group" aria-label="Usual amounts">${chips.map((c, i) =>
             `<button class="entry-chip" type="button" data-chip="${i}" aria-pressed="false">${P.esc(chipLabel(c, m))}</button>`).join('')}</div>` : ''}
@@ -195,12 +215,18 @@
     // The amount a typed value stands for: the logged one while the field still shows it, a usual amount's own
     // value when its chip is picked, else the value itself.
     const target = value => (value === start ? m.base : (chips.find(c => c.value === value) || { exact: value }).exact);
+    const countOf = value => { const n = round(value / count.per, 2); return { n, exact: Number.isInteger(n) && round(n * count.per, m.digits) === value }; };
     const refresh = () => {
       if (fixed) kcalOut.textContent = P.fmt(entry.totals.kcal);
       else {
         const r = read();
         kcalOut.textContent = r.error ? '–' : P.fmt(entry.totals.kcal * target(r.value) / m.base);
         form.querySelectorAll('[data-chip]').forEach(b => b.setAttribute('aria-pressed', String(!r.error && chips[Number(b.dataset.chip)].value === r.value)));
+        if (count) {
+          const c = r.error ? null : countOf(r.value);
+          form.querySelector('[data-test="entry-count"]').textContent = c ? `${c.exact ? '' : '≈ '}${P.fmt(c.n, 2)} ${count.word(c.n)}` : '–';
+          form.querySelector('[data-step="-1"]').disabled = !c || c.n <= 1;
+        }
       }
       form.querySelectorAll('[data-meal]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.meal === meal)));
     };
@@ -213,6 +239,15 @@
     }
     form.querySelectorAll('[data-chip]').forEach(b => b.addEventListener('click', () => {
       input.value = P.fmt(chips[Number(b.dataset.chip)].value, m.digits);
+      err.hidden = true;
+      refresh();
+    }));
+    form.querySelectorAll('[data-step]').forEach(b => b.addEventListener('click', () => {
+      const r = read();
+      const now = r.error ? 0 : countOf(r.value).n;
+      const next = Number(b.dataset.step) > 0 ? Math.floor(now + 1e-9) + 1 : Math.ceil(now - 1e-9) - 1;
+      if (next < 1) return;
+      input.value = P.fmt(next * count.per, m.digits);
       err.hidden = true;
       refresh();
     }));
@@ -232,8 +267,10 @@
           // The amount text he would recognise: a usual one with the same value, else the number and its unit.
           const chip = chips.find(c => c.value === r.value);
           to = target(r.value);
-          amount = chip ? chip.amount : `${r.value} ${m.unit}`;
-          said = chip ? chipLabel(chip, m) : `${P.fmt(r.value, m.digits)} ${m.unit}`;
+          const c = count ? countOf(r.value) : null;
+          const counted = c && c.exact ? `${c.n} ${count.word(c.n)}` : null;
+          amount = chip ? chip.amount : counted || `${r.value} ${m.unit}`;
+          said = chip ? chipLabel(chip, m) : counted || `${P.fmt(r.value, m.digits)} ${m.unit}`;
         }
       }
       const moved = meal !== entry.meal;

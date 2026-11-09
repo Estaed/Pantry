@@ -71,6 +71,7 @@
   const MAX_GRAMS = 10000;
   const MEASURES = new Set(['g', 'kg', 'mg', 'mcg', 'ml', 'l', 'oz', 'fl oz', 'lb']);   // units that take no plural s
   const SIZES = new Set(['small', 'medium', 'large']);   // '2 medium' (bananas): a size, not a thing to count
+  const NOT_COUNTED = new Set(['pack', 'gram', 'ounce']);   // a serving label that is a weight or the whole pack
   // "All nutrients": the four the task names always show (a missing one as a dash); the rest only when the food has them.
   const MAIN = [['salt', 'Salt', 'g'], ['sugars', 'Sugars', 'g'], ['fibre', 'Fibre', 'g'], ['satFat', 'Saturated fat', 'g']];
   const MORE = [['addedSugars', 'Added sugars', 'g'], ['sugarAlcohols', 'Sugar alcohols', 'g'], ['solubleFiber', 'Soluble fibre', 'g'],
@@ -286,6 +287,13 @@
     }
     .log-chip::before { content: ''; position: absolute; inset: -4px -2px; }
     .log-chip[aria-pressed="true"] { background: var(--action); color: var(--on-action); border-color: var(--action); }
+    .log-count { display: flex; align-items: center; justify-content: center; gap: 14px; }
+    .log-step {
+      width: 44px; height: 44px; flex: none; display: grid; place-items: center; border-radius: 50%; touch-action: manipulation;
+      border: 1px solid var(--hairline-strong); background: none; color: var(--ink); font: 600 1.375rem/1 var(--font-sans);
+    }
+    .log-step:disabled { opacity: 0.35; }
+    .log-n { min-width: 7em; text-align: center; font: 700 1.0625rem/1.3 var(--font-sans); color: var(--ink); }
     .log-portion { width: 100%; }
     .log-portion .eyebrow { display: block; margin-bottom: 8px; }
     .log-bars { display: flex; gap: 4px; }
@@ -357,6 +365,40 @@
   function amountText(amount) {
     const m = /^(\d+(?:[.,]\d+)?) ([a-z]+)$/.exec(String(amount || '').trim());
     return m ? `${m[1]} ${plural(singular(m[2]), Number(m[1].replace(',', '.')))}` : amount;
+  }
+
+  // '2 large eggs' -> 'large egg': the thing counted, whatever number it came with.
+  const countedUnit = unit => (/^[a-z ]+$/.test(unit) ? unit.replace(/[a-z]+$/, w => singular(w)) : unit);
+  const countWord = (unit, n) => (/^[a-z ]+$/.test(unit) ? unit.replace(/[a-z]+$/, w => plural(w, n)) : unit);
+  window.PantryCountWord = (unit, n) => countWord(countedUnit(unit), n);   // Edit entry says its count the same way
+
+  // The things a food can be counted in, most used first: his own amounts, then its serving labels ('2 slices' = 77 g),
+  // never a weight or the pack. per: the grams of one (the label's when it has one); known: the grams he logged for an
+  // exact count, so his 4 slices stay his 154 g. A food logged by servings counts the sheet's own number.
+  function countUnits(doc, food, m) {
+    if (!m) return [];
+    if (m.kind === 'servings') return MEASURES.has(m.unit) ? [] : [{ unit: m.unit, per: 1, known: new Map(), uses: 0 }];
+    const by = new Map();
+    const slot = unit => by.get(unit) || by.set(unit, { unit, per: 0, known: new Map(), uses: 0 }).get(unit);
+    const read = text => {
+      const a = parseAmount(text), unit = countedUnit(a.unit);
+      return a.n > 0 && unit && !MEASURES.has(unit) && !NOT_COUNTED.has(unit) ? { n: a.n, unit } : null;
+    };
+    doc.entries.filter(e => e.foodId === food.id && isNum(e.grams) && e.grams > 0)
+      .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
+      .forEach(e => {
+        const a = read(e.amount);
+        if (!a) return;
+        const s = slot(a.unit);
+        s.uses += 1;
+        s.per = e.grams / a.n;
+        s.known.set(a.n, e.grams);
+      });
+    for (const serving of food.servings) {
+      const a = isNum(serving.grams) && serving.grams > 0 ? read(serving.label) : null;
+      if (a) slot(a.unit).per = serving.grams / a.n;
+    }
+    return [...by.values()].sort((a, b) => b.uses - a.uses).slice(0, CHIPS);
   }
 
   // Text the user typed as a positive number, or why it is not one.
@@ -1324,7 +1366,13 @@
             <output class="disp log-k" aria-live="polite"><span data-test="portion-kcal"></span><small>kcal</small></output>
           </div>
           <p class="err log-err" role="alert" hidden></p>
-          <div class="log-chips" role="group" aria-label="Usual amounts" hidden></div>
+          <div class="log-count" role="group" aria-label="Count" hidden>
+            <button class="log-step" type="button" data-step="-1" aria-label="One less">−</button>
+            <output class="log-n" data-test="count" aria-live="polite"></output>
+            <button class="log-step" type="button" data-step="1" aria-label="One more">+</button>
+          </div>
+          <div class="log-chips log-units" role="group" aria-label="Count in" hidden></div>
+          <div class="log-chips log-usual" role="group" aria-label="Usual amounts" hidden></div>
           <div class="log-portion" hidden><span class="eyebrow">This portion</span><div class="log-bars" aria-hidden="true"></div><div class="log-macros"></div></div>
           <button class="log-more" type="button" aria-expanded="false" aria-controls="log-nutr"${m ? '' : ' hidden'}>All nutrients${icon('down')}</button>
           <div class="log-nutr" id="log-nutr" hidden></div>
@@ -1344,7 +1392,25 @@
     const portion = form.querySelector('.log-portion');
     const more = form.querySelector('.log-more');
     const nutr = form.querySelector('.log-nutr');
-    const chipBox = form.querySelector('.log-chips');
+    const chipBox = form.querySelector('.log-usual');
+    const countBox = form.querySelector('.log-count');
+    const countOut = form.querySelector('[data-test="count"]');
+    const unitBox = form.querySelector('.log-units');
+    const counts = countUnits(doc, food, m);
+    const countFor = when => {
+      const u = P.usualAmounts(food.id, when)[0], a = u ? countedUnit(parseAmount(u.amount).unit) : null;
+      return counts.find(c => c.unit === a) || counts[0] || null;
+    };
+    let counting = countFor(S.meal);   // the unit the − and + count in
+    const digits = grams ? 1 : 2;
+    const amountOf = n => (counting.known.has(n) ? counting.known.get(n) : round(n * counting.per, digits));
+    // What the amount field holds, as a count of the unit. exact: it is that count's amount, not just close to it.
+    const countOf = v => {
+      if (!counting || !v) return null;
+      for (const [n, g] of counting.known) if (g === v) return { n, exact: true };
+      const n = round(v / counting.per, 2);
+      return { n, exact: (!grams || Number.isInteger(n)) && amountOf(n) === v };   // 80 g is never logged as '3.2 slices'
+    };
     const sheet = { foodId: food.id, layer, form, input, refresh: null, done: false, tapAt: -Infinity };
     const meal = () => form.elements.meal.value;
     const listMeal = S.meal;   // ticked rows go in with this food, at the list's meal and amounts whatever the radio says
@@ -1357,6 +1423,14 @@
       const totals = n ? totalsFor(f, m, n) : null;
       kcalOut.textContent = totals ? P.fmt(totals.kcal) : '–';
       if (!grams && m) unitOut.textContent = plural(unit, n || 2);
+      countBox.hidden = !counting;
+      if (counting) {
+        const c = countOf(n);
+        countOut.textContent = c ? `${c.exact ? '' : '≈ '}${numText(c.n)} ${countWord(counting.unit, c.n)}` : `0 ${countWord(counting.unit, 2)}`;
+        countBox.querySelector('[data-step="-1"]').disabled = !c || c.n <= 1;
+        countBox.querySelector('[data-step="1"]').disabled = Boolean(c) && amountOf(Math.floor(c.n + 1e-9) + 1) > (grams ? MAX_GRAMS : 1000);
+        unitBox.querySelectorAll('.log-chip').forEach((el, i) => el.setAttribute('aria-pressed', String(counts[i] === counting)));
+      }
       chipBox.querySelectorAll('.log-chip').forEach((el, i) => el.setAttribute('aria-pressed', String(n !== undefined && i === chips.findIndex(c => c.n === n))));
       const waiting = tickedPicks(P.doc(), food.id).length, to = meal();
       submit.textContent = !waiting ? `Add to ${mealWord(to)}` : to === listMeal ? `Add ${waiting + 1} to ${mealWord(to)}`
@@ -1409,7 +1483,7 @@
       if (m) {
         chips = chipList(food, m, meal());
         drawChips();
-        if (!touched) { start = startFor(food, m, meal()); input.value = String(start); err.hidden = true; }
+        if (!touched) { start = startFor(food, m, meal()); input.value = String(start); counting = countFor(meal()); err.hidden = true; }
       }
       refresh();
     });
@@ -1417,9 +1491,27 @@
       const chip = e.target.closest('.log-chip');
       if (!chip) return;
       touched = true;
-      input.value = String(chips[Number(chip.dataset.i)].n);
+      const picked = chips[Number(chip.dataset.i)];
+      counting = counts.find(c => c.unit === countedUnit(parseAmount(picked.amount).unit)) || counting;
+      input.value = String(picked.n);
       err.hidden = true;
       refresh();
+    });
+    const setCount = n => { touched = true; input.value = String(amountOf(n)); err.hidden = true; refresh(); };
+    countBox.addEventListener('click', e => {
+      const step = e.target.closest('[data-step]');
+      if (!step || step.disabled) return;
+      const c = countOf(read().value), now = c ? c.n : 0;
+      const next = Number(step.dataset.step) > 0 ? Math.floor(now + 1e-9) + 1 : Math.ceil(now - 1e-9) - 1;
+      if (next >= 1) setCount(next);
+    });
+    // Another unit keeps the count: 3 medium eggs become 3 large ones.
+    unitBox.addEventListener('click', e => {
+      const chip = e.target.closest('.log-chip');
+      if (!chip) return;
+      const c = countOf(read().value);
+      counting = counts[Number(chip.dataset.i)];
+      setCount(c ? Math.max(1, Math.round(c.n)) : 1);
     });
     more.addEventListener('click', () => {
       const open = nutr.hidden;
@@ -1437,7 +1529,9 @@
       const f = P.doc().foods.find(x => x.id === food.id);
       if (!f) { fail('This food is no longer in your list.'); return; }
       const chip = chips.find(c => c.n === r.value);
-      const amount = chip ? chip.amount : grams ? `${numText(r.value)} g` : `${numText(r.value)} ${plural(unit, r.value)}`;
+      const c = countOf(r.value);
+      const amount = chip ? chip.amount : c && c.exact ? `${numText(c.n)} ${countWord(counting.unit, c.n)}`
+        : grams ? `${numText(r.value)} g` : `${numText(r.value)} ${plural(unit, r.value)}`;
       const when = meal(), date = dateOf(), dateArg = S.dateArg;
       // the ticked foods first, to the list's meal at the amounts their rows showed (as their + would log them), then
       // this one to the meal the sheet names
@@ -1452,6 +1546,8 @@
       toToday(food.id, dateArg, () => added(items, ticks.length ? [when, listMeal] : when, date));
     });
     drawChips();
+    unitBox.hidden = counts.length < 2;
+    if (counts.length > 1) unitBox.innerHTML = counts.map((c, i) => `<button class="log-chip" type="button" data-i="${i}" aria-pressed="false">${P.esc(c.unit)}</button>`).join('');
     refresh();
     return sheet;
   }

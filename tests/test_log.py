@@ -1771,6 +1771,64 @@ def check_double_tap(browser, errors):
     ctx.close()
 
 
+def check_count(browser, errors):
+    """Eggs and slices stored in grams are counted with − and +, as MyNetDiary counts them."""
+    ctx, page = A.phone(browser, errors, "count")
+    A.open_today(page, URL)
+    go(page, "food", CHICKEN, "breakfast")
+    sheet(page).wait_for()
+    CHECK("a food with no countable amount shows no count", not page.locator(".log-count").is_visible())
+    page.evaluate("id => Pantry.change(d => { d.foods.find(f => f.id === id).servings = "
+                  "[{label: '2 eggs', grams: 104, kcal: 148}, {label: '1 gram', grams: 1, kcal: 1}, {label: '1 slice', grams: 25, kcal: 60}]; })", CHICKEN)
+    add_entries(page, [entry(1, CHICKEN, "2026-10-01", "breakfast", "4 eggs", 208)])
+    go(page, "today")
+    go(page, "food", CHICKEN, "breakfast")
+    sheet(page).wait_for()
+    grams = page.get_by_label("Grams")
+    count = page.locator('[data-test="count"]')
+    kcal = page.locator('[data-test="portion-kcal"]')
+    less, more = page.get_by_role("button", name="One less"), page.get_by_role("button", name="One more")
+    CHECK("the sheet opens at his 4 eggs, in eggs", grams.input_value() == "208" and count.inner_text() == "4 eggs", (grams.input_value(), count.inner_text()))
+    CHECK("a weight or a '1 gram' label is not a unit to count in", page.locator(".log-units .log-chip").all_inner_texts() == ["egg", "slice"],
+          page.locator(".log-units .log-chip").all_inner_texts())
+    less.click()
+    want = fmt(page, totals(page, CHICKEN, 156)["kcal"])
+    CHECK("− makes 3 eggs: the grams and the kcal follow", grams.input_value() == "156" and count.inner_text() == "3 eggs" and kcal.inner_text().strip() == want,
+          (grams.input_value(), count.inner_text(), kcal.inner_text()))
+    page.locator(".log-units .log-chip", has_text="slice").click()
+    CHECK("another unit keeps the count: 3 slices at 25 g", grams.input_value() == "75" and count.inner_text() == "3 slices", (grams.input_value(), count.inner_text()))
+    grams.fill("80")
+    CHECK("grams that are no whole count say so", count.inner_text() == "≈ 3.2 slices", count.inner_text())
+    more.click()
+    CHECK("+ from 3.2 goes to the next whole count", grams.input_value() == "100" and count.inner_text() == "4 slices", (grams.input_value(), count.inner_text()))
+    grams.fill("25")
+    CHECK("− stops at one", less.is_disabled() and count.inner_text() == "1 slice", count.inner_text())
+    page.locator(".log-units .log-chip", has_text="egg").click()
+    more.click()
+    more.click()
+    page.locator(".log-foot .btn").click()
+    page.wait_for_selector('[data-screen="today"]')
+    last = stored(page)["entries"][-1]
+    CHECK("three eggs log as '3 eggs' with their grams and kcal", last["amount"] == "3 eggs" and last["grams"] == 156
+          and abs(last["totals"]["kcal"] - totals(page, CHICKEN, 156)["kcal"]) < 1e-6, last)
+    go(page, "entry", last["id"])
+    page.wait_for_selector('[data-test="entry-count"]')
+    CHECK("Edit entry counts it too", page.locator('[data-test="entry-count"]').inner_text() == "3 eggs", page.locator('[data-test="entry-count"]').inner_text())
+    page.get_by_role("button", name="One more").click()
+    page.get_by_role("button", name="Save").click()
+    page.wait_for_selector('[data-screen="today"]')
+    edited = next(e for e in stored(page)["entries"] if e["id"] == last["id"])
+    CHECK("saving in Edit entry keeps a count: '4 eggs', 208 g", edited["amount"] == "4 eggs" and edited["grams"] == 208, edited)
+    load(page, fixture_doc())
+    go(page, "food", ROY, "lunch", "2026-08-08")
+    sheet(page).wait_for()
+    field = page.get_by_label("Number of servings")
+    start = float(field.input_value())
+    page.get_by_role("button", name="One more").click()
+    CHECK("a food logged by servings steps its own number", float(field.input_value()) == start + 1, field.input_value())
+    ctx.close()
+
+
 def main():
     global URL
     srv, site, URL = A.start_site()
@@ -1788,7 +1846,7 @@ def main():
                              ("meal follows", check_meal_follows), ("tap opens", check_tap_opens),
                              ("sheet no keyboard", check_sheet_no_keyboard), ("long press", check_long_press),
                              ("check under", check_check_under), ("meal layout", check_meal_layout),
-                             ("double tap", check_double_tap)):
+                             ("double tap", check_double_tap), ("count", check_count)):
                 A.guarded(f"{name} scenario", fn, browser, errors)
             browser.close()
         CHECK("no console errors or page errors", not errors, "\n".join(errors[:10]))
