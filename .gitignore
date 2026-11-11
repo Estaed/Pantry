@@ -3,3 +3,4 @@ references/mynetdiary-history-*.json
 references/*.mp4
 .tmp/
 __pycache__/
+backup/
