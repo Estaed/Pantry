@@ -1,5 +1,5 @@
 # Task-11: A meal's list opens on that meal, and tapping a food never logs by surprise
-**Status: DONE** — verified 2026-10-21, eye check pending: 5
+**Status: DONE** — verified 2026-10-21, eye checks closed 2026-11-11 (Tarık: in daily use, he reports a problem when he meets one)
 > **Execution:** agent `ultracode`
 > *Why:* after a day on the phone Tarık could not find how to take a wrongly logged food out of a meal, a tap on a food's drawing ticked it when he meant to open it, and a check mark floated over the search box.
 
@@ -45,7 +45,7 @@ restarted the app (Tarık, 2026-10-21: "yemeğin üstüne tıklayıp klavye aç�
 - [ ] With the list scrolled so a check lies under the sticky search and tabs, the check is painted under them: `elementFromPoint` at its centre does not return the check (the bug is paint order, not position; the check may still stick out of its drawing as drawn).
 - [ ] At 360 × 780, text 1.0, light and dark: no horizontal scroll, no console errors.
 - [ ] Each test added fails once when the behaviour it protects is broken (shown in the report, restored).
-- [ ] (eye) On Tarık's phone: opening Lunch after logging lunch shows lunch first; taking a wrong food out takes two taps and leaves him in Lunch; a tap on a food never logs it; the keyboard comes only from the amount, and typing then replaces the amount (not "3502"); with the keyboard up, Back closes the keyboard, Back closes the sheet, Back leaves the list (Samsung Internet).
+- [x] (eye) On Tarık's phone: opening Lunch after logging lunch shows lunch first; taking a wrong food out takes two taps and leaves him in Lunch; a tap on a food never logs it; the keyboard comes only from the amount, and typing then replaces the amount (not "3502"); with the keyboard up, Back closes the keyboard, Back closes the sheet, Back leaves the list (Samsung Internet).
 
 Gate hooks: `tests/acceptance.py` (check_phone, after a breakfast entry exists) and `tests/test_shell.py` (lines
 clicking the first `.log-open` and waiting for the first `[data-act="plus"]` on `add dinner 2026-08-08`, a day with a

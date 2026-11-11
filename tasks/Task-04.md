@@ -1,5 +1,5 @@
 # Task-04: Scan and new product — barcode to a food he can log
-**Status: DONE** — verified 2026-10-21, eye check pending: 1 (Scan, Found, From the label; five real packs after deploy)
+**Status: DONE** — verified 2026-10-21, eye checks closed 2026-11-11 (Tarık: in daily use, he reports a problem when he meets one)
 > **Execution:** agent `ultracode`
 > *Why:* a new product must become a loggable food in under a minute, without typing a label when the data exists.
 
@@ -48,7 +48,7 @@ probe with the real flow.
 - [x] Every camera track stops when the scan screen is left by any route (Task-00's checks keep passing); an EAN-13 with a wrong check digit is ignored, not looked up.
 - [x] At 360 × 780 with text at 150 % and at 240 px: no horizontal scroll, no console errors, dark and light both render.
 - [x] The tests fail when unlisted Open Food Facts fields are copied into per100, and when a listed 0 is dropped (shown once each, restored).
-- [ ] (eye) On `terra_nt` at 360 dp: Scan, Found and From the label match `design/screens.html` → *5*, *6*, *6b*. Tarık scans five real packs on his phone at https://estaed.github.io/Pantry/ after deploy (also closes Task-00's open eye check).
+- [x] (eye) On `terra_nt` at 360 dp: Scan, Found and From the label match `design/screens.html` → *5*, *6*, *6b*. Tarık scans five real packs on his phone at https://estaed.github.io/Pantry/ after deploy (also closes Task-00's open eye check).
 
 ## Out of scope
 - Building the catalogue (wave 3, from his Coles receipts); this task reads `doc.catalogue` when present and works without it.

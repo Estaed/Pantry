@@ -1,5 +1,5 @@
 # Task-06: Sync with the private data repo, and settings
-**Status: DONE** — verified 2026-10-21, eye check pending: 1 (Settings; paste the token after deploy and see the 464 days)
+**Status: DONE** — verified 2026-10-21, eye checks closed 2026-11-11 (Tarık: in daily use, he reports a problem when he meets one)
 > **Execution:** agent `ultracode`
 > *Why:* one lost phone must not lose the log, and the 464 imported days reach the phone through this.
 
@@ -51,7 +51,7 @@ the store catalogue reach the phone.
 - [x] Changing targets in Settings updates Today's numbers (the kcal budget and macro targets) and is synced; a later pull with the repo's old targets does not undo it.
 - [x] At 360 × 780 with text at 150 % and at 240 px: Settings has no horizontal scroll, no console errors, dark and light both render.
 - [x] The tests fail when the merge is replaced by a whole-document replace, and when `doc.removed` is ignored (shown once each, restored).
-- [ ] (eye) On `terra_nt` at 360 dp: Settings matches `design/screens.html` → *9. Settings* (without the theme row: the theme follows the phone in v1). After deploy, Tarık pastes his token and the phone shows his 464 days.
+- [x] (eye) On `terra_nt` at 360 dp: Settings matches `design/screens.html` → *9. Settings* (without the theme row: the theme follows the phone in v1). After deploy, Tarık pastes his token and the phone shows his 464 days.
 
 ## Out of scope
 - Uploading the imported history to the repo: the main loop does it once with `tools/import_mynetdiary.py` output before Tarık's first sync.

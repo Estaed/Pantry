@@ -1,5 +1,5 @@
 # Task-13: Light, dark, system or dynamic theme, chosen in Settings
-**Status: DONE** — verified 2026-10-21, eye check pending: 4
+**Status: DONE** — verified 2026-10-21, eye checks closed 2026-11-11 (Tarık: in daily use, he reports a problem when he meets one)
 > **Execution:** agent `ultracode`
 > *Why:* Tarık wants to pick the theme himself, including one that goes dark when the evening comes.
 
@@ -34,7 +34,7 @@ He uses the app morning to night; a bright screen at night and a dark one in the
 - [ ] A synced document with a different `settings.theme` applies it without a reload.
 - [ ] At 360 × 780, text 1.0, Settings in light and dark: no horizontal scroll, no console errors; the theme control also fits where `tests/test_sync.py` already checks Settings (150 % text, 240 px).
 - [ ] Each test added fails once when the behaviour it protects is broken (shown in the report, restored).
-- [ ] (eye) On Tarık's phone: the choice is easy to find in Settings and the switch is immediate; the status bar follows it; Light is not darkened by Samsung Internet's own dark mode; Dynamic is dark after sunset.
+- [x] (eye) On Tarık's phone: the choice is easy to find in Settings and the switch is immediate; the status bar follows it; Light is not darkened by Samsung Internet's own dark mode; Dynamic is dark after sunset.
 
 ## Out of scope
 - New colours or a redesign of either theme; Today and the meal list (Task-11, Task-12).

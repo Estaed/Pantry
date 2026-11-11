@@ -1,5 +1,5 @@
 # Task-12: Today reads at a glance: whole ring, eaten by meal, red when over
-**Status: DONE** — verified 2026-10-21, eye check pending: 6
+**Status: DONE** — verified 2026-10-21, eye checks closed 2026-11-11 (Tarık: in daily use, he reports a problem when he meets one)
 > **Execution:** agent `ultracode`
 > *Why:* after a day on the phone Tarık found the ring's empty slots confusing, the macro bars' colours meaningless, the eaten list hard to scan and edit, and the violet over tone not alarming enough.
 
@@ -59,7 +59,7 @@ Today is the screen he opens most; each of these made him stop and think (or hun
 - [ ] With the page scrolled to its end, no row's text or kcal lies under the + or Scan; Scan has the same elevation as the +.
 - [ ] At 360 × 780, text 1.0, light and dark: no horizontal scroll, no console errors.
 - [ ] Each test added fails once when the behaviour it protects is broken (shown in the report, restored).
-- [ ] (eye) On Tarık's phone: the ring's empty part reads as "left"; red and its light tints read as over at a glance; the macro bars show which macro is off; swiping between meals feels natural; taking a food out is obvious; no scrollbar line at the right edge.
+- [x] (eye) On Tarık's phone: the ring's empty part reads as "left"; red and its light tints read as over at a glance; the macro bars show which macro is off; swiping between meals feels natural; taking a food out is obvious; no scrollbar line at the right edge.
 
 `app/base.css` is shared with the meal list, New food and Settings: change it only for the page scrollbar; the
 shared `.fr`, `.bottom` and `#toast` rules stay as they are (Today's own needs go in `app/today.js`).

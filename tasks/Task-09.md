@@ -1,5 +1,5 @@
 # Task-09: Today in colour and motion: over budget at a glance, swipe between days
-**Status: DONE** — verified 2026-10-21, eye check pending: 1 (over budget at a glance, ring swipe, strip under the finger, on his phone)
+**Status: DONE** — verified 2026-10-21, eye checks closed 2026-11-11 (Tarık: in daily use, he reports a problem when he meets one)
 > **Execution:** agent `ultracode`
 > *Why:* on his phone going over budget changed nothing he could notice, the strip jumps under his finger, and the screen gives no sign of what a log changed.
 
@@ -44,7 +44,7 @@ Today is the screen he opens 20+ times a day; the budget state and the day are w
 - [x] The existing Today checks stay green, updated only where an assertion pinned the old order or colour (each such line listed in the report).
 - [x] At 360 × 780 and text 1.0: no horizontal scroll, no console errors, dark and light render.
 - [x] Each test added fails once when the behaviour it protects is broken (shown in the report, restored).
-- [ ] (eye) On Tarık's phone: over budget is obvious at a glance; swiping the ring between days feels natural; the strip stays still under his finger.
+- [x] (eye) On Tarık's phone: over budget is obvious at a glance; swiping the ring between days feels natural; the strip stays still under his finger.
 
 ## Out of scope
 - Screen-to-screen transitions (Task-07), the list and sheet (Task-08), Settings.

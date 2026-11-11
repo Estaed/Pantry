@@ -1,5 +1,5 @@
 # Task-07: Screens that move, a router that forgives, Settings and Edit that answer
-**Status: DONE** — verified 2026-10-21, eye check pending: 1 (screen motion, back swipe and the grams button with the keyboard, on his phone)
+**Status: DONE** — verified 2026-10-21, eye checks closed 2026-11-11 (Tarık: in daily use, he reports a problem when he meets one)
 > **Execution:** agent `ultracode`
 > *Why:* every screen change is a hard cut today, a fast second tap lands on the wrong screen, and Edit saves silently; this is the "animasyon eksikliği" Tarık feels first.
 
@@ -48,7 +48,7 @@ silent defects (double tap, silent save) were found in wave 2 and left open.
 - [x] `Pantry`'s public API keeps every name and signature listed in the header of `app/core.js` (a test lists them).
 - [x] At 360 × 780 and text 1.0: no horizontal scroll, no console errors, dark and light render.
 - [x] Each test added fails once when the behaviour it protects is broken (shown in the report, restored).
-- [ ] (eye) On Tarık's phone: opening and leaving each screen feels smooth and quick, nothing double-animates on the back swipe, and the grams field's button stays visible with the keyboard open.
+- [x] (eye) On Tarık's phone: opening and leaving each screen feels smooth and quick, nothing double-animates on the back swipe, and the grams field's button stays visible with the keyboard open.
 
 ## Out of scope
 - Today's own motion and layout (Task-09), the list and gram sheet (Task-08), new screens, the scan flow.

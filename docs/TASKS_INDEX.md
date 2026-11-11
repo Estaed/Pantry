@@ -16,7 +16,7 @@ Run with `/otopilot` (Workflow). The wave report records, per finding, which len
 - [x] Task-06: Sync with the private data repo, and settings
 
 ## Wave 3 (0.3.0, 2026-10-21)
-Ran overnight 2026-10-21 (Workflow, phone not on the cable): `reports/otopilot-2026-10-21-report.md`. All four green on main; eye checks on the phone and Task-10's review answers wait for Tarık.
+Ran overnight 2026-10-21 (Workflow, phone not on the cable): `reports/otopilot-2026-10-21-report.md`. All four green on main; eye checks closed 2026-11-11 (Tarık reports a problem when he meets one); Task-10's review answers wait for Tarık.
 
 - [x] Task-07: Screens that move, a forgiving router, Edit Save with Undo, Settings day count and macro order
 - [x] Task-08: Logging the MyNetDiary way: tick several foods, yesterday's meal, instant feedback on +

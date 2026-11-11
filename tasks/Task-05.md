@@ -1,5 +1,5 @@
 # Task-05: Edit, move and delete an entry
-**Status: DONE** — verified 2026-10-21, eye check pending: 1 (Edit an entry against design 8)
+**Status: DONE** — verified 2026-10-21, eye checks closed 2026-11-11 (Tarık: in daily use, he reports a problem when he meets one)
 > **Execution:** agent `ultracode`
 > *Why:* a wrong gram or a meal logged under the wrong meal must be fixed in two taps, on any day.
 
@@ -34,7 +34,7 @@ Without it a mistake stays in the log, and every past day's total is wrong.
 - [x] An empty, zero or non-number amount is said in words and nothing is saved.
 - [x] At 360 × 780 with text at 150 % and at 240 px: no horizontal scroll, no console errors, dark and light both render.
 - [x] The tests fail when grams are edited by recomputing from per100 instead of scaling the entry (shown once, restored).
-- [ ] (eye) On `terra_nt` at 360 dp: the screen carries the content and order of `design/screens.html` → *8. Edit an entry*; Delete is outlined in the danger colour, never filled.
+- [x] (eye) On `terra_nt` at 360 dp: the screen carries the content and order of `design/screens.html` → *8. Edit an entry*; Delete is outlined in the danger colour, never filled.
 
 ## Out of scope
 - Today and the past-day view (Task-02) beyond being opened from them; editing a food's own values.

@@ -1,5 +1,5 @@
 # Task-00: Thinnest path — install, log a food, see kcal left, scan a barcode
-**Status: DONE** — verified 2026-10-20, eye check pending: 1 (scan five packs; layout checked on `terra_nt` and confirmed on Tarık's phone 2026-10-20)
+**Status: DONE** — verified 2026-10-20, eye checks closed 2026-11-11 (Tarık: in daily use, he reports a problem when he meets one)
 > **Execution:** agent `ultracode`
 > *Why:* every later feature plugs into this shell, its data and its gate, and the camera scan is v1's riskiest assumption.
 

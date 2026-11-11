@@ -1,5 +1,5 @@
 # Task-08: Logging the MyNetDiary way: several foods at once, yesterday's meal, instant feedback
-**Status: DONE** — verified 2026-10-21, eye check pending: 1 (a 4-food dinner in one visit, + feedback, sheet with the keyboard, on his phone)
+**Status: DONE** — verified 2026-10-21, eye checks closed 2026-11-11 (Tarık: in daily use, he reports a problem when he meets one)
 > **Execution:** agent `ultracode`
 > *Why:* a dinner of his is 3–5 foods, and today each one is a trip from Today to the list and back; logging is the act he repeats most.
 
@@ -44,7 +44,7 @@ instant feedback removes the moment of doubt after each tap.
 - [x] Logged entries keep their nutrient totals from log time (Blueprint): editing a food after logging never changes them (existing check stays green).
 - [x] At 360 × 780 and text 1.0: no horizontal scroll, long names end with an ellipsis, no console errors, dark and light render.
 - [x] Each test added fails once when the behaviour it protects is broken (shown in the report, restored).
-- [ ] (eye) On Tarık's phone: logging a 4-food dinner takes one visit to the list; the feedback on + feels immediate; after integration with Task-07, the sheet's Add stays visible with the keyboard open.
+- [x] (eye) On Tarık's phone: logging a 4-food dinner takes one visit to the list; the feedback on + feels immediate; after integration with Task-07, the sheet's Add stays visible with the keyboard open.
 
 ## Out of scope
 - Screen transitions and the keyboard viewport setting (Task-07), Today (Task-09), scanning and new foods, editing entries.
