@@ -37,10 +37,6 @@ and `notes.md` keeps a one-line link.
 - **Read `docs/blueprint.md` before** planning a task, changing a stage, the screen or a number,
   and whenever code seems to contradict a decision.
 - **What:** Tarık's food log PWA replacing MyNetDiary (v1); stock from Coles receipts is v1.1.
-- **Ownership (trial from 2026-11-11, Anthropic's Fable 5.2 guide):** This codebase is yours: what
-  it's for and how it's built are your call, and you'll keep building on it. Where a change meets
-  repeated code, consolidate it instead of adding beside it; a behaviour change nobody asked for is
-  still out. Result is checked after the next wave (`D:/TarikOS/tasks/sahiplik-cumlesi-denemesi.md`).
 - **Code:** `index.html` (shell), `app/` (one script per feature, `registry.js`), `sw.js`, `manifest.json`, `tokens.css`, `fonts/`; `tools/` (PC Python: import, catalogue); `tests/acceptance.py`.
 - **Commands:** serve `python -m http.server 8000` at the root; test `python tests/acceptance.py`.
 - **Gate:** `python tests/acceptance.py` at the root; clean = every check PASS, exit 0.
