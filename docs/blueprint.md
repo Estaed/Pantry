@@ -106,7 +106,8 @@ order on scan: his foods → catalogue → Open Food Facts → typed from the la
 - `doc.catalogue`: `[{ barcode, name, brand?, size?, store: "coles"|"woolworths", per100 }]`,
   written by `tools/catalogue.py --merge` into the data repo's document, read by scan.
 - `window.PantryDrawing(food, size)` (`app/drawings.js`) draws a food; `PantryDrawing.named(key)`.
-- A feature's tests live in its own `tests/test_<feature>.py`, reuse the helpers in
+- Every feature has tests (a deliberate exception to PRINCIPLES #4's "not by default": waves run
+  unattended and the gate is their judge). They live in its own `tests/test_<feature>.py`, reuse the helpers in
   `tests/acceptance.py` (import it, never edit it) and run in the gate. Tests reach their screen by
   route (`location.hash` or `Pantry.go`), not through another feature's DOM; only Today's tests drive
   Today. They may build synthetic entries in code to exercise a rule. Read `window.PantryDrawing` at
