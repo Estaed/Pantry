@@ -32,7 +32,6 @@ and `notes.md` keeps a one-line link.
 - `tasks/`: task files, only when `plan-wave` writes them.
 
 ## Pantry at a glance
-<!-- Written with the Blueprint: what the project is in two or three sentences, and its dates. -->
 
 - **Read `docs/blueprint.md` before** planning a task, changing a stage, the screen or a number,
   and whenever code seems to contradict a decision.
